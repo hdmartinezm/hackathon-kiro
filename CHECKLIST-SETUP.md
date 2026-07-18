@@ -11,6 +11,7 @@
 - [x] Agregar colaboradores (invitaciones enviadas)
       - ajha63 (hernandez.alvaro@gmail.com) - pendiente aceptar
       - izquierdowaws (izquierdowo@gmail.com) - pendiente aceptar
+      - FranciscoJTHG (franthielengaravito@gmail.com) - pendiente aceptar
 - [ ] Verificar que todos pueden clonar
 
 ## Trello
