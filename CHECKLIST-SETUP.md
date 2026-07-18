@@ -4,29 +4,31 @@
 - [x] Inicializar repositorio Git local
 - [x] Crear estructura de carpetas
 - [x] Crear README.md con instrucciones
-- [ ] Crear repo en GitHub (público/privado)
-- [ ] Push inicial a GitHub
-- [ ] Configurar branch protection en `main`
-- [ ] Crear rama `dev`
-- [ ] Agregar colaboradores (4 personas)
+- [x] Crear repo en GitHub (público/privado)
+- [x] Push inicial a GitHub
+- [ ] Configurar branch protection en `main` (requiere GitHub Pro o repo público)
+- [x] Crear rama `dev`
+- [x] Agregar colaboradores (invitaciones enviadas)
+      - ajha63 (hernandez.alvaro@gmail.com) - pendiente aceptar
+      - izquierdowaws (izquierdowo@gmail.com) - pendiente aceptar
 - [ ] Verificar que todos pueden clonar
 
 ## Trello
-- [ ] Crear tablero
-- [ ] Crear listas (Backlog, Sprint, En Curso, Revisión, Done, Bloqueado)
-- [ ] Crear etiquetas de colores
-- [ ] Agregar miembros al tablero
-- [ ] Crear cards iniciales de setup
+- [x] Crear tablero: https://trello.com/b/sSyhs88y/hackathon-kiro
+- [x] Crear listas (Backlog, Sprint, En Curso, Revisión, Done, Bloqueado)
+- [x] Crear etiquetas de colores (Setup, Frontend, Backend, Database, Bug, Blocker, Design)
+- [x] Agregar miembros al tablero
+- [x] Crear cards iniciales de setup
 
 ## Google Drive
-- [ ] Crear carpeta principal
-- [ ] Crear subcarpetas (00-LEER-PRIMERO, 01-Docs, 02-Diseño, etc.)
-- [ ] Configurar permisos de edición
+- [x] Crear carpeta principal: https://drive.google.com/drive/folders/1DkNVXJSykjKp0vQEu7TzQqcRcU9T9c-9
+- [x] Crear subcarpetas (00-LEER-PRIMERO, 01-Docs, 02-Diseño, etc.)
+- [x] Configurar permisos de edición
 - [ ] Subir documento ESTRUCTURA-EQUIPO.md
-- [ ] Compartir link con el equipo
+- [x] Compartir link con el equipo
 
 ## Comunicación
-- [ ] Crear servidor Discord / workspace Slack
+- [ ] Crear servidor Discord / workspace Slack (pendiente)
 - [ ] Crear canales (#general, #dev-frontend, #dev-backend, #bloqueadores)
 - [ ] Invitar a los 4 miembros
 - [ ] Crear grupo WhatsApp backup

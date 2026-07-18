@@ -24,9 +24,9 @@
 
 | Recurso | URL |
 |---------|-----|
-| Repositorio GitHub | `[PENDIENTE]` |
-| Tablero Trello | `[PENDIENTE]` |
-| Google Drive | `[PENDIENTE]` |
+| Repositorio GitHub | https://github.com/hdmartinezm/hackathon-kiro |
+| Tablero Trello | https://trello.com/b/sSyhs88y/hackathon-kiro |
+| Google Drive | https://drive.google.com/drive/folders/1DkNVXJSykjKp0vQEu7TzQqcRcU9T9c-9 |
 | Discord/Slack | `[PENDIENTE]` |
 | AWS Console | https://539562792848.signin.aws.amazon.com/console |
 | Figma (si aplica) | `[PENDIENTE]` |
