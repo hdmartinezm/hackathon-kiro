@@ -17,10 +17,25 @@
 
 | Rol | Nombre | GitHub | Email |
 |-----|--------|--------|-------|
-| Coordinador | | hdmartinezm | |
-| | | ajha63 | hernandez.alvaro@gmail.com |
-| | | izquierdowaws | izquierdowo@gmail.com |
-| | | FranciscoJTHG | franthielengaravito@gmail.com |
+| Coordinador + Backend | Hector | hdmartinezm | |
+| Diseño + Frontend | Alvaro | ajha63 | hernandez.alvaro@gmail.com |
+| Fullstack | William | izquierdowaws | izquierdowo@gmail.com |
+| Frontend | Francisco | FranciscoJTHG | franthielengaravito@gmail.com |
+
+### Responsabilidades
+
+| Tarea | Hector | Alvaro | William | Francisco |
+|-------|:------:|:------:|:-------:|:---------:|
+| Coordinar equipo / Trello | **Owner** | | | |
+| API / Endpoints | **Owner** | | Ayuda | |
+| Base de datos | **Owner** | | Ayuda | |
+| Deploy AWS | **Owner** | | Ayuda | |
+| Diseño / Mockups | | **Owner** | | |
+| Assets (logos, iconos) | | **Owner** | | |
+| Componentes React | | Ayuda | Ayuda | **Owner** |
+| Estilos / CSS | | **Owner** | | Ayuda |
+| Integración API-Frontend | | | **Owner** | Ayuda |
+| Demo / Pitch | **Owner** | Ayuda | | |
 
 ---
 

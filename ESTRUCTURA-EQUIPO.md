@@ -87,12 +87,12 @@
 
 ### Contactos
 
-| Rol | Nombre | GitHub | Teléfono |
-|-----|--------|--------|----------|
-| Coordinador | | | |
-| Frontend | | | |
-| Backend | | | |
-| Diseño | | | |
+| Rol | Nombre | GitHub | Email |
+|-----|--------|--------|-------|
+| Coordinador + Backend | Hector | hdmartinezm | |
+| Diseño + Frontend | Alvaro | ajha63 | hernandez.alvaro@gmail.com |
+| Fullstack | William | izquierdowaws | izquierdowo@gmail.com |
+| Frontend | Francisco | FranciscoJTHG | franthielengaravito@gmail.com |
 
 ---
 
