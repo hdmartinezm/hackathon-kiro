@@ -58,7 +58,8 @@ App móvil que:
 ### AWS Services
 | Servicio | Uso |
 |----------|-----|
-| **Bedrock** | Claude 3.5 Sonnet Vision — análisis multimodal |
+| **Bedrock** | Claude Sonnet 4.5 Vision (`us.anthropic.claude-sonnet-4-5-20250929-v1:0`) — análisis de imagen |
+| **Bedrock** | Amazon Nova Pro (`amazon.nova-pro-v1:0`) — análisis de video (opcional) |
 | **Lambda** | Ejecución del backend FastAPI |
 | **API Gateway** | Endpoint HTTPS público |
 | **S3** | Almacenamiento de fotos/audios (pre-signed URLs) |

@@ -13,7 +13,8 @@
 - Región AWS: `us-east-1` (todos los servicios)
 - Python: 3.11+
 - Flutter: 3.x estable
-- Bedrock model: `anthropic.claude-3-5-sonnet-20241022-v2:0`
+- Bedrock model (imagen): `us.anthropic.claude-sonnet-4-5-20250929-v1:0`
+- Bedrock model (video): `amazon.nova-pro-v1:0` (opcional)
 - Todas las respuestas incluyen disclaimer médico
 - Pre-signed URLs con expiración de 15 minutos
 - Audio es stretch goal, no bloquea MVP
@@ -278,7 +279,7 @@ class BabyHealthStack(Stack):
             environment={
                 "BUCKET_NAME": media_bucket.bucket_name,
                 "TABLE_NAME": sessions_table.table_name,
-                "BEDROCK_MODEL_ID": "anthropic.claude-3-5-sonnet-20241022-v2:0",
+                "BEDROCK_MODEL_ID": "us.anthropic.claude-sonnet-4-5-20250929-v1:0",
             },
         )
 
@@ -392,7 +393,7 @@ class Settings:
     BUCKET_NAME: str = os.environ.get("BUCKET_NAME", "babyhealth-media-local")
     TABLE_NAME: str = os.environ.get("TABLE_NAME", "babyhealth-sessions")
     BEDROCK_MODEL_ID: str = os.environ.get(
-        "BEDROCK_MODEL_ID", "anthropic.claude-3-5-sonnet-20241022-v2:0"
+        "BEDROCK_MODEL_ID", "us.anthropic.claude-sonnet-4-5-20250929-v1:0"
     )
     AWS_REGION: str = os.environ.get("AWS_REGION", "us-east-1")
 

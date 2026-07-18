@@ -59,12 +59,47 @@ App móvil (Flutter) que permite a padres primerizos obtener orientación sobre 
 
 | Servicio | Uso |
 |----------|-----|
-| **Bedrock** | Claude 3.5 Sonnet Vision - análisis de imagen |
+| **Bedrock** | Análisis multimodal (ver modelos abajo) |
 | **Lambda** | Backend FastAPI con mangum |
 | **API Gateway** | Endpoint HTTPS público |
-| **S3** | Almacenamiento de imágenes (pre-signed URLs) |
+| **S3** | Almacenamiento de imágenes/videos (pre-signed URLs) |
 | **DynamoDB** | Sesiones y resultados |
 | **CloudWatch** | Logs y monitoreo |
+
+### Modelos de Bedrock Disponibles
+
+| Modelo | ID | Capacidades | Uso recomendado |
+|--------|-----|-------------|-----------------|
+| **Claude Sonnet 4.5** | `us.anthropic.claude-sonnet-4-5-20250929-v1:0` | Texto, Imagen | Análisis detallado de fotos |
+| **Claude Haiku 4.5** | `us.anthropic.claude-haiku-4-5-20251001-v1:0` | Texto, Imagen | Análisis rápido (menor costo) |
+| **Amazon Nova Pro** | `amazon.nova-pro-v1:0` | Texto, Imagen, **Video** | Análisis de video del bebé |
+
+#### Capacidades por modalidad
+
+| Modalidad | Modelo recomendado | Estado |
+|-----------|-------------------|--------|
+| **Imagen** | Claude Sonnet 4.5 | ✅ Verificado y funcionando |
+| **Video** | Amazon Nova Pro | ✅ Disponible |
+| **Audio** | N/A | ⚠️ No hay soporte directo |
+
+#### Solución para Audio (stretch goal)
+
+El audio del llanto se puede analizar de dos formas:
+1. **Espectrograma:** Convertir audio a imagen con `librosa` → Analizar con Vision
+2. **Omitir en MVP:** Enfocarse en análisis de imagen (recomendado)
+
+```python
+# Ejemplo: Convertir audio a espectrograma
+import librosa
+import librosa.display
+import matplotlib.pyplot as plt
+
+y, sr = librosa.load('llanto.wav')
+S = librosa.feature.melspectrogram(y=y, sr=sr)
+librosa.display.specshow(librosa.power_to_db(S, ref=np.max))
+plt.savefig('espectrograma.png')
+# Luego analizar espectrograma.png con Vision
+```
 
 ---
 
@@ -310,6 +345,26 @@ cd flutter_app && flutter run
 
 # Logs Lambda
 aws logs tail /aws/lambda/BabyHealthStack-ApiFunction --follow --profile Sandbox-Hackathon
+
+# Probar Bedrock (imagen)
+aws bedrock-runtime invoke-model \
+  --model-id us.anthropic.claude-sonnet-4-5-20250929-v1:0 \
+  --region us-east-1 \
+  --profile Sandbox-Hackathon \
+  --content-type application/json \
+  --accept application/json \
+  --body "$(echo '{"anthropic_version":"bedrock-2023-05-31","max_tokens":100,"messages":[{"role":"user","content":"Hola"}]}' | base64)" \
+  /tmp/test.json && cat /tmp/test.json
+
+# Probar Amazon Nova Pro (video)
+aws bedrock-runtime invoke-model \
+  --model-id amazon.nova-pro-v1:0 \
+  --region us-east-1 \
+  --profile Sandbox-Hackathon \
+  --content-type application/json \
+  --accept application/json \
+  --body "$(echo '{"messages":[{"role":"user","content":[{"text":"Hola"}]}],"inferenceConfig":{"maxTokens":100}}' | base64)" \
+  /tmp/nova-test.json && cat /tmp/nova-test.json
 ```
 
 ---
