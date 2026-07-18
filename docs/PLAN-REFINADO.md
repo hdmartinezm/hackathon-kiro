@@ -9,51 +9,91 @@
 
 ## Resumen del Proyecto
 
-App móvil (Flutter) que permite a padres primerizos obtener orientación sobre el estado de salud de su bebé mediante análisis de imagen usando Claude Vision en Amazon Bedrock.
+App móvil (Flutter) que permite a padres primerizos obtener orientación sobre el estado de salud de su bebé mediante **análisis híbrido multimodal**:
 
-**Flujo:**
+| Modalidad | iOS | Android | Procesamiento |
+|-----------|-----|---------|---------------|
+| **Imagen** | Claude Vision (Bedrock) | Claude Vision (Bedrock) | Cloud |
+| **Audio** | DeepInfant V2 (CoreML) | YAMNet (TFLite) | On-Device |
+
+**Flujo Principal (Imagen):**
 1. Usuario toma foto del bebé
 2. App sube imagen a S3
 3. Lambda invoca Bedrock Vision para análisis
 4. Usuario recibe observaciones y recomendaciones
 
+**Flujo Audio iOS (DeepInfant):**
+1. Usuario graba 7 segundos de llanto
+2. App procesa con DeepInfant CoreML
+3. Clasificación en 9 categorías específicas
+4. Resultado inmediato + recomendación
+
+**Flujo Audio Android (YAMNet + Bedrock):**
+1. Usuario graba 7 segundos de llanto
+2. YAMNet detecta si es llanto de bebé (clase 20)
+3. Si es llanto → genera espectrograma → Bedrock analiza
+4. Resultado con recomendación contextual
+
 ---
 
-## Arquitectura AWS
+## Arquitectura Híbrida
 
 ```
-┌─────────────────┐
-│   Flutter App   │
-│  (iOS/Android)  │
-└────────┬────────┘
-         │ 1. Captura imagen
-         │ 2. Upload a S3 (pre-signed URL)
-         │ 3. POST /analyze
-         ▼
-┌─────────────────┐
-│  API Gateway    │
-│   (HTTPS)       │
-└────────┬────────┘
-         │
-         ▼
-┌─────────────────┐
-│     Lambda      │
-│ (FastAPI+mangum)│
-└────────┬────────┘
-         │
-    ┌────┴────┐
-    ▼         ▼
-┌───────┐ ┌────────┐
-│  S3   │ │Bedrock │
-│(media)│ │(Vision)│
-└───────┘ └────────┘
-         │
-         ▼
-┌─────────────────┐
-│   DynamoDB      │
-│  (resultados)   │
-└─────────────────┘
+┌─────────────────────────────────────────────────────────────────────────┐
+│                        Flutter App (iOS/Android)                         │
+├─────────────────────────┬───────────────────────────────────────────────┤
+│     IMAGEN (Cloud)      │              AUDIO (On-Device)                │
+│     Ambas plataformas   │                                               │
+│                         │    ┌─────────────┐      ┌─────────────┐       │
+│  1. Captura foto        │    │    iOS      │      │   Android   │       │
+│  2. Upload a S3         │    ├─────────────┤      ├─────────────┤       │
+│  3. POST /analyze       │    │ DeepInfant  │      │   YAMNet    │       │
+│         │               │    │ CoreML V2   │      │   TFLite    │       │
+│         ▼               │    │ (89% acc)   │      │ (93% det)   │       │
+│  ┌─────────────┐        │    │             │      │      │      │       │
+│  │ API Gateway │        │    │ 9 categorías│      │      ▼      │       │
+│  └──────┬──────┘        │    │ específicas │      │ ¿Es llanto? │       │
+│         │               │    │      │      │      │   Sí → S3   │       │
+│         ▼               │    │      ▼      │      │      ↓      │       │
+│  ┌─────────────┐        │    │  Resultado  │      │  Bedrock    │       │
+│  │   Lambda    │        │    │  inmediato  │      │  (detalle)  │       │
+│  │  (FastAPI)  │        │    └─────────────┘      └─────────────┘       │
+│  └──────┬──────┘        │                                               │
+│         │               │                                               │
+│    ┌────┴────┐          │                                               │
+│    ▼         ▼          │                                               │
+│ ┌─────┐ ┌────────┐      │                                               │
+│ │ S3  │ │Bedrock │      │                                               │
+│ └─────┘ │ Vision │      │                                               │
+│         └────────┘      │                                               │
+│         │               │                                               │
+│         ▼               │                                               │
+│  ┌─────────────┐        │                                               │
+│  │  DynamoDB   │        │                                               │
+│  └─────────────┘        │                                               │
+└─────────────────────────┴───────────────────────────────────────────────┘
 ```
+
+### Comparativa de Modelos de Audio
+
+| Aspecto | iOS (DeepInfant) | Android (YAMNet) |
+|---------|------------------|------------------|
+| **Modelo** | DeepInfant V2 CoreML | YAMNet TFLite |
+| **Tamaño** | ~50 MB | 3.7 MB |
+| **Precisión** | 89% (9 clases) | 93% (detección) |
+| **Offline** | ✅ Completo | ✅ Detección |
+| **Categorías** | 9 específicas | Detecta → Bedrock |
+| **Latencia** | < 1 segundo | < 1s + 2-3s cloud |
+
+### Ventajas del Enfoque Híbrido
+
+| Aspecto | Imagen (Cloud) | Audio iOS | Audio Android |
+|---------|----------------|-----------|---------------|
+| **Latencia** | 2-5 seg | < 1 seg | 1-4 seg |
+| **Offline** | ❌ | ✅ | Parcial |
+| **Privacidad** | AWS | Local | Local + Cloud |
+| **Costo** | Bedrock | Gratis | Bedrock |
+| **Detalle** | Alto | Alto | Alto |
 
 ### Servicios AWS
 
@@ -76,30 +116,152 @@ App móvil (Flutter) que permite a padres primerizos obtener orientación sobre 
 
 #### Capacidades por modalidad
 
-| Modalidad | Modelo recomendado | Estado |
-|-----------|-------------------|--------|
-| **Imagen** | Claude Sonnet 4.5 | ✅ Verificado y funcionando |
-| **Video** | Amazon Nova Pro | ✅ Disponible |
-| **Audio** | N/A | ⚠️ No hay soporte directo |
+| Modalidad | Plataforma | Solución | Estado |
+|-----------|------------|----------|--------|
+| **Imagen** | iOS/Android | Claude Sonnet 4.5 (Bedrock) | ✅ Verificado |
+| **Video** | iOS/Android | Amazon Nova Pro (Bedrock) | ✅ Disponible |
+| **Audio** | iOS | DeepInfant V2 (CoreML) | ✅ Disponible |
+| **Audio** | Android | YAMNet (TFLite) + Bedrock | ✅ Disponible |
 
-#### Solución para Audio (stretch goal)
+#### Datasets de Entrenamiento (Referencia)
 
-El audio del llanto se puede analizar de dos formas:
-1. **Espectrograma:** Convertir audio a imagen con `librosa` → Analizar con Vision
-2. **Omitir en MVP:** Enfocarse en análisis de imagen (recomendado)
+| Dataset | Samples | Clases | Uso |
+|---------|---------|--------|-----|
+| [Donate-a-Cry](https://github.com/gveres/donateacry-corpus) | 457 | 5 | Fine-tuning futuro |
+| [Kaggle Features](https://www.kaggle.com/datasets/bhoomikavalani/donateacrycorpusfeaturesdataset) | 457 | 5 | MFCCs extraídos |
 
-```python
-# Ejemplo: Convertir audio a espectrograma
-import librosa
-import librosa.display
-import matplotlib.pyplot as plt
+---
 
-y, sr = librosa.load('llanto.wav')
-S = librosa.feature.melspectrogram(y=y, sr=sr)
-librosa.display.specshow(librosa.power_to_db(S, ref=np.max))
-plt.savefig('espectrograma.png')
-# Luego analizar espectrograma.png con Vision
+## DeepInfant - Análisis de Audio On-Device
+
+### Modelo
+- **Nombre:** DeepInfant V2
+- **Precisión:** 89%
+- **Formato:** CoreML (.mlmodel)
+- **Fuente:** https://github.com/skytells-research/DeepInfant
+- **Licencia:** Apache 2.0 ✓
+
+### Especificaciones de Audio
+| Parámetro | Valor |
+|-----------|-------|
+| Sample rate | 16,000 Hz |
+| Duración | 7 segundos |
+| Formato | WAV, CAF, 3GP |
+| Procesamiento | Mel-spectrogram (80 mels) |
+
+### Categorías de Llanto (9 clases)
+
+| Código | Categoría | Patrón | Recomendación |
+|--------|-----------|--------|---------------|
+| `hu` | Hambre | Rítmico, repetitivo | Ofrecer alimentación |
+| `bu` | Eructo | Corto, entrecortado | Ayudar a eructar |
+| `bp` | Dolor abdominal | Agudo, intenso | Masaje suave, consultar médico |
+| `dc` | Incomodidad | Intermitente | Revisar pañal, posición |
+| `ch` | Temperatura | Quejumbroso | Verificar ropa/ambiente |
+| `ti` | Cansancio | Gruñidos | Ambiente tranquilo, dormir |
+| `sc` | Miedo | Agudo, repentino | Contacto, consuelo |
+| `lo` | Soledad | Baja intensidad | Contacto físico |
+| `uk` | Desconocido | Variable | Observar otros signos |
+
+### Integración en Flutter (iOS)
+
 ```
+flutter_app/
+├── ios/
+│   └── Runner/
+│       └── DeepInfant_V2.mlmodel    # Modelo CoreML
+├── lib/
+│   └── services/
+│       └── cry_analyzer_service.dart # Platform channel
+```
+
+### Platform Channel (Dart → Swift)
+
+```dart
+// lib/services/cry_analyzer_service.dart
+import 'package:flutter/services.dart';
+
+class CryAnalyzerService {
+  static const _channel = MethodChannel('com.babyhealth/cry_analyzer');
+
+  /// Analiza audio de llanto y retorna clasificación
+  static Future<CryAnalysisResult> analyzeAudio(String audioPath) async {
+    final result = await _channel.invokeMethod('analyzeCry', {
+      'audioPath': audioPath,
+    });
+    return CryAnalysisResult.fromJson(result);
+  }
+}
+
+class CryAnalysisResult {
+  final String category;      // hu, bu, bp, dc, etc.
+  final String label;         // Hambre, Eructo, etc.
+  final double confidence;    // 0.0 - 1.0
+  final String recommendation;
+
+  // ... constructor y fromJson
+}
+```
+
+### Código Swift (iOS Native)
+
+```swift
+// ios/Runner/CryAnalyzerPlugin.swift
+import Flutter
+import CoreML
+import AVFoundation
+
+class CryAnalyzerPlugin: NSObject, FlutterPlugin {
+    private var model: DeepInfant_V2?
+
+    static func register(with registrar: FlutterPluginRegistrar) {
+        let channel = FlutterMethodChannel(
+            name: "com.babyhealth/cry_analyzer",
+            binaryMessenger: registrar.messenger()
+        )
+        let instance = CryAnalyzerPlugin()
+        registrar.addMethodCallDelegate(instance, channel: channel)
+    }
+
+    override init() {
+        super.init()
+        model = try? DeepInfant_V2(configuration: MLModelConfiguration())
+    }
+
+    func handle(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
+        if call.method == "analyzeCry" {
+            guard let args = call.arguments as? [String: Any],
+                  let audioPath = args["audioPath"] as? String else {
+                result(FlutterError(code: "INVALID_ARGS", message: nil, details: nil))
+                return
+            }
+
+            analyzeCry(audioPath: audioPath, completion: result)
+        }
+    }
+
+    private func analyzeCry(audioPath: String, completion: @escaping FlutterResult) {
+        // 1. Cargar audio
+        // 2. Convertir a mel-spectrogram
+        // 3. Ejecutar modelo
+        // 4. Retornar resultado
+
+        // TODO: Implementar procesamiento de audio con librosa-like
+        // Por ahora, usar Audio ToolBox de iOS
+    }
+}
+```
+
+### Alternativa: Android (TensorFlow Lite)
+
+Para Android, el modelo CoreML debe convertirse a TensorFlow Lite:
+
+```bash
+# Conversión (pre-hackathon si hay tiempo)
+coremltools convert DeepInfant_V2.mlmodel --target tensorflow
+```
+
+**Nota:** Para el hackathon, priorizar iOS. Android puede usar fallback a Bedrock.
 
 ---
 
@@ -242,18 +404,20 @@ plt.savefig('espectrograma.png')
 
 ---
 
-### Día 5 (Jueves) - Polish
+### Día 5 (Jueves) - Polish + Audio
 | Quién | Tarea |
 |-------|-------|
 | **Hector** | Grabar video de respaldo |
+| **Hector** | Integrar DeepInfant CoreML (iOS) |
 | **Alvaro** | Pulir UI con Francisco |
-| **William** | Testing edge cases |
-| **Francisco** | Animaciones y transiciones |
+| **William** | Testing edge cases + AudioScreen |
+| **Francisco** | AudioScreen UI + Animaciones |
 
 **Entregables:**
 - [ ] UI pulida
 - [ ] Video de demo grabado
 - [ ] Casos edge manejados
+- [ ] Análisis de audio funcionando (iOS)
 
 ---
 
@@ -309,24 +473,42 @@ plt.savefig('espectrograma.png')
 
 ```
 hackathon-kiro/
-├── flutter_app/           # App Flutter
+├── flutter_app/              # App Flutter
+│   ├── ios/
+│   │   └── Runner/
+│   │       ├── DeepInfant_V2.mlmodel  # Modelo CoreML para audio
+│   │       └── CryAnalyzerPlugin.swift # Plugin nativo
 │   ├── lib/
-│   │   ├── config/        # Constantes, configuración
-│   │   ├── screens/       # Pantallas (home, camera, result)
-│   │   ├── services/      # API, S3
-│   │   ├── models/        # Modelos de datos
-│   │   └── widgets/       # Componentes reutilizables
+│   │   ├── config/           # Constantes, configuración
+│   │   ├── screens/
+│   │   │   ├── home_screen.dart
+│   │   │   ├── camera_screen.dart
+│   │   │   ├── audio_screen.dart      # Nueva pantalla de audio
+│   │   │   └── result_screen.dart
+│   │   ├── services/
+│   │   │   ├── api_service.dart
+│   │   │   ├── s3_service.dart
+│   │   │   └── cry_analyzer_service.dart  # Nuevo servicio audio
+│   │   ├── models/
+│   │   │   ├── analysis_result.dart
+│   │   │   └── cry_analysis_result.dart   # Nuevo modelo
+│   │   └── widgets/
 │   └── pubspec.yaml
-├── backend/               # Python + FastAPI
+├── backend/                  # Python + FastAPI
 │   ├── app/
-│   │   ├── routes/        # Endpoints
-│   │   ├── services/      # S3, Bedrock, DynamoDB
-│   │   └── models/        # Schemas Pydantic
+│   │   ├── routes/
+│   │   ├── services/
+│   │   │   ├── s3_service.py
+│   │   │   ├── bedrock_service.py
+│   │   │   └── dynamodb_service.py
+│   │   └── models/
 │   └── requirements.txt
-├── infra/                 # AWS CDK
+├── infra/                    # AWS CDK
 │   ├── stacks/
 │   └── app.py
-└── docs/                  # Documentación
+├── models/                   # Modelos ML (nuevo)
+│   └── DeepInfant_V2.mlmodel # Descargar de GitHub
+└── docs/
 ```
 
 ---
@@ -378,3 +560,22 @@ aws bedrock-runtime invoke-model \
 | GitHub | https://github.com/hdmartinezm/hackathon-kiro |
 | Trello | https://trello.com/b/sSyhs88y/hackathon-kiro |
 | Drive | https://drive.google.com/drive/folders/1DkNVXJSykjKp0vQEu7TzQqcRcU9T9c-9 |
+| **DeepInfant** | https://github.com/skytells-research/DeepInfant |
+| DeepInfant Models | https://github.com/skytells-research/DeepInfant/tree/main/Models |
+
+---
+
+## Comandos para DeepInfant
+
+```bash
+# Clonar repo DeepInfant para obtener modelo
+git clone https://github.com/skytells-research/DeepInfant.git /tmp/deepinfant
+
+# Copiar modelo CoreML al proyecto Flutter
+cp /tmp/deepinfant/Models/DeepInfant_V2.mlmodel flutter_app/ios/Runner/
+
+# Verificar que el modelo está incluido en Xcode
+# 1. Abrir flutter_app/ios/Runner.xcworkspace
+# 2. Drag & drop DeepInfant_V2.mlmodel al proyecto
+# 3. Asegurar que está en "Copy Bundle Resources"
+```
