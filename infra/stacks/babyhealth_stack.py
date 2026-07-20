@@ -164,14 +164,14 @@ class BabyHealthStack(Stack):
             "BabyHealthHttpApi",
             api_name="babyhealth-api",
             cors_preflight=apigwv2.CorsPreflightOptions(
-                allow_origins=["*"],
+                allow_origins=[],  # Empty = reject browser requests
                 allow_methods=[
                     apigwv2.CorsHttpMethod.GET,
                     apigwv2.CorsHttpMethod.POST,
                     apigwv2.CorsHttpMethod.PUT,
                     apigwv2.CorsHttpMethod.OPTIONS,
                 ],
-                allow_headers=["*"],
+                allow_headers=["Authorization", "Content-Type"],
                 max_age=Duration.hours(1),
             ),
         )
@@ -250,4 +250,25 @@ class BabyHealthStack(Stack):
             "LambdaFunctionName",
             value=self.lambda_function.function_name,
             description="Lambda function name",
+        )
+
+        CfnOutput(
+            self,
+            "UserPoolId",
+            value=self.user_pool.user_pool_id,
+            description="Cognito User Pool ID",
+        )
+
+        CfnOutput(
+            self,
+            "UserPoolClientId",
+            value=self.user_pool_client.user_pool_client_id,
+            description="Cognito User Pool Client ID",
+        )
+
+        CfnOutput(
+            self,
+            "CognitoRegion",
+            value=self.region,
+            description="AWS Region for Cognito",
         )
