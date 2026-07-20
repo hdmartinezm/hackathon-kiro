@@ -182,17 +182,34 @@ class BabyHealthStack(Stack):
             self.lambda_function,
         )
 
+        # ─── Cognito Authorizer ───────────────────────────────────────────
+        self.authorizer = apigwv2_authorizers.HttpUserPoolAuthorizer(
+            "BabyHealthCognitoAuthorizer",
+            self.user_pool,
+            user_pool_clients=[self.user_pool_client],
+            identity_source=["$request.header.Authorization"],
+        )
+
+        # ─── Public Routes (no auth) ──────────────────────────────────────
         self.api.add_routes(
-            path="/{proxy+}",
-            methods=[apigwv2.HttpMethod.ANY],
+            path="/health",
+            methods=[apigwv2.HttpMethod.GET],
             integration=lambda_integration,
         )
 
-        # Root route for health check
+        # ─── Protected Routes (require JWT) ───────────────────────────────
         self.api.add_routes(
-            path="/",
+            path="/upload-url",
             methods=[apigwv2.HttpMethod.GET],
             integration=lambda_integration,
+            authorizer=self.authorizer,
+        )
+
+        self.api.add_routes(
+            path="/analyze",
+            methods=[apigwv2.HttpMethod.POST],
+            integration=lambda_integration,
+            authorizer=self.authorizer,
         )
 
         # Configure throttling on the default stage
