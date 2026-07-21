@@ -1,4 +1,4 @@
-# Estructura de Gestión - Hackathon 2024
+# Estructura de Gestión - Hackathon 2026
 
 > **Tiempo de setup:** ~2 horas
 > **Equipo:** 4 personas
