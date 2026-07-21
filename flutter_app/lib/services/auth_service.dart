@@ -174,9 +174,7 @@ class AuthService {
       final cognitoSession = session as CognitoAuthSession;
       final tokens = cognitoSession.userPoolTokensResult;
 
-      if (tokens.value == null) return null;
-
-      return tokens.value!.accessToken.raw;
+      return tokens.value.accessToken.raw;
     } catch (_) {
       return null;
     }
