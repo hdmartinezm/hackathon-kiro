@@ -1,0 +1,113 @@
+<template>
+  <div data-hf-id="hf-wj3q" data-composition-id="outro" data-width="1920" data-height="1080" data-duration="10" style="position: absolute; inset: 0;">
+    <style>
+      [data-composition-id="outro"] {
+        background: radial-gradient(ellipse at 50% 50%, #1a1040 0%, #0a0a1a 70%);
+        overflow: hidden;
+        font-family: "Inter", sans-serif;
+      }
+      [data-composition-id="outro"] .outro-content {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 32px;
+      }
+      [data-composition-id="outro"] .outro-logo {
+        width: 100px;
+        height: 100px;
+        border-radius: 24px;
+        background: linear-gradient(135deg, #6C63FF, #4ECDC4);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 20px 60px rgba(108, 99, 255, 0.4);
+      }
+      [data-composition-id="outro"] .outro-logo-icon {
+        font-size: 48px;
+        color: #fff;
+      }
+      [data-composition-id="outro"] .outro-name {
+        font-size: 72px;
+        font-weight: 800;
+        color: #fff;
+        letter-spacing: -1px;
+      }
+      [data-composition-id="outro"] .outro-cta {
+        font-size: 28px;
+        color: rgba(255, 255, 255, 0.7);
+        margin-top: 8px;
+      }
+      [data-composition-id="outro"] .outro-button {
+        margin-top: 24px;
+        padding: 18px 48px;
+        background: linear-gradient(135deg, #6C63FF, #4ECDC4);
+        border-radius: 60px;
+        font-size: 22px;
+        font-weight: 700;
+        color: #fff;
+        box-shadow: 0 8px 32px rgba(108, 99, 255, 0.4);
+      }
+      [data-composition-id="outro"] .outro-stores {
+        display: flex;
+        gap: 24px;
+        margin-top: 16px;
+        font-size: 16px;
+        color: rgba(255, 255, 255, 0.4);
+      }
+      [data-composition-id="outro"] .outro-orb {
+        position: absolute;
+        width: 500px;
+        height: 500px;
+        border-radius: 50%;
+        background: radial-gradient(circle, rgba(108, 99, 255, 0.2) 0%, transparent 70%);
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+      }
+    </style>
+
+    <div data-hf-id="hf-p7ed" class="outro-content">
+      <div data-hf-id="hf-em9k" class="outro-orb" id="outro-orb"></div>
+      <div data-hf-id="hf-4xbq" class="outro-logo" id="outro-logo">
+        <span data-hf-id="hf-56ir" class="outro-logo-icon">♡</span>
+      </div>
+      <div data-hf-id="hf-ews8" class="outro-name" id="outro-name">BabyHealth</div>
+      <div data-hf-id="hf-m0nw" class="outro-cta" id="outro-cta">Start your free trial today</div>
+      <div data-hf-id="hf-f4ie" class="outro-button" id="outro-button">Download Now</div>
+      <div data-hf-id="hf-gq0a" class="outro-stores" id="outro-stores">
+        <span data-hf-id="hf-94li">Available on iOS and Android</span>
+      </div>
+    </div>
+
+    <script>
+      window.__timelines = window.__timelines || {};
+      const tl = gsap.timeline({ paused: true });
+
+      // Orb pulse
+      tl.fromTo("#outro-orb", { scale: 0.5, opacity: 0 }, { scale: 1.2, opacity: 1, duration: 2, ease: "power2.out" }, 0);
+
+      // Logo
+      tl.fromTo("#outro-logo", { scale: 0, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.8, ease: "back.out(1.7)" }, 0.5);
+
+      // Name
+      tl.fromTo("#outro-name", { y: 30, opacity: 0 }, { y: 0, opacity: 1, duration: 0.8, ease: "power3.out" }, 1.2);
+
+      // CTA
+      tl.fromTo("#outro-cta", { y: 20, opacity: 0 }, { y: 0, opacity: 1, duration: 0.6, ease: "power3.out" }, 2);
+
+      // Button
+      tl.fromTo("#outro-button", { y: 20, opacity: 0, scale: 0.9 }, { y: 0, opacity: 1, scale: 1, duration: 0.7, ease: "back.out(1.4)" }, 2.5);
+
+      // Stores
+      tl.fromTo("#outro-stores", { opacity: 0 }, { opacity: 1, duration: 0.6, ease: "power2.out" }, 3.2);
+
+      // Gentle pulse on button
+      tl.to("#outro-button", { scale: 1.05, duration: 1.5, ease: "power1.inOut", yoyo: true, repeat: 2 }, 4);
+
+      window.__timelines["outro"] = tl;
+    </script>
+  </div>
+</template>

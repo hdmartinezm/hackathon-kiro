@@ -1,8 +1,9 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
   <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=1920, height=1080" />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=1920, height=1080">
+    <title>BabyHealth — Your Baby's Wellness, Simplified</title>
     <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
     <style>
       * {
@@ -16,44 +17,56 @@
         width: 1920px;
         height: 1080px;
         overflow: hidden;
-        background: #000;
+        background: #0a0a1a;
       }
       body {
         font-family: "Inter", sans-serif;
       }
-      code,
-      pre,
-      .monospace {
-        font-family: "JetBrains Mono", monospace;
+      #root {
+        position: relative;
+        width: 1920px;
+        height: 1080px;
+        overflow: hidden;
+      }
+      [data-composition-id="root"] > div[data-composition-src] {
+        position: absolute;
+        inset: 0;
       }
     </style>
   </head>
   <body>
-    <div
-      id="root"
-      data-composition-id="main"
-      data-start="0"
-      data-duration="10"
-      data-width="1920"
-      data-height="1080"
-    >
-      
-      
+    <div data-hf-id="hf-4dti" id="root" data-composition-id="root" data-start="0" data-width="1920" data-height="1080" data-duration="300">
+      <!-- Scene 1: Title / Hook -->
+      <div data-hf-id="hf-wbdi" id="el-title" data-composition-id="title" data-composition-src="compositions/title.html" data-start="0" data-duration="15" data-track-index="1"></div>
 
-      <!--
-        Add your clips here. Example:
-        <div id="title" class="clip" data-start="0" data-duration="5" data-track-index="1"
-             style="font-size: 64px; color: #fff; padding: 40px">
-          Hello World
-        </div>
-      -->
+      <!-- Scene 2: Problem Statement -->
+      <div data-hf-id="hf-66xf" id="el-problem" data-composition-id="problem" data-composition-src="compositions/problem.html" data-start="15" data-duration="40" data-track-index="1"></div>
+
+      <!-- Scene 3: App Overview -->
+      <div data-hf-id="hf-vwyx" id="el-overview" data-composition-id="overview" data-composition-src="compositions/overview.html" data-start="55" data-duration="55" data-track-index="1"></div>
+
+      <!-- Scene 4: Feature — Growth Tracking -->
+      <div data-hf-id="hf-ol6o" id="el-growth" data-composition-id="growth" data-composition-src="compositions/growth.html" data-start="110" data-duration="50" data-track-index="1"></div>
+
+      <!-- Scene 5: Feature — Health Milestones -->
+      <div data-hf-id="hf-73at" id="el-milestones" data-composition-id="milestones" data-composition-src="compositions/milestones.html" data-start="160" data-duration="50" data-track-index="1"></div>
+
+      <!-- Scene 6: Feature — Doctor Connect -->
+      <div data-hf-id="hf-xdiy" id="el-doctor" data-composition-id="doctor" data-composition-src="compositions/doctor.html" data-start="210" data-duration="40" data-track-index="1"></div>
+
+      <!-- Scene 7: Feature — Smart Alerts -->
+      <div data-hf-id="hf-trsb" id="el-alerts" data-composition-id="alerts" data-composition-src="compositions/alerts.html" data-start="250" data-duration="25" data-track-index="1"></div>
+
+      <!-- Scene 8: Social Proof -->
+      <div data-hf-id="hf-ftnj" id="el-social" data-composition-id="social" data-composition-src="compositions/social.html" data-start="275" data-duration="15" data-track-index="1"></div>
+
+      <!-- Scene 9: CTA / Outro -->
+      <div data-hf-id="hf-hlcf" id="el-outro" data-composition-id="outro" data-composition-src="compositions/outro.html" data-start="290" data-duration="10" data-track-index="1"></div>
     </div>
 
     <script>
       window.__timelines = window.__timelines || {};
-      const tl = gsap.timeline({ paused: true });
-      // Example: tl.from("#title", { opacity: 0, y: -50, duration: 1 }, 0);
-      window.__timelines["main"] = tl;
+      window.__timelines["root"] = gsap.timeline({ paused: true });
     </script>
   </body>
 </html>

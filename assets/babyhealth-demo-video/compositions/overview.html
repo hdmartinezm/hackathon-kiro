@@ -1,0 +1,232 @@
+<template>
+  <div data-hf-id="hf-9xbj" data-composition-id="overview" data-width="1920" data-height="1080" data-duration="55" style="position: absolute; inset: 0;">
+    <style>
+      [data-composition-id="overview"] {
+        background: linear-gradient(135deg, #0a0a1a 0%, #1a1040 50%, #0a0a1a 100%);
+        overflow: hidden;
+        font-family: "Inter", sans-serif;
+      }
+      [data-composition-id="overview"] .overview-intro {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+      }
+      [data-composition-id="overview"] .overview-intro-text {
+        font-size: 52px;
+        font-weight: 600;
+        color: #fff;
+        text-align: center;
+        line-height: 1.3;
+      }
+      [data-composition-id="overview"] .overview-intro-text .accent {
+        background: linear-gradient(90deg, #6C63FF, #4ECDC4);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+      }
+      [data-composition-id="overview"] .overview-phone {
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        transform: translate(-50%, -50%);
+        width: 380px;
+        height: 780px;
+        background: #1a1a2e;
+        border-radius: 48px;
+        border: 3px solid rgba(108, 99, 255, 0.3);
+        box-shadow: 0 40px 100px rgba(108, 99, 255, 0.2), 0 0 0 1px rgba(255, 255, 255, 0.05);
+        overflow: hidden;
+      }
+      [data-composition-id="overview"] .overview-phone-screen {
+        position: absolute;
+        inset: 12px;
+        border-radius: 38px;
+        background: linear-gradient(180deg, #f8f9ff 0%, #eef0ff 100%);
+        overflow: hidden;
+      }
+      [data-composition-id="overview"] .overview-phone-header {
+        padding: 48px 24px 20px;
+        text-align: center;
+      }
+      [data-composition-id="overview"] .overview-phone-greeting {
+        font-size: 16px;
+        color: #666;
+        margin-bottom: 4px;
+      }
+      [data-composition-id="overview"] .overview-phone-title {
+        font-size: 22px;
+        font-weight: 700;
+        color: #1a1a2e;
+      }
+      [data-composition-id="overview"] .overview-phone-cards {
+        padding: 0 16px;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+      }
+      [data-composition-id="overview"] .overview-phone-card {
+        background: #fff;
+        border-radius: 16px;
+        padding: 16px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+      }
+      [data-composition-id="overview"] .overview-phone-card-icon {
+        width: 44px;
+        height: 44px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 20px;
+      }
+      [data-composition-id="overview"] .overview-phone-card-text {
+        font-size: 14px;
+        font-weight: 600;
+        color: #1a1a2e;
+      }
+      [data-composition-id="overview"] .overview-phone-card-sub {
+        font-size: 12px;
+        color: #767676;
+        margin-top: 2px;
+      }
+      [data-composition-id="overview"] .overview-features-ring {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      [data-composition-id="overview"] .overview-feature-badge {
+        position: absolute;
+        background: rgba(255, 255, 255, 0.06);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 20px;
+        padding: 16px 28px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        backdrop-filter: blur(10px);
+      }
+      [data-composition-id="overview"] .overview-feature-badge-icon {
+        font-size: 28px;
+        color: #fff;
+      }
+      [data-composition-id="overview"] .overview-feature-badge-text {
+        font-size: 20px;
+        font-weight: 600;
+        color: #fff;
+      }
+    </style>
+
+    <!-- Phase 1: Introduction text -->
+    <div data-hf-id="hf-zj9y" class="overview-intro" id="overview-intro">
+      <div data-hf-id="hf-ektv" class="overview-intro-text" id="overview-intro-text">
+        Introducing <span data-hf-id="hf-k6cl" class="accent">BabyHealth</span> —<br data-hf-id="hf-x5px">
+        one app for everything your baby needs
+      </div>
+    </div>
+
+    <!-- Phase 2: Phone mockup with app UI -->
+    <div data-hf-id="hf-4k2a" class="overview-phone" id="overview-phone">
+      <div data-hf-id="hf-eudn" class="overview-phone-screen">
+        <div data-hf-id="hf-t85k" class="overview-phone-header">
+          <div data-hf-id="hf-3asm" class="overview-phone-greeting">Good morning, Sarah</div>
+          <div data-hf-id="hf-s7cx" class="overview-phone-title">Emma's Dashboard</div>
+        </div>
+        <div data-hf-id="hf-r1s4" class="overview-phone-cards">
+          <div data-hf-id="hf-xte6" class="overview-phone-card" id="overview-card1">
+            <div data-hf-id="hf-saj6" class="overview-phone-card-icon" style="background: rgba(108, 99, 255, 0.1);">📈</div>
+            <div data-hf-id="hf-yeow">
+              <div data-hf-id="hf-idqx" class="overview-phone-card-text">Growth Tracking</div>
+              <div data-hf-id="hf-u467" class="overview-phone-card-sub">75th percentile — on track</div>
+            </div>
+          </div>
+          <div data-hf-id="hf-rnod" class="overview-phone-card" id="overview-card2">
+            <div data-hf-id="hf-llit" class="overview-phone-card-icon" style="background: rgba(78, 205, 196, 0.1);">🎯</div>
+            <div data-hf-id="hf-y7yw">
+              <div data-hf-id="hf-mu8s" class="overview-phone-card-text">Milestones</div>
+              <div data-hf-id="hf-9g7z" class="overview-phone-card-sub">2 new milestones this week</div>
+            </div>
+          </div>
+          <div data-hf-id="hf-qw0k" class="overview-phone-card" id="overview-card3">
+            <div data-hf-id="hf-95r4" class="overview-phone-card-icon" style="background: rgba(255, 107, 157, 0.1);">👩‍⚕️</div>
+            <div data-hf-id="hf-x11t">
+              <div data-hf-id="hf-bf2a" class="overview-phone-card-text">Doctor Connect</div>
+              <div data-hf-id="hf-l19b" class="overview-phone-card-sub">Next checkup in 5 days</div>
+            </div>
+          </div>
+          <div data-hf-id="hf-edi3" class="overview-phone-card" id="overview-card4">
+            <div data-hf-id="hf-4izb" class="overview-phone-card-icon" style="background: rgba(255, 193, 7, 0.1);">🔔</div>
+            <div data-hf-id="hf-xfcu">
+              <div data-hf-id="hf-5gj3" class="overview-phone-card-text">Smart Alerts</div>
+              <div data-hf-id="hf-83ts" class="overview-phone-card-sub">Vaccination reminder tomorrow</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Phase 3: Feature badges orbiting -->
+    <div data-hf-id="hf-vmmk" class="overview-features-ring" id="overview-ring">
+      <div data-hf-id="hf-32s8" class="overview-feature-badge" id="overview-badge1" style="top: 180px; left: 180px;">
+        <span data-hf-id="hf-8z3m" class="overview-feature-badge-icon">📈</span>
+        <span data-hf-id="hf-xlmj" class="overview-feature-badge-text">Growth Charts</span>
+      </div>
+      <div data-hf-id="hf-kpnk" class="overview-feature-badge" id="overview-badge2" style="top: 180px; right: 180px;">
+        <span data-hf-id="hf-qtxm" class="overview-feature-badge-icon">🎯</span>
+        <span data-hf-id="hf-a4zi" class="overview-feature-badge-text">Milestones</span>
+      </div>
+      <div data-hf-id="hf-ci4b" class="overview-feature-badge" id="overview-badge3" style="bottom: 220px; left: 180px;">
+        <span data-hf-id="hf-cmrs" class="overview-feature-badge-icon">👩‍⚕️</span>
+        <span data-hf-id="hf-yjuw" class="overview-feature-badge-text">Doctor Connect</span>
+      </div>
+      <div data-hf-id="hf-fi0v" class="overview-feature-badge" id="overview-badge4" style="bottom: 220px; right: 180px;">
+        <span data-hf-id="hf-7je6" class="overview-feature-badge-icon">🔔</span>
+        <span data-hf-id="hf-88hl" class="overview-feature-badge-text">Smart Alerts</span>
+      </div>
+    </div>
+
+    <script>
+      window.__timelines = window.__timelines || {};
+      const tl = gsap.timeline({ paused: true });
+
+      // Phase 1: Intro text
+      tl.fromTo("#overview-intro-text", { y: 40, opacity: 0 }, { y: 0, opacity: 1, duration: 1.2, ease: "power3.out" }, 0.5);
+      tl.to("#overview-intro-text", { opacity: 0, y: -30, duration: 0.8, ease: "power2.in" }, 6);
+      tl.to("#overview-intro", { opacity: 0, duration: 0.3 }, 7);
+
+      // Phase 2: Phone slides up
+      tl.set("#overview-phone", { opacity: 0 }, 0);
+      tl.fromTo("#overview-phone", { y: 200, opacity: 0 }, { y: 0, opacity: 1, duration: 1.4, ease: "power3.out" }, 8);
+
+      // Cards stagger in
+      tl.fromTo("#overview-card1", { x: 30, opacity: 0 }, { x: 0, opacity: 1, duration: 0.6, ease: "power2.out" }, 10);
+      tl.fromTo("#overview-card2", { x: 30, opacity: 0 }, { x: 0, opacity: 1, duration: 0.6, ease: "power2.out" }, 10.8);
+      tl.fromTo("#overview-card3", { x: 30, opacity: 0 }, { x: 0, opacity: 1, duration: 0.6, ease: "power2.out" }, 11.6);
+      tl.fromTo("#overview-card4", { x: 30, opacity: 0 }, { x: 0, opacity: 1, duration: 0.6, ease: "power2.out" }, 12.4);
+
+      // Phase 3: Feature badges appear around phone
+      tl.set("#overview-ring", { opacity: 0 }, 0);
+      tl.fromTo("#overview-ring", { opacity: 0 }, { opacity: 1, duration: 0.5 }, 18);
+      tl.fromTo("#overview-badge1", { x: -40, opacity: 0 }, { x: 0, opacity: 1, duration: 0.8, ease: "back.out(1.4)" }, 18.5);
+      tl.fromTo("#overview-badge2", { x: 40, opacity: 0 }, { x: 0, opacity: 1, duration: 0.8, ease: "back.out(1.4)" }, 19.5);
+      tl.fromTo("#overview-badge3", { x: -40, opacity: 0 }, { x: 0, opacity: 1, duration: 0.8, ease: "back.out(1.4)" }, 20.5);
+      tl.fromTo("#overview-badge4", { x: 40, opacity: 0 }, { x: 0, opacity: 1, duration: 0.8, ease: "back.out(1.4)" }, 21.5);
+
+      // Hold and breathe
+      tl.to("#overview-phone", { scale: 1.02, duration: 8, ease: "power1.inOut" }, 25);
+
+      // Exit
+      tl.to("#overview-phone", { opacity: 0, scale: 0.9, duration: 1.2, ease: "power2.in" }, 50);
+      tl.to("#overview-ring", { opacity: 0, duration: 1, ease: "power2.in" }, 50);
+
+      window.__timelines["overview"] = tl;
+    </script>
+  </div>
+</template>

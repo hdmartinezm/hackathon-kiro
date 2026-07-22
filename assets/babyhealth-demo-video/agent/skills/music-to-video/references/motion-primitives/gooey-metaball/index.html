@@ -1,8 +1,8 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
   <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=1920, height=1080" />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=1920, height=1080">
     <title>17 · gooey_metaball</title>
     <script src="../assets/gsap.min.js"></script>
     <style>
@@ -91,43 +91,31 @@
     </style>
   </head>
   <body>
-    <div
-      id="root"
-      data-composition-id="main"
-      data-start="0"
-      data-duration="2"
-      data-width="1920"
-      data-height="1080"
-    >
-      <div id="scene" class="clip" data-start="0" data-duration="2" data-track-index="1">
-        <svg style="position: absolute; width: 0; height: 0">
-          <defs>
-            <filter id="gooey-filter">
-              <feGaussianBlur in="SourceGraphic" stdDeviation="20" result="blur" />
-              <feColorMatrix
-                in="blur"
-                mode="matrix"
-                values="
+    <div data-hf-id="hf-i8cg" id="root" data-composition-id="main" data-start="0" data-duration="2" data-width="1920" data-height="1080">
+      <div data-hf-id="hf-zcdl" id="scene" class="clip" data-start="0" data-duration="2" data-track-index="1">
+        <svg data-hf-id="hf-71ar" style="position: absolute; width: 0; height: 0">
+          <defs data-hf-id="hf-mh0t">
+            <filter data-hf-id="hf-o3k2" id="gooey-filter">
+              <fegaussianblur data-hf-id="hf-t30a" in="SourceGraphic" stdDeviation="20" result="blur" />
+              <fecolormatrix data-hf-id="hf-uw40" in="blur" mode="matrix" values="
                 1 0 0 0 0
                 0 1 0 0 0
                 0 0 1 0 0
-                0 0 0 22 -10"
-                result="gooey"
-              />
-              <feComposite in="SourceGraphic" in2="gooey" operator="atop" />
+                0 0 0 22 -10" result="gooey" />
+              <fecomposite data-hf-id="hf-3i1v" in="SourceGraphic" in2="gooey" operator="atop" />
             </filter>
           </defs>
         </svg>
 
-        <div class="gooey-stage">
-          <div class="ball a" id="ballA"></div>
-          <div class="ball b" id="ballB"></div>
-          <div class="ball c" id="ballC"></div>
-          <div class="ball d" id="ballD"></div>
-          <div class="ball e" id="ballE"></div>
+        <div data-hf-id="hf-dmxa" class="gooey-stage">
+          <div data-hf-id="hf-oa5s" class="ball a" id="ballA"></div>
+          <div data-hf-id="hf-4sji" class="ball b" id="ballB"></div>
+          <div data-hf-id="hf-fhgs" class="ball c" id="ballC"></div>
+          <div data-hf-id="hf-azlq" class="ball d" id="ballD"></div>
+          <div data-hf-id="hf-7dt4" class="ball e" id="ballE"></div>
         </div>
 
-        <div class="hero">GOOEY</div>
+        <div data-hf-id="hf-04j5" class="hero">GOOEY</div>
       </div>
     </div>
     <script>

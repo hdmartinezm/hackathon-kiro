@@ -43,31 +43,31 @@
   </style>
 </head>
 <body>
-  <div id="root" data-composition-id="main" data-start="0" data-duration="<TOTAL>" data-width="1080" data-height="1080">
-    <video id="bg-video" class="clip" src="assets/bg-pattern-<TOTAL>s.mp4" muted data-start="0" data-duration="<TOTAL>" data-track-index="0"></video>
-    <div id="bg-scrim"></div>
-    <div id="kicker-chip" class="chrome">HYPERFRAMES WEEKLY <span style="color:rgba(245,246,244,.66)">· <RANGE></span></div>
-    <div id="progress" class="chrome"><span class="dot" id="dot1"></span><!-- one per theme --></div>
-    <div id="cap-line" class="chrome" data-layout-allow-overlap></div>
+  <div data-hf-id="hf-ebgd" id="root" data-composition-id="main" data-start="0" data-duration="<TOTAL>" data-width="1080" data-height="1080">
+    <video data-hf-id="hf-ij99" id="bg-video" class="clip" src="assets/bg-pattern-<TOTAL>s.mp4" muted data-start="0" data-duration="<TOTAL>" data-track-index="0"></video>
+    <div data-hf-id="hf-afhl" id="bg-scrim"></div>
+    <div data-hf-id="hf-dzwx" id="kicker-chip" class="chrome">HYPERFRAMES WEEKLY <span data-hf-id="hf-0wzi" style="color:rgba(245,246,244,.66)">· <range data-hf-id="hf-ihb6"></range></span></div>
+    <div data-hf-id="hf-bbmt" id="progress" class="chrome"><span data-hf-id="hf-nfka" class="dot" id="dot1"></span><!-- one per theme --></div>
+    <div data-hf-id="hf-ull9" id="cap-line" class="chrome" data-layout-allow-overlap=""></div>
 
     <!-- Title (film open — authors its OWN entry; exit is stamped) -->
-    <div id="s-title" class="slide clip" data-start="0" data-duration="<CUT1>" data-track-index="1">
+    <div data-hf-id="hf-qg63" id="s-title" class="slide clip" data-start="0" data-duration="<CUT1>" data-track-index="1">
       <!-- mono kicker date · ABC Solar h1 · green rule -->
     </div>
 
     <!-- One slide per theme. data-start = EXACTLY the ledger cut time.
          Shell composed at local t=0; internal beats ≥0.4s after the cut,
          done ≥0.45s before the next. data-layout-allow-overlap on mock slides. -->
-    <div id="s-t1" class="slide clip" data-start="<CUT1>" data-duration="<DUR1>" data-track-index="1" data-layout-allow-overlap>
-      <div class="sec-chip">01 · <THEME></div>
-      <div class="sec-head"><HEADLINE></div>
+    <div data-hf-id="hf-kmq2" id="s-t1" class="slide clip" data-start="<CUT1>" data-duration="<DUR1>" data-track-index="1" data-layout-allow-overlap="">
+      <div data-hf-id="hf-hgok" class="sec-chip">01 · <theme data-hf-id="hf-k4si"></theme></div>
+      <div data-hf-id="hf-yuse" class="sec-head"><headline data-hf-id="hf-40kp"></headline></div>
       <!-- the mock, from references/visualization-registry.md, y ∈ [288, 944] -->
     </div>
 
     <!-- s-t2..tN, then outro (kicker · "See what shipped." · green rule · URL chip) -->
 
-    <audio id="bgm" src="bgm.mp3" data-start="0" data-duration="<TOTAL>" data-track-index="2" data-volume="0.14" data-media-start="0"></audio>
-    <audio id="vo" src="voiceover.mp3" data-start="0" data-duration="<TOTAL>" data-track-index="3" data-volume="1.0"></audio>
+    <audio data-hf-id="hf-yhjf" id="bgm" src="bgm.mp3" data-start="0" data-duration="<TOTAL>" data-track-index="2" data-volume="0.14" data-media-start="0"></audio>
+    <audio data-hf-id="hf-4cuq" id="vo" src="voiceover.mp3" data-start="0" data-duration="<TOTAL>" data-track-index="3" data-volume="1.0"></audio>
   </div>
 
   <script>
