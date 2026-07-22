@@ -46,6 +46,7 @@ class FakeAnalysisRepository implements AnalysisRepository {
   final Object? analyzeError;
 
   bool analyzeCalled = false;
+  bool analyzeWithGeminiCalled = false;
   String? videoKeyArg;
 
   FakeAnalysisRepository({
@@ -56,6 +57,16 @@ class FakeAnalysisRepository implements AnalysisRepository {
   @override
   Future<AnalysisResult> analyze(String videoKey, {String? sessionId}) async {
     analyzeCalled = true;
+    videoKeyArg = videoKey;
+    if (analyzeError != null) {
+      throw analyzeError!;
+    }
+    return analyzeResult ?? _defaultResult;
+  }
+
+  @override
+  Future<AnalysisResult> analyzeWithGemini(String videoKey, {String? sessionId}) async {
+    analyzeWithGeminiCalled = true;
     videoKeyArg = videoKey;
     if (analyzeError != null) {
       throw analyzeError!;

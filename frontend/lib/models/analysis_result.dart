@@ -5,6 +5,8 @@ import 'analysis_status.dart';
 /// Maps from the backend's `AnalysisResult` DTO. The [error] field has special
 /// semantics: `null` means the analysis was fully successful, while a non-null
 /// value indicates partial degradation (shown as a warning, not a terminal error).
+///
+/// Supports both Bedrock (/analyze) and Gemini (/analyze-gemini) responses.
 class AnalysisResult {
   /// Severity status of the analysis.
   final AnalysisStatus status;
@@ -20,6 +22,15 @@ class AnalysisResult {
 
   /// Detected cry category (e.g. "hambre", "dolor", "sueño"), if available.
   final String? cryCategory;
+
+  /// Human-readable label for the cry category (e.g. "Hambre", "Dolor").
+  final String? cryLabel;
+
+  /// Confidence level for cry classification (0.0 — 1.0), if available.
+  final double? cryConfidence;
+
+  /// Specific recommendation based on the detected cry type.
+  final String? cryRecommendation;
 
   /// Partial degradation message.
   ///
@@ -37,17 +48,26 @@ class AnalysisResult {
   /// Creates an immutable [AnalysisResult] instance.
   ///
   /// [status], [observations], [recommendations], [sessionId], and [disclaimer]
-  /// are required. [confidence], [cryCategory], and [error] are optional.
+  /// are required. All cry-related fields and [error] are optional.
   const AnalysisResult({
     required this.status,
     required this.observations,
     required this.recommendations,
     this.confidence,
     this.cryCategory,
+    this.cryLabel,
+    this.cryConfidence,
+    this.cryRecommendation,
     this.error,
     required this.sessionId,
     required this.disclaimer,
   });
+
+  /// Returns true if cry analysis data is available.
+  bool get hasCryAnalysis => cryCategory != null;
+
+  /// Returns the display label for the cry, falling back to category if label is null.
+  String? get cryDisplayLabel => cryLabel ?? cryCategory;
 
   @override
   bool operator ==(Object other) {
@@ -58,6 +78,9 @@ class AnalysisResult {
         other.recommendations == recommendations &&
         other.confidence == confidence &&
         other.cryCategory == cryCategory &&
+        other.cryLabel == cryLabel &&
+        other.cryConfidence == cryConfidence &&
+        other.cryRecommendation == cryRecommendation &&
         other.error == error &&
         other.sessionId == sessionId &&
         other.disclaimer == disclaimer;
@@ -70,6 +93,9 @@ class AnalysisResult {
         recommendations,
         confidence,
         cryCategory,
+        cryLabel,
+        cryConfidence,
+        cryRecommendation,
         error,
         sessionId,
         disclaimer,
@@ -82,11 +108,17 @@ class AnalysisResult {
     String? recommendations,
     double? confidence,
     String? cryCategory,
+    String? cryLabel,
+    double? cryConfidence,
+    String? cryRecommendation,
     String? error,
     String? sessionId,
     String? disclaimer,
     bool clearConfidence = false,
     bool clearCryCategory = false,
+    bool clearCryLabel = false,
+    bool clearCryConfidence = false,
+    bool clearCryRecommendation = false,
     bool clearError = false,
   }) {
     return AnalysisResult(
@@ -94,8 +126,10 @@ class AnalysisResult {
       observations: observations ?? this.observations,
       recommendations: recommendations ?? this.recommendations,
       confidence: clearConfidence ? null : (confidence ?? this.confidence),
-      cryCategory:
-          clearCryCategory ? null : (cryCategory ?? this.cryCategory),
+      cryCategory: clearCryCategory ? null : (cryCategory ?? this.cryCategory),
+      cryLabel: clearCryLabel ? null : (cryLabel ?? this.cryLabel),
+      cryConfidence: clearCryConfidence ? null : (cryConfidence ?? this.cryConfidence),
+      cryRecommendation: clearCryRecommendation ? null : (cryRecommendation ?? this.cryRecommendation),
       error: clearError ? null : (error ?? this.error),
       sessionId: sessionId ?? this.sessionId,
       disclaimer: disclaimer ?? this.disclaimer,
