@@ -1,27 +1,51 @@
+"""
+BabyHealth API - Aplicación principal FastAPI.
+"""
+
 from fastapi import FastAPI
+from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 
+from app.config import settings
+from app.middleware.error_handler import (
+    ErrorHandlerMiddleware,
+    validation_exception_handler,
+    value_error_handler,
+)
+from app.middleware.logging_middleware import (
+    StructuredLoggingMiddleware,
+    configure_structured_logging,
+)
+from app.routers import health, upload, analyze, analyze_gemini
+from app.routers import analyze_image
+
+# Configure structured logging (JSON format for CloudWatch)
+configure_structured_logging()
+
 app = FastAPI(
-    title="Hackathon API",
-    description="API para el proyecto del Hackathon",
-    version="0.1.0"
+    title="BabyHealth API",
+    description="API de orientación de salud infantil con IA multimodal",
+    version=settings.APP_VERSION,
 )
 
-# CORS - ajustar origins en producción
+# --- Middleware stack ---
+app.add_middleware(ErrorHandlerMiddleware)
+app.add_middleware(StructuredLoggingMiddleware)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000", "http://localhost:5173"],
+    allow_origins=settings.ALLOWED_ORIGINS,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
+# --- Exception handlers ---
+app.add_exception_handler(RequestValidationError, validation_exception_handler)
+app.add_exception_handler(ValueError, value_error_handler)
 
-@app.get("/")
-def root():
-    return {"status": "ok", "message": "Hackathon API running"}
-
-
-@app.get("/health")
-def health_check():
-    return {"status": "healthy"}
+# --- Router registration ---
+app.include_router(health.router)
+app.include_router(upload.router)
+app.include_router(analyze.router)
+app.include_router(analyze_image.router)
+app.include_router(analyze_gemini.router)

@@ -1,17 +1,25 @@
 # Core
 fastapi>=0.100.0
 uvicorn[standard]>=0.23.0
+mangum>=0.17.0
 python-dotenv>=1.0.0
 
-# Database (descomentar según necesidad)
-# sqlalchemy>=2.0.0
-# alembic>=1.11.0
-# asyncpg>=0.28.0
+# AWS
+boto3>=1.28.0
 
-# Auth (descomentar si se necesita)
-# python-jose[cryptography]>=3.3.0
-# passlib[bcrypt]>=1.7.4
+# Google AI
+google-genai>=1.0.0
+
+# Data validation & models
+pydantic>=2.0.0
+pydantic-settings>=2.0.0
 
 # Utils
-pydantic>=2.0.0
+python-dateutil>=2.8.0
 httpx>=0.24.0
+
+# Testing
+pytest>=7.4.0
+pytest-asyncio>=0.21.0
+hypothesis>=6.82.0
+moto>=4.2.0

@@ -1,0 +1,31 @@
+name: baby_health
+description: BabyHealth - Orientación de salud para tu bebé mediante IA multimodal.
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.1.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  cupertino_icons: ^1.0.6
+  image_picker: ^1.0.7
+  http: ^1.2.0
+  http_parser: ^4.0.2
+  uuid: ^4.5.0
+  camera: ^0.11.0
+  path_provider: ^2.1.0
+  path: ^1.9.0
+  record: ^5.0.0
+  permission_handler: ^11.0.0
+  amplify_flutter: ^2.0.0
+  amplify_auth_cognito: ^2.0.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^3.0.1
+
+flutter:
+  uses-material-design: true

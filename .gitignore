@@ -1,15 +1,27 @@
-# Dependencies
-node_modules/
+# Python
 __pycache__/
-*.pyc
+*.py[cod]
 .venv/
 venv/
 env/
-
-# Build outputs
-dist/
-build/
 *.egg-info/
+.pytest_cache/
+htmlcov/
+
+# Flutter
+flutter_app/.dart_tool/
+flutter_app/build/
+flutter_app/.packages
+flutter_app/.flutter-plugins
+flutter_app/.flutter-plugins-dependencies
+flutter_app/ios/Pods/
+flutter_app/ios/.symlinks/
+flutter_app/android/.gradle/
+flutter_app/pubspec.lock
+
+# AWS CDK
+cdk.out/
+.aws-sam/
 
 # Environment variables
 .env
@@ -26,14 +38,13 @@ build/
 
 # Logs
 *.log
-npm-debug.log*
 
-# Testing
-coverage/
-.pytest_cache/
-htmlcov/
+# Build outputs
+dist/
+build/
 
 # Misc
 *.bak
 *.tmp
 .cache/
+coverage/
