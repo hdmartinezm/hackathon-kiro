@@ -53,6 +53,10 @@ dependencies:
   # Camera access for video recording with audio (Android + Web)
   camera: ^0.12.0+1
 
+  # AWS Amplify authentication with Cognito
+  amplify_flutter: ^2.0.0
+  amplify_auth_cognito: ^2.0.0
+
 dependency_overrides:
   # Pin flutter_plugin_android_lifecycle to a version compatible with compileSdk 34
   flutter_plugin_android_lifecycle: 2.0.22
