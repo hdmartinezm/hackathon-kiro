@@ -3,6 +3,8 @@ import 'dart:convert';
 
 import 'package:http/http.dart' as http;
 
+import 'auth_service.dart';
+
 /// Exception thrown by [HttpClient] on request failures.
 class HttpClientException implements Exception {
   /// Human-readable error message.
@@ -53,11 +55,13 @@ class HttpClientResponse {
 /// time (typically from [ApiConfig]).
 class HttpClient {
   final String baseUrl;
+  final AuthService? authService;
   final http.Client _client;
   final Duration _timeout;
 
   HttpClient({
     required this.baseUrl,
+    this.authService,
     http.Client? client,
     Duration timeout = const Duration(seconds: 30),
   })  : _client = client ?? http.Client(),
