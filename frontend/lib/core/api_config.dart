@@ -10,7 +10,8 @@ class ApiConfig {
   ApiConfig._();
 
   /// The default fallback used when `--dart-define=API_BASE_URL` is not provided.
-  static const String _defaultBaseUrl = 'http://localhost:8000';
+  /// Production: https://hhcfovkc7h.execute-api.us-east-1.amazonaws.com
+  static const String _defaultBaseUrl = 'https://hhcfovkc7h.execute-api.us-east-1.amazonaws.com';
 
   /// The backend API base URL, read from compile-time define.
   ///
