@@ -82,20 +82,21 @@ def generate_presigned_url_for_image(
         raise
 
 
-def download_object(key: str) -> bytes:
-    """Descarga un objeto de S3 y retorna sus bytes.
+def download_object(key: str) -> tuple[bytes, str]:
+    """Descarga un objeto de S3 y retorna sus bytes y content_type.
 
     Args:
         key: La key del objeto en S3.
 
     Returns:
-        bytes del archivo descargado.
+        Tupla (bytes, content_type) del archivo descargado.
     """
     try:
         response = s3_client.get_object(Bucket=settings.S3_BUCKET, Key=key)
         data = response["Body"].read()
-        logger.info(f"Descargado {key} ({len(data)} bytes) de S3")
-        return data
+        content_type = response.get("ContentType", "application/octet-stream")
+        logger.info(f"Descargado {key} ({len(data)} bytes, {content_type}) de S3")
+        return data, content_type
     except ClientError as e:
         logger.error(f"Error descargando {key} de S3: {e}")
         raise

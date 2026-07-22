@@ -3,7 +3,6 @@ import io
 import logging
 import uuid
 import tempfile
-import numpy as np
 from fastapi import APIRouter, HTTPException
 from app.models.requests import AnalyzeRequest
 from app.models.responses import AnalysisResult
@@ -91,6 +90,7 @@ def extract_audio_spectrogram(video_bytes: bytes) -> bytes:
 
         # Leer audio y generar espectrograma
         import wave
+        import numpy as np
 
         with wave.open(tmp_audio_path, "rb") as wf:
             n_frames = wf.getnframes()
@@ -112,8 +112,13 @@ def extract_audio_spectrogram(video_bytes: bytes) -> bytes:
         return _generate_synthetic_spectrogram()
 
 
-def _generate_spectrogram_image(audio_data: np.ndarray, sample_rate: int = 16000) -> bytes:
-    """Genera imagen de espectrograma a partir de datos de audio."""
+def _generate_spectrogram_image(audio_data, sample_rate: int = 16000) -> bytes:
+    """Genera imagen de espectrograma a partir de datos de audio.
+
+    Args:
+        audio_data: numpy array con datos de audio
+        sample_rate: frecuencia de muestreo (default 16000)
+    """
     import matplotlib
     matplotlib.use("Agg")
     import matplotlib.pyplot as plt
@@ -136,6 +141,7 @@ def _generate_synthetic_spectrogram() -> bytes:
     import matplotlib
     matplotlib.use("Agg")
     import matplotlib.pyplot as plt
+    import numpy as np
 
     fig, ax = plt.subplots(1, 1, figsize=(10, 4))
     # Generar datos aleatorios como placeholder
@@ -168,7 +174,7 @@ def analyze_video(request: AnalyzeRequest):
     try:
         # 1. Descargar video de S3
         logger.info(f"Descargando video: {request.video_key}")
-        video_bytes = download_object(request.video_key)
+        video_bytes, _ = download_object(request.video_key)
 
         # 2. Extraer frame
         logger.info("Extrayendo frame del video...")

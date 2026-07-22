@@ -16,7 +16,7 @@ client = TestClient(app)
 def test_analyze_video_success(
     mock_save, mock_spectrogram, mock_frame, mock_cry, mock_visual, mock_download
 ):
-    mock_download.return_value = b"fake-video-bytes"
+    mock_download.return_value = (b"fake-video-bytes", "video/mp4")
     mock_frame.return_value = b"fake-frame-jpeg"
     mock_spectrogram.return_value = b"fake-spectrogram-png"
     mock_visual.return_value = {
