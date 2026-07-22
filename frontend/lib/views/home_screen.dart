@@ -18,11 +18,11 @@ class HomeScreen extends StatelessWidget {
     final viewModel = context.watch<HomeViewModel>();
     final state = viewModel.state;
 
-    // Navigate to AnalysisScreen when capture is complete.
+    // Navigate to ModelSelectorScreen when capture is complete.
     if (state.captureStatus == 'captured' && state.media != null) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         Navigator.of(context).pushNamed(
-          '/analysis',
+          '/model-selector',
           arguments: state.media!,
         );
       });

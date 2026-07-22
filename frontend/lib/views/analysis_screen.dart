@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../models/analysis_config.dart';
 import '../models/analysis_result.dart';
-import '../models/captured_media.dart';
 import '../viewmodels/analysis_viewmodel.dart';
 import '../viewmodels/states/analysis_state.dart';
 import '../widgets/confidence_bar_widget.dart';
@@ -12,15 +12,16 @@ import '../widgets/traffic_light_widget.dart';
 
 /// Analysis screen that displays the results of the neonatal analysis.
 ///
-/// Consumes [AnalysisViewModel] via [Provider]. Receives [CapturedMedia] via
-/// route arguments and triggers the analysis flow on init. Shows loading,
-/// error dialog, or the complete result with traffic light, observations,
-/// recommendations, and optional fields.
+/// Consumes [AnalysisViewModel] via [Provider]. Receives [AnalysisConfig] via
+/// route arguments containing both the media and selected provider.
+/// Triggers the analysis flow on init. Shows loading, error dialog, or the
+/// complete result with traffic light, observations, recommendations,
+/// and optional fields including cry analysis for Gemini.
 class AnalysisScreen extends StatefulWidget {
-  /// The captured media to analyze.
-  final CapturedMedia media;
+  /// Configuration containing media and selected AI provider.
+  final AnalysisConfig config;
 
-  const AnalysisScreen({super.key, required this.media});
+  const AnalysisScreen({super.key, required this.config});
 
   @override
   State<AnalysisScreen> createState() => _AnalysisScreenState();
@@ -40,7 +41,10 @@ class _AnalysisScreenState extends State<AnalysisScreen> {
       _analysisStarted = true;
       _errorDialogShown = false;
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        viewModel.startAnalysis(widget.media);
+        viewModel.startAnalysis(
+          widget.config.media,
+          provider: widget.config.provider,
+        );
       });
     }
 
@@ -162,18 +166,88 @@ class _AnalysisScreenState extends State<AnalysisScreen> {
               child: ConfidenceBarWidget(confidence: result.confidence!),
             ),
           ],
-          // Optional: Cry category
-          if (result.cryCategory != null) ...[
+          // Optional: Cry analysis (Gemini)
+          if (result.hasCryAnalysis) ...[
             const SizedBox(height: 16),
             _buildSection(
               context,
-              title: 'Categoría de Llanto',
+              title: 'Análisis de Llanto',
               icon: Icons.hearing_rounded,
-              child: Text(
-                result.cryCategory!,
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      fontWeight: FontWeight.w500,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Cry label/category
+                  Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 6,
+                        ),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF4285F4).withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: Text(
+                          result.cryDisplayLabel ?? result.cryCategory!,
+                          style:
+                              Theme.of(context).textTheme.titleSmall?.copyWith(
+                                    fontWeight: FontWeight.bold,
+                                    color: const Color(0xFF4285F4),
+                                  ),
+                        ),
+                      ),
+                      if (result.cryConfidence != null) ...[
+                        const SizedBox(width: 12),
+                        Text(
+                          '${(result.cryConfidence! * 100).toStringAsFixed(0)}% confianza',
+                          style:
+                              Theme.of(context).textTheme.bodySmall?.copyWith(
+                                    color: const Color(0xFF2B2826)
+                                        .withValues(alpha: 0.6),
+                                  ),
+                        ),
+                      ],
+                    ],
+                  ),
+                  // Cry recommendation
+                  if (result.cryRecommendation != null) ...[
+                    const SizedBox(height: 12),
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFF0F7FF),
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(
+                          color: const Color(0xFF4285F4).withValues(alpha: 0.3),
+                        ),
+                      ),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Icon(
+                            Icons.tips_and_updates_rounded,
+                            size: 18,
+                            color: Color(0xFF4285F4),
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              result.cryRecommendation!,
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .bodySmall
+                                  ?.copyWith(
+                                    height: 1.4,
+                                    color: const Color(0xFF2B2826),
+                                  ),
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
+                  ],
+                ],
               ),
             ),
           ],

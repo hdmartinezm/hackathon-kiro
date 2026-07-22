@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import 'core/api_config.dart';
+import 'models/analysis_config.dart';
 import 'models/captured_media.dart';
 import 'repositories/analysis_repository.dart';
 import 'repositories/capture_repository.dart';
@@ -16,6 +17,7 @@ import 'viewmodels/home_viewmodel.dart';
 import 'viewmodels/splash_viewmodel.dart';
 import 'views/analysis_screen.dart';
 import 'views/home_screen.dart';
+import 'views/model_selector_screen.dart';
 import 'views/splash_screen.dart';
 import 'views/web_landing_screen.dart';
 
@@ -114,8 +116,11 @@ class BabyHealthApp extends StatelessWidget {
         if (kIsWeb) '/web-landing': (_) => const WebLandingScreen(),
         '/splash': (_) => const SplashScreen(),
         '/home': (_) => const HomeScreen(),
-        '/analysis': (ctx) => AnalysisScreen(
+        '/model-selector': (ctx) => ModelSelectorScreen(
               media: ModalRoute.of(ctx)!.settings.arguments as CapturedMedia,
+            ),
+        '/analysis': (ctx) => AnalysisScreen(
+              config: ModalRoute.of(ctx)!.settings.arguments as AnalysisConfig,
             ),
       },
     );

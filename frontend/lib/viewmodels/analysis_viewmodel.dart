@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 
+import '../models/analysis_provider.dart';
 import '../models/captured_media.dart';
 import '../repositories/analysis_repository.dart';
 import '../repositories/upload_repository.dart';
@@ -31,13 +32,20 @@ class AnalysisViewModel extends ChangeNotifier {
   /// Steps:
   /// 1. Sets status to `'uploading'` and uploads [media] via
   ///    [UploadRepository.uploadMedia].
-  /// 2. Sets status to `'analyzing'` and calls
-  ///    [AnalysisRepository.analyze] with the returned `videoKey`.
+  /// 2. Sets status to `'analyzing'` and calls the appropriate analysis
+  ///    method based on [provider].
   /// 3. On success, sets status to `'completed'` with the [AnalysisResult].
+  ///
+  /// The [provider] parameter determines which backend endpoint to use:
+  /// - [AnalysisProvider.bedrock]: Uses `/analyze` (default)
+  /// - [AnalysisProvider.gemini]: Uses `/analyze-gemini` with native multimodal
   ///
   /// On failure at any step, sets status to `'error'` with a descriptive
   /// [AnalysisState.errorMessage].
-  Future<void> startAnalysis(CapturedMedia media) async {
+  Future<void> startAnalysis(
+    CapturedMedia media, {
+    AnalysisProvider provider = AnalysisProvider.bedrock,
+  }) async {
     _state = _state.copyWith(status: 'uploading', errorMessage: null);
     notifyListeners();
 
@@ -47,7 +55,11 @@ class AnalysisViewModel extends ChangeNotifier {
       _state = _state.copyWith(status: 'analyzing');
       notifyListeners();
 
-      final result = await _analysisRepository.analyze(videoKey);
+      final result = switch (provider) {
+        AnalysisProvider.bedrock => await _analysisRepository.analyze(videoKey),
+        AnalysisProvider.gemini =>
+          await _analysisRepository.analyzeWithGemini(videoKey),
+      };
 
       _state = _state.copyWith(status: 'completed', result: result);
       notifyListeners();
