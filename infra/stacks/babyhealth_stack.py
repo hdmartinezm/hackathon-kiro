@@ -97,7 +97,7 @@ class BabyHealthStack(Stack):
         self.table = dynamodb.Table(
             self,
             "BabyHealthResultsTable",
-            table_name="babyhealth-results",
+            # table_name omitted - let CDK generate unique name
             partition_key=dynamodb.Attribute(
                 name="session_id", type=dynamodb.AttributeType.STRING
             ),
@@ -112,7 +112,7 @@ class BabyHealthStack(Stack):
         self.log_group = logs.LogGroup(
             self,
             "BabyHealthLambdaLogGroup",
-            log_group_name="/aws/lambda/babyhealth-api",
+            # log_group_name omitted - let CDK generate unique name
             retention=logs.RetentionDays.TWO_WEEKS,
             removal_policy=RemovalPolicy.DESTROY,
         )
@@ -121,7 +121,7 @@ class BabyHealthStack(Stack):
         self.lambda_function = lambda_.Function(
             self,
             "BabyHealthApiFunction",
-            function_name="babyhealth-api",
+            # function_name omitted - let CDK generate unique name
             runtime=lambda_.Runtime.PYTHON_3_11,
             handler="lambda_handler.handler",
             code=lambda_.Code.from_asset("../backend"),
@@ -130,8 +130,12 @@ class BabyHealthStack(Stack):
             environment={
                 "S3_BUCKET": self.bucket.bucket_name,
                 "BEDROCK_MODEL_ID": "us.anthropic.claude-sonnet-4-5-20250929-v1:0",
+                "GEMINI_MODEL_ID": "gemini-2.5-flash",
                 "DYNAMODB_TABLE": self.table.table_name,
                 "AWS_REGION_NAME": self.region,
+                # GEMINI_API_KEY should be set manually after deploy:
+                # aws lambda update-function-configuration --function-name babyhealth-api \
+                #   --environment "Variables={...,GEMINI_API_KEY=your-key}"
             },
             log_group=self.log_group,
         )
@@ -164,7 +168,7 @@ class BabyHealthStack(Stack):
             "BabyHealthHttpApi",
             api_name="babyhealth-api",
             cors_preflight=apigwv2.CorsPreflightOptions(
-                allow_origins=[],  # Empty = reject browser requests
+                allow_origins=["*"],  # Allow all origins for mobile app
                 allow_methods=[
                     apigwv2.CorsHttpMethod.GET,
                     apigwv2.CorsHttpMethod.POST,
@@ -207,6 +211,20 @@ class BabyHealthStack(Stack):
 
         self.api.add_routes(
             path="/analyze",
+            methods=[apigwv2.HttpMethod.POST],
+            integration=lambda_integration,
+            authorizer=self.authorizer,
+        )
+
+        self.api.add_routes(
+            path="/analyze-gemini",
+            methods=[apigwv2.HttpMethod.POST],
+            integration=lambda_integration,
+            authorizer=self.authorizer,
+        )
+
+        self.api.add_routes(
+            path="/analyze-image",
             methods=[apigwv2.HttpMethod.POST],
             integration=lambda_integration,
             authorizer=self.authorizer,
