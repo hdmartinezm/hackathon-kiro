@@ -1,0 +1,145 @@
+<template>
+  <div data-hf-id="hf-skb7" data-composition-id="social" data-width="1920" data-height="1080" data-duration="7" style="position: absolute; inset: 0;">
+    <style>
+      [data-composition-id="social"] {
+        background: linear-gradient(180deg, #0a0a1a 0%, #12102a 100%);
+        overflow: hidden;
+        font-family: "Inter", sans-serif;
+      }
+      [data-composition-id="social"] .social-layout {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 80px;
+        gap: 48px;
+      }
+      [data-composition-id="social"] .social-headline {
+        font-size: 48px;
+        font-weight: 700;
+        color: #fff;
+        text-align: center;
+      }
+      [data-composition-id="social"] .social-headline .accent {
+        color: #4ECDC4;
+      }
+      [data-composition-id="social"] .social-stats {
+        display: flex;
+        gap: 80px;
+      }
+      [data-composition-id="social"] .social-stat {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+      }
+      [data-composition-id="social"] .social-stat-number {
+        font-size: 64px;
+        font-weight: 800;
+        color: #9be0da;
+        line-height: 1;
+      }
+      [data-composition-id="social"] .social-stat-label {
+        font-size: 18px;
+        color: rgba(255, 255, 255, 0.7);
+        margin-top: 8px;
+      }
+      [data-composition-id="social"] .social-reviews {
+        display: flex;
+        gap: 32px;
+        max-width: 1200px;
+      }
+      [data-composition-id="social"] .social-review {
+        flex: 1;
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid rgba(255, 255, 255, 0.06);
+        border-radius: 20px;
+        padding: 28px;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+      }
+      [data-composition-id="social"] .social-review-stars {
+        font-size: 20px;
+        color: #FFC107;
+      }
+      [data-composition-id="social"] .social-review-text {
+        font-size: 18px;
+        color: rgba(255, 255, 255, 0.75);
+        line-height: 1.5;
+        font-style: italic;
+      }
+      [data-composition-id="social"] .social-review-author {
+        font-size: 14px;
+        color: rgba(255, 255, 255, 0.6);
+        margin-top: auto;
+      }
+    </style>
+
+    <div data-hf-id="hf-kjck" class="social-layout">
+      <div data-hf-id="hf-m94l" class="social-headline" id="social-headline">
+        Trusted by <span data-hf-id="hf-0xgz" class="accent">500,000+</span> families worldwide
+      </div>
+
+      <div data-hf-id="hf-pdfy" class="social-stats" id="social-stats">
+        <div data-hf-id="hf-e7kk" class="social-stat" id="social-s1">
+          <div data-hf-id="hf-8nan" class="social-stat-number">4.9</div>
+          <div data-hf-id="hf-dqce" class="social-stat-label">App Store Rating</div>
+        </div>
+        <div data-hf-id="hf-mvgf" class="social-stat" id="social-s2">
+          <div data-hf-id="hf-qecz" class="social-stat-number">500K+</div>
+          <div data-hf-id="hf-4e25" class="social-stat-label">Active Families</div>
+        </div>
+        <div data-hf-id="hf-ixce" class="social-stat" id="social-s3">
+          <div data-hf-id="hf-ywyq" class="social-stat-number">98%</div>
+          <div data-hf-id="hf-r5ik" class="social-stat-label">Would Recommend</div>
+        </div>
+      </div>
+
+      <div data-hf-id="hf-hbpa" class="social-reviews" id="social-reviews">
+        <div data-hf-id="hf-yoyl" class="social-review" id="social-r1">
+          <div data-hf-id="hf-pon5" class="social-review-stars">★★★★★</div>
+          <div data-hf-id="hf-fcev" class="social-review-text">"Finally, one app that does everything. The growth charts alone saved me so much anxiety."</div>
+          <div data-hf-id="hf-jojk" class="social-review-author">— Jessica M., mom of twins</div>
+        </div>
+        <div data-hf-id="hf-2n2m" class="social-review" id="social-r2">
+          <div data-hf-id="hf-p2xh" class="social-review-stars">★★★★★</div>
+          <div data-hf-id="hf-ehj8" class="social-review-text">"The doctor connect feature is incredible. Got advice at 2am when my baby had a fever."</div>
+          <div data-hf-id="hf-roha" class="social-review-author">— Mark T., first-time dad</div>
+        </div>
+        <div data-hf-id="hf-6l6n" class="social-review" id="social-r3">
+          <div data-hf-id="hf-q9uk" class="social-review-stars">★★★★★</div>
+          <div data-hf-id="hf-3we0" class="social-review-text">"The milestone tracking helped me understand what to expect next. So reassuring."</div>
+          <div data-hf-id="hf-eeue" class="social-review-author">— Priya K., pediatric nurse</div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      window.__timelines = window.__timelines || {};
+      const tl = gsap.timeline({ paused: true });
+
+      // Headline
+      tl.fromTo("#social-headline", { y: 40, opacity: 0 }, { y: 0, opacity: 1, duration: 1, ease: "power3.out" }, 0.3);
+
+      // Stats
+      tl.fromTo("#social-s1", { y: 30, opacity: 0 }, { y: 0, opacity: 1, duration: 0.7, ease: "power3.out" }, 1.5);
+      tl.fromTo("#social-s2", { y: 30, opacity: 0 }, { y: 0, opacity: 1, duration: 0.7, ease: "power3.out" }, 2);
+      tl.fromTo("#social-s3", { y: 30, opacity: 0 }, { y: 0, opacity: 1, duration: 0.7, ease: "power3.out" }, 2.5);
+
+      // Reviews
+      tl.fromTo("#social-r1", { y: 40, opacity: 0 }, { y: 0, opacity: 1, duration: 0.8, ease: "power3.out" }, 4);
+      tl.fromTo("#social-r2", { y: 40, opacity: 0 }, { y: 0, opacity: 1, duration: 0.8, ease: "power3.out" }, 4.5);
+      tl.fromTo("#social-r3", { y: 40, opacity: 0 }, { y: 0, opacity: 1, duration: 0.8, ease: "power3.out" }, 5);
+
+      // Exit
+      tl.to("#social-reviews", { opacity: 0, duration: 0.8, ease: "power2.in" }, 12.5);
+      tl.to("#social-stats", { opacity: 0, duration: 0.8, ease: "power2.in" }, 12.8);
+      tl.to("#social-headline", { opacity: 0, duration: 0.8, ease: "power2.in" }, 13);
+
+      window.__timelines["social"] = tl;
+    </script>
+  </div>
+</template>

@@ -1,0 +1,165 @@
+<template>
+  <div data-hf-id="hf-nrg7" data-composition-id="problem" data-width="1920" data-height="1080" data-duration="12" style="position: absolute; inset: 0;">
+    <style>
+      [data-composition-id="problem"] {
+        background: linear-gradient(180deg, #0a0a1a 0%, #12122a 100%);
+        overflow: hidden;
+        font-family: "Inter", sans-serif;
+      }
+      [data-composition-id="problem"] .problem-content {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 80px 160px;
+      }
+      [data-composition-id="problem"] .problem-headline {
+        font-size: 64px;
+        font-weight: 700;
+        color: #fff;
+        text-align: center;
+        line-height: 1.2;
+        margin-bottom: 60px;
+      }
+      [data-composition-id="problem"] .problem-headline .highlight {
+        color: #FF6B9D;
+      }
+      [data-composition-id="problem"] .problem-stats {
+        display: flex;
+        gap: 80px;
+        margin-top: 20px;
+      }
+      [data-composition-id="problem"] .problem-stat {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+      }
+      [data-composition-id="problem"] .problem-stat-number {
+        font-size: 72px;
+        font-weight: 800;
+        color: #6C63FF;
+        line-height: 1;
+      }
+      [data-composition-id="problem"] .problem-stat-label {
+        font-size: 22px;
+        color: rgba(255, 255, 255, 0.6);
+        margin-top: 12px;
+        max-width: 200px;
+      }
+      [data-composition-id="problem"] .problem-pain-points {
+        display: flex;
+        flex-direction: column;
+        gap: 24px;
+        margin-top: 60px;
+        width: 100%;
+        max-width: 900px;
+      }
+      [data-composition-id="problem"] .problem-pain {
+        display: flex;
+        align-items: center;
+        gap: 20px;
+        padding: 24px 32px;
+        background: rgba(255, 255, 255, 0.04);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 16px;
+      }
+      [data-composition-id="problem"] .problem-pain-icon {
+        width: 48px;
+        height: 48px;
+        border-radius: 12px;
+        background: rgba(255, 107, 157, 0.15);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 24px;
+        flex-shrink: 0;
+      }
+      [data-composition-id="problem"] .problem-pain-text {
+        font-size: 26px;
+        color: rgba(255, 255, 255, 0.85);
+        font-weight: 500;
+      }
+      [data-composition-id="problem"] .problem-divider {
+        width: 80px;
+        height: 3px;
+        background: linear-gradient(90deg, #6C63FF, #4ECDC4);
+        border-radius: 2px;
+        margin: 40px 0;
+      }
+    </style>
+
+    <div data-hf-id="hf-tvzp" class="problem-content">
+      <!-- Phase 1: Headline -->
+      <div data-hf-id="hf-gkpe" class="problem-headline" id="problem-headline">
+        New parents face <span data-hf-id="hf-ooa6" class="highlight">overwhelming</span> uncertainty
+      </div>
+
+      <!-- Phase 2: Stats -->
+      <div data-hf-id="hf-0kp8" class="problem-stats" id="problem-stats">
+        <div data-hf-id="hf-4qhn" class="problem-stat" id="problem-stat1">
+          <div data-hf-id="hf-vxp2" class="problem-stat-number">87%</div>
+          <div data-hf-id="hf-48an" class="problem-stat-label">of new parents feel anxious about baby health</div>
+        </div>
+        <div data-hf-id="hf-tv00" class="problem-stat" id="problem-stat2">
+          <div data-hf-id="hf-0f8m" class="problem-stat-number">5+</div>
+          <div data-hf-id="hf-clgg" class="problem-stat-label">apps needed to track different aspects</div>
+        </div>
+        <div data-hf-id="hf-umnt" class="problem-stat" id="problem-stat3">
+          <div data-hf-id="hf-zb45" class="problem-stat-number">3am</div>
+          <div data-hf-id="hf-nrbo" class="problem-stat-label">panic searches for symptoms online</div>
+        </div>
+      </div>
+
+      <div data-hf-id="hf-iock" class="problem-divider" id="problem-divider"></div>
+
+      <!-- Phase 3: Pain points -->
+      <div data-hf-id="hf-yvd5" class="problem-pain-points" id="problem-pains">
+        <div data-hf-id="hf-inaf" class="problem-pain" id="problem-pain1">
+          <div data-hf-id="hf-bt5r" class="problem-pain-icon">📊</div>
+          <div data-hf-id="hf-c8ya" class="problem-pain-text">Scattered growth data across notebooks and apps</div>
+        </div>
+        <div data-hf-id="hf-7rss" class="problem-pain" id="problem-pain2">
+          <div data-hf-id="hf-vg7c" class="problem-pain-icon">⏰</div>
+          <div data-hf-id="hf-jm1u" class="problem-pain-text">Missing vaccination schedules and checkup reminders</div>
+        </div>
+        <div data-hf-id="hf-8jgl" class="problem-pain" id="problem-pain3">
+          <div data-hf-id="hf-im7h" class="problem-pain-icon">😰</div>
+          <div data-hf-id="hf-8oc7" class="problem-pain-text">No reliable source for developmental milestone guidance</div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      window.__timelines = window.__timelines || {};
+      const tl = gsap.timeline({ paused: true });
+
+      // Phase 1: Headline entrance
+      tl.fromTo("#problem-headline", { y: 50, opacity: 0 }, { y: 0, opacity: 1, duration: 1.2, ease: "power3.out" }, 0.5);
+
+      // Phase 2: Stats stagger in
+      tl.fromTo("#problem-stats", { opacity: 0 }, { opacity: 1, duration: 0.5 }, 3);
+      tl.fromTo("#problem-stat1", { y: 40, opacity: 0 }, { y: 0, opacity: 1, duration: 0.8, ease: "power3.out" }, 3.5);
+      tl.fromTo("#problem-stat2", { y: 40, opacity: 0 }, { y: 0, opacity: 1, duration: 0.8, ease: "power3.out" }, 4);
+      tl.fromTo("#problem-stat3", { y: 40, opacity: 0 }, { y: 0, opacity: 1, duration: 0.8, ease: "power3.out" }, 4.5);
+
+      // Divider
+      tl.fromTo("#problem-divider", { scaleX: 0, opacity: 0 }, { scaleX: 1, opacity: 1, duration: 0.8, ease: "power2.out" }, 8);
+
+      // Phase 3: Pain points
+      tl.fromTo("#problem-pain1", { x: -60, opacity: 0 }, { x: 0, opacity: 1, duration: 0.8, ease: "power3.out" }, 10);
+      tl.fromTo("#problem-pain2", { x: -60, opacity: 0 }, { x: 0, opacity: 1, duration: 0.8, ease: "power3.out" }, 11.5);
+      tl.fromTo("#problem-pain3", { x: -60, opacity: 0 }, { x: 0, opacity: 1, duration: 0.8, ease: "power3.out" }, 13);
+
+      // Hold, then transition out
+      tl.to("#problem-headline", { opacity: 0, duration: 1, ease: "power2.in" }, 35);
+      tl.to("#problem-stats", { opacity: 0, duration: 0.8, ease: "power2.in" }, 35.5);
+      tl.to("#problem-divider", { opacity: 0, duration: 0.5, ease: "power2.in" }, 36);
+      tl.to("#problem-pains", { opacity: 0, y: -30, duration: 1, ease: "power2.in" }, 36.5);
+
+      window.__timelines["problem"] = tl;
+    </script>
+  </div>
+</template>

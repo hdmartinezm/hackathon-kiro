@@ -6,6 +6,9 @@
     "components": "compositions/components",
     "assets": "assets"
   },
+  "render": {
+    "output": "../"
+  },
   "media": {
     "autoProxy": true
   }
