@@ -240,9 +240,21 @@ def analyze_video(request: AnalyzeRequest):
         logger.info("Analizando frame con Bedrock...")
         visual_result = analyze_image(frame_bytes, media_type="image/jpeg")
 
-        # 5. Analizar espectrograma (audio/llanto)
-        logger.info("Analizando espectrograma con Bedrock...")
-        cry_result = analyze_cry_spectrogram(spectrogram_bytes)
+        # 5. Analizar espectrograma (audio/llanto) - SOLO si se detectó un bebé
+        baby_detected = visual_result.get("baby_detected", True)  # Default True para compatibilidad
+
+        if baby_detected:
+            logger.info("Bebé detectado. Analizando espectrograma con Bedrock...")
+            cry_result = analyze_cry_spectrogram(spectrogram_bytes)
+        else:
+            logger.info("No se detectó bebé en la imagen. Omitiendo análisis de llanto.")
+            cry_result = {
+                "cry_detected": False,
+                "cry_category": "sin_llanto",
+                "cry_label": "No se detectó bebé en la imagen",
+                "cry_confidence": None,
+                "cry_recommendation": "Proporcione un video que contenga un bebé para analizar el llanto.",
+            }
 
         # 6. Combinar resultados
         combined_result = AnalysisResult(

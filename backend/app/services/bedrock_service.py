@@ -10,16 +10,23 @@ logger = logging.getLogger(__name__)
 
 bedrock_client = boto3.client("bedrock-runtime", region_name=settings.AWS_REGION)
 
-VISUAL_ANALYSIS_PROMPT = """Eres un asistente de orientación en salud infantil. Analiza la imagen proporcionada de un bebé y proporciona:
+VISUAL_ANALYSIS_PROMPT = """Eres un asistente de orientación en salud infantil. Analiza la imagen proporcionada y determina:
 
-1. **Estado general**: Evalúa si el bebé parece estar en un estado "normal", "requiere_atencion" o "urgente".
-2. **Observaciones**: Describe lo que observas en la imagen (color de piel, expresión, postura, etc.)
-3. **Recomendaciones**: Proporciona recomendaciones generales.
+1. **¿Hay un bebé en la imagen?** - Responde true o false.
+2. Si HAY un bebé:
+   - **Estado general**: Evalúa si parece estar "normal", "requiere_atencion" o "urgente".
+   - **Observaciones**: Describe lo que observas (color de piel, expresión, postura, etc.)
+   - **Recomendaciones**: Proporciona recomendaciones generales.
+3. Si NO hay bebé:
+   - status debe ser "requiere_atencion"
+   - Describe qué hay en la imagen en observaciones
+   - Indica que se necesita una imagen de bebé en recomendaciones
 
 IMPORTANTE: Esta es solo una herramienta orientativa. NO es un diagnóstico médico.
 
 Responde EXCLUSIVAMENTE en formato JSON con esta estructura:
 {
+    "baby_detected": true | false,
     "status": "normal" | "requiere_atencion" | "urgente",
     "observations": "descripción detallada de observaciones",
     "recommendations": "recomendaciones para los padres",
@@ -28,16 +35,20 @@ Responde EXCLUSIVAMENTE en formato JSON con esta estructura:
 
 CRY_ANALYSIS_PROMPT = """Eres un asistente especializado en análisis de llanto infantil. Analiza el espectrograma de audio proporcionado y clasifica el tipo de llanto del bebé.
 
+PRIMERO determina si hay llanto de bebé en el espectrograma. Si no detectas patrones de llanto infantil (solo ruido ambiente, silencio, música, voces adultas, etc.), usa la categoría "sin_llanto".
+
 Categorías posibles:
+- "sin_llanto": No se detecta llanto de bebé en el audio (ruido ambiente, silencio, etc.)
 - "hambre": Llanto rítmico, repetitivo, intensidad creciente
 - "dolor": Llanto agudo, súbito, alta intensidad
 - "sueno": Llanto irregular, con pausas, baja intensidad
 - "incomodidad": Llanto moderado, constante
 - "colico": Llanto prolongado, alta intensidad, difícil de calmar
-- "desconocido": No se puede clasificar con certeza
+- "desconocido": Hay llanto pero no se puede clasificar con certeza
 
 Responde EXCLUSIVAMENTE en formato JSON:
 {
+    "cry_detected": true | false,
     "cry_category": "categoria",
     "cry_label": "etiqueta descriptiva en español",
     "cry_confidence": 0.0 a 1.0,
