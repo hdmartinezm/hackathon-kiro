@@ -646,6 +646,8 @@ class _DesafioSection extends StatelessWidget {
 // ---------------------------------------------------------------------------
 
 class _ComoFuncionaSection extends StatelessWidget {
+  const _ComoFuncionaSection({super.key});
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -799,6 +801,8 @@ class _ComoFuncionaSection extends StatelessWidget {
 // ---------------------------------------------------------------------------
 
 class _CaracteristicasSection extends StatelessWidget {
+  const _CaracteristicasSection({super.key});
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -979,6 +983,8 @@ class _CaracteristicasSection extends StatelessWidget {
 // ---------------------------------------------------------------------------
 
 class _ArquitecturaSection extends StatelessWidget {
+  const _ArquitecturaSection({super.key});
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -1202,6 +1208,8 @@ class _ArchArrow extends StatelessWidget {
 // ---------------------------------------------------------------------------
 
 class _SeguridadSection extends StatelessWidget {
+  const _SeguridadSection({super.key});
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -1561,11 +1569,11 @@ class _FooterSection extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 12),
-              _footerLink('AWS Bedrock'),
+              _footerLink('AWS Bedrock', () {}),
               const SizedBox(height: 8),
-              _footerLink('AWS Lambda'),
+              _footerLink('AWS Lambda', () {}),
               const SizedBox(height: 8),
-              _footerLink('Flutter'),
+              _footerLink('Flutter', () {}),
             ],
           ),
         ),
@@ -1621,9 +1629,9 @@ class _FooterSection extends StatelessWidget {
           runSpacing: 8,
           alignment: WrapAlignment.center,
           children: [
-            _footerLink('AWS Bedrock'),
-            _footerLink('AWS Lambda'),
-            _footerLink('Flutter'),
+            _footerLink('AWS Bedrock', () {}),
+            _footerLink('AWS Lambda', () {}),
+            _footerLink('Flutter', () {}),
           ],
         ),
       ],
