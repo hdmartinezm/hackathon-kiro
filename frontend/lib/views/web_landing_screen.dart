@@ -19,8 +19,37 @@ import 'home_screen.dart';
 /// - "Seguridad y Disclaimer" card
 /// - CTA subscription band
 /// - Footer
-class WebLandingScreen extends StatelessWidget {
+class WebLandingScreen extends StatefulWidget {
   const WebLandingScreen({super.key});
+
+  @override
+  State<WebLandingScreen> createState() => _WebLandingScreenState();
+}
+
+class _WebLandingScreenState extends State<WebLandingScreen> {
+  // GlobalKeys for scroll targets
+  final _comoFuncionaKey = GlobalKey();
+  final _caracteristicasKey = GlobalKey();
+  final _arquitecturaKey = GlobalKey();
+  final _seguridadKey = GlobalKey();
+
+  void _scrollToSection(GlobalKey key) {
+    final context = key.currentContext;
+    if (context != null) {
+      Scrollable.ensureVisible(
+        context,
+        duration: const Duration(milliseconds: 500),
+        curve: Curves.easeInOut,
+      );
+    }
+  }
+
+  void _navigateToAuth({bool signup = false}) {
+    Navigator.of(context).pushNamed(
+      '/auth',
+      arguments: signup ? 'signup' : null,
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -29,15 +58,29 @@ class WebLandingScreen extends StatelessWidget {
       body: SingleChildScrollView(
         child: Column(
           children: [
-            _NavBar(),
-            _HeroSection(),
+            _NavBar(
+              onComoFunciona: () => _scrollToSection(_comoFuncionaKey),
+              onCaracteristicas: () => _scrollToSection(_caracteristicasKey),
+              onArquitectura: () => _scrollToSection(_arquitecturaKey),
+              onSeguridad: () => _scrollToSection(_seguridadKey),
+              onSolicitarAcceso: () => _navigateToAuth(),
+            ),
+            _HeroSection(
+              onSolicitarAcceso: () => _navigateToAuth(),
+              onVerComoFunciona: () => _scrollToSection(_comoFuncionaKey),
+            ),
             _DesafioSection(),
-            _ComoFuncionaSection(),
-            _CaracteristicasSection(),
-            _ArquitecturaSection(),
-            _SeguridadSection(),
-            _CtaBandSection(),
-            _FooterSection(),
+            _ComoFuncionaSection(key: _comoFuncionaKey),
+            _CaracteristicasSection(key: _caracteristicasKey),
+            _ArquitecturaSection(key: _arquitecturaKey),
+            _SeguridadSection(key: _seguridadKey),
+            _CtaBandSection(onCrearCuenta: () => _navigateToAuth(signup: true)),
+            _FooterSection(
+              onComoFunciona: () => _scrollToSection(_comoFuncionaKey),
+              onCaracteristicas: () => _scrollToSection(_caracteristicasKey),
+              onArquitectura: () => _scrollToSection(_arquitecturaKey),
+              onSeguridad: () => _scrollToSection(_seguridadKey),
+            ),
           ],
         ),
       ),
@@ -50,6 +93,20 @@ class WebLandingScreen extends StatelessWidget {
 // ---------------------------------------------------------------------------
 
 class _NavBar extends StatelessWidget {
+  final VoidCallback onComoFunciona;
+  final VoidCallback onCaracteristicas;
+  final VoidCallback onArquitectura;
+  final VoidCallback onSeguridad;
+  final VoidCallback onSolicitarAcceso;
+
+  const _NavBar({
+    required this.onComoFunciona,
+    required this.onCaracteristicas,
+    required this.onArquitectura,
+    required this.onSeguridad,
+    required this.onSolicitarAcceso,
+  });
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -94,13 +151,13 @@ class _NavBar extends StatelessWidget {
           ),
         ),
         const Spacer(),
-        _navLink('Cómo funciona'),
+        _navLink('Cómo funciona', onComoFunciona),
         const SizedBox(width: 24),
-        _navLink('Características'),
+        _navLink('Características', onCaracteristicas),
         const SizedBox(width: 24),
-        _navLink('Arquitectura'),
+        _navLink('Arquitectura', onArquitectura),
         const SizedBox(width: 24),
-        _navLink('Seguridad'),
+        _navLink('Seguridad', onSeguridad),
         const SizedBox(width: 32),
         _ctaButton(context),
       ],
@@ -126,15 +183,18 @@ class _NavBar extends StatelessWidget {
     );
   }
 
-  Widget _navLink(String label) {
+  Widget _navLink(String label, VoidCallback onTap) {
     return GestureDetector(
-      onTap: () => _scrollToSection(label),
-      child: Text(
-        label,
-        style: TextStyle(
-          fontSize: 14,
-          fontWeight: FontWeight.w500,
-          color: const Color(0xFF2B2826).withValues(alpha: 0.7),
+      onTap: onTap,
+      child: MouseRegion(
+        cursor: SystemMouseCursors.click,
+        child: Text(
+          label,
+          style: TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w500,
+            color: const Color(0xFF2B2826).withValues(alpha: 0.7),
+          ),
         ),
       ),
     );
@@ -142,7 +202,7 @@ class _NavBar extends StatelessWidget {
 
   Widget _ctaButton(BuildContext context) {
     return FilledButton(
-      onPressed: () => _scrollToSection('cta'),
+      onPressed: onSolicitarAcceso,
       style: FilledButton.styleFrom(
         backgroundColor: const Color(0xFF389BB0),
         shape: RoundedRectangleBorder(
@@ -156,10 +216,6 @@ class _NavBar extends StatelessWidget {
       ),
     );
   }
-
-  void _scrollToSection(String label) {
-    // Visual placeholder — sections are visible on scroll.
-  }
 }
 
 // ---------------------------------------------------------------------------
@@ -167,6 +223,14 @@ class _NavBar extends StatelessWidget {
 // ---------------------------------------------------------------------------
 
 class _HeroSection extends StatelessWidget {
+  final VoidCallback onSolicitarAcceso;
+  final VoidCallback onVerComoFunciona;
+
+  const _HeroSection({
+    required this.onSolicitarAcceso,
+    required this.onVerComoFunciona,
+  });
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -293,7 +357,7 @@ class _HeroSection extends StatelessWidget {
           runSpacing: 12,
           children: [
             FilledButton(
-              onPressed: () {},
+              onPressed: onSolicitarAcceso,
               style: FilledButton.styleFrom(
                 backgroundColor: const Color(0xFF389BB0),
                 padding:
@@ -307,7 +371,7 @@ class _HeroSection extends StatelessWidget {
               child: const Text('Solicitar acceso →'),
             ),
             OutlinedButton(
-              onPressed: () {},
+              onPressed: onVerComoFunciona,
               style: OutlinedButton.styleFrom(
                 foregroundColor: const Color(0xFF2B2826),
                 side: BorderSide(
@@ -1245,28 +1309,13 @@ class _SeguridadSection extends StatelessWidget {
 }
 
 // ---------------------------------------------------------------------------
-// CTA Subscription Band (NUEVA SECCIÓN)
+// CTA Subscription Band
 // ---------------------------------------------------------------------------
 
-class _CtaBandSection extends StatefulWidget {
-  @override
-  State<_CtaBandSection> createState() => _CtaBandSectionState();
-}
+class _CtaBandSection extends StatelessWidget {
+  final VoidCallback onCrearCuenta;
 
-class _CtaBandSectionState extends State<_CtaBandSection> {
-  final _emailController = TextEditingController();
-  bool _submitted = false;
-
-  @override
-  void dispose() {
-    _emailController.dispose();
-    super.dispose();
-  }
-
-  void _handleSubmit() {
-    if (_emailController.text.trim().isEmpty) return;
-    setState(() => _submitted = true);
-  }
+  const _CtaBandSection({required this.onCrearCuenta});
 
   @override
   Widget build(BuildContext context) {
@@ -1278,130 +1327,72 @@ class _CtaBandSectionState extends State<_CtaBandSection> {
           constraints: const BoxConstraints(maxWidth: 1200),
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 64),
-            child: LayoutBuilder(
-        builder: (context, constraints) {
-          return ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 600),
-            child: Container(
-              padding: const EdgeInsets.all(36),
-              decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  colors: [Color(0xFF389BB0), Color(0xFF2D7E91)],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 600),
+              child: Container(
+                padding: const EdgeInsets.all(36),
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    colors: [Color(0xFF389BB0), Color(0xFF2D7E91)],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  borderRadius: BorderRadius.circular(24),
+                  boxShadow: [
+                    BoxShadow(
+                      color: const Color(0xFF389BB0).withValues(alpha: 0.3),
+                      blurRadius: 24,
+                      offset: const Offset(0, 8),
+                    ),
+                  ],
                 ),
-                borderRadius: BorderRadius.circular(24),
-                boxShadow: [
-                  BoxShadow(
-                    color: const Color(0xFF389BB0).withValues(alpha: 0.3),
-                    blurRadius: 24,
-                    offset: const Offset(0, 8),
-                  ),
-                ],
-              ),
-              child: Column(
-                children: [
-                  const Text(
-                    '¿Listo para probar BabyHealth?',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontSize: 26,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
+                child: Column(
+                  children: [
+                    const Text(
+                      '¿Listo para probar BabyHealth?',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 26,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 12),
-                  Text(
-                    'Estamos preparando el acceso anticipado para el '
-                    'hackathon AWS (20-27 julio 2026)...',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: Colors.white.withValues(alpha: 0.85),
-                      height: 1.5,
+                    const SizedBox(height: 12),
+                    Text(
+                      'Crea tu cuenta gratis y comienza a usar BabyHealth hoy mismo.',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: Colors.white.withValues(alpha: 0.85),
+                        height: 1.5,
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 24),
-                  if (_submitted)
-                    _buildConfirmation()
-                  else
-                    _buildEmailForm(),
-                ],
+                    const SizedBox(height: 24),
+                    FilledButton(
+                      onPressed: onCrearCuenta,
+                      style: FilledButton.styleFrom(
+                        backgroundColor: Colors.white,
+                        foregroundColor: const Color(0xFF389BB0),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 32,
+                          vertical: 16,
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        textStyle: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      child: const Text('Crear cuenta gratis →'),
+                    ),
+                  ],
+                ),
               ),
             ),
-          );
-        },
-      ),
           ),
         ),
-      ),
-    );
-  }
-
-  Widget _buildEmailForm() {
-    return Row(
-      children: [
-        Expanded(
-          child: TextField(
-            controller: _emailController,
-            decoration: InputDecoration(
-              hintText: 'tu@correo.com',
-              hintStyle: TextStyle(
-                color: Colors.white.withValues(alpha: 0.5),
-              ),
-              filled: true,
-              fillColor: Colors.white.withValues(alpha: 0.15),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: BorderSide.none,
-              ),
-              contentPadding:
-                  const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-            ),
-            style: const TextStyle(color: Colors.white),
-            keyboardType: TextInputType.emailAddress,
-          ),
-        ),
-        const SizedBox(width: 12),
-        FilledButton(
-          onPressed: _handleSubmit,
-          style: FilledButton.styleFrom(
-            backgroundColor: Colors.white,
-            foregroundColor: const Color(0xFF389BB0),
-            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
-            ),
-            textStyle:
-                const TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
-          ),
-          child: const Text('Notificarme →'),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildConfirmation() {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.15),
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          const Icon(Icons.check_circle, color: Colors.white, size: 24),
-          const SizedBox(width: 12),
-          Text(
-            '¡Gracias! Te avisaremos cuando esté disponible.',
-            style: TextStyle(
-              fontSize: 15,
-              color: Colors.white.withValues(alpha: 0.95),
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-        ],
       ),
     );
   }
@@ -1412,6 +1403,18 @@ class _CtaBandSectionState extends State<_CtaBandSection> {
 // ---------------------------------------------------------------------------
 
 class _FooterSection extends StatelessWidget {
+  final VoidCallback onComoFunciona;
+  final VoidCallback onCaracteristicas;
+  final VoidCallback onArquitectura;
+  final VoidCallback onSeguridad;
+
+  const _FooterSection({
+    required this.onComoFunciona,
+    required this.onCaracteristicas,
+    required this.onArquitectura,
+    required this.onSeguridad,
+  });
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -1534,13 +1537,13 @@ class _FooterSection extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 12),
-              _footerLink('Cómo funciona'),
+              _footerLink('Cómo funciona', onComoFunciona),
               const SizedBox(height: 8),
-              _footerLink('Características'),
+              _footerLink('Características', onCaracteristicas),
               const SizedBox(height: 8),
-              _footerLink('Arquitectura'),
+              _footerLink('Arquitectura', onArquitectura),
               const SizedBox(height: 8),
-              _footerLink('Seguridad'),
+              _footerLink('Seguridad', onSeguridad),
             ],
           ),
         ),
@@ -1606,10 +1609,10 @@ class _FooterSection extends StatelessWidget {
           runSpacing: 8,
           alignment: WrapAlignment.center,
           children: [
-            _footerLink('Cómo funciona'),
-            _footerLink('Características'),
-            _footerLink('Arquitectura'),
-            _footerLink('Seguridad'),
+            _footerLink('Cómo funciona', onComoFunciona),
+            _footerLink('Características', onCaracteristicas),
+            _footerLink('Arquitectura', onArquitectura),
+            _footerLink('Seguridad', onSeguridad),
           ],
         ),
         const SizedBox(height: 16),
@@ -1627,14 +1630,17 @@ class _FooterSection extends StatelessWidget {
     );
   }
 
-  Widget _footerLink(String label) {
+  Widget _footerLink(String label, VoidCallback onTap) {
     return GestureDetector(
-      onTap: () {},
-      child: Text(
-        label,
-        style: TextStyle(
-          fontSize: 13,
-          color: Colors.white.withValues(alpha: 0.5),
+      onTap: onTap,
+      child: MouseRegion(
+        cursor: SystemMouseCursors.click,
+        child: Text(
+          label,
+          style: TextStyle(
+            fontSize: 13,
+            color: Colors.white.withValues(alpha: 0.5),
+          ),
         ),
       ),
     );
