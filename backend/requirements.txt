@@ -2,24 +2,24 @@
 fastapi>=0.100.0
 uvicorn[standard]>=0.23.0
 mangum>=0.17.0
-pydantic>=2.0
-pydantic-settings>=2.0.0
-python-dateutil>=2.8.0
-python-multipart>=0.0.6
+python-dotenv>=1.0.0
 
 # AWS
 boto3>=1.28.0
 
-# Media processing
-imageio>=2.31.0
-imageio[pyav]
-matplotlib>=3.7.0
-numpy>=1.24.0
+# Google AI
+google-genai>=1.0.0
+
+# Data validation & models
+pydantic>=2.0.0
+pydantic-settings>=2.0.0
+
+# Utils
+python-dateutil>=2.8.0
+httpx>=0.24.0
 
 # Testing
 pytest>=7.4.0
-httpx>=0.24.0
-hypothesis>=6.80.0
-
-# Utilities
-python-dotenv>=1.0.0
+pytest-asyncio>=0.21.0
+hypothesis>=6.82.0
+moto>=4.2.0
