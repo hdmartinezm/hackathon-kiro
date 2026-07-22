@@ -3,8 +3,15 @@ import 'dart:convert';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/testing.dart';
 import 'package:http/http.dart' as http;
+import 'package:mockito/mockito.dart';
+import 'package:mockito/annotations.dart';
 
 import 'package:babyhealth/services/http_client.dart';
+import 'package:babyhealth/services/auth_service.dart';
+
+import 'http_client_test.mocks.dart';
+
+@GenerateMocks([AuthService])
 
 void main() {
   group('HttpClient', () {
@@ -172,6 +179,158 @@ void main() {
         } catch (_) {
           // Not expected — HttpClient returns responses as-is.
         }
+      });
+    });
+
+    group('JWT authorization', () {
+      test('includes Authorization header when authService provides token', () async {
+        final mockAuthService = MockAuthService();
+        when(mockAuthService.getAccessToken())
+            .thenAnswer((_) async => 'test-jwt-token');
+
+        mockClient = MockClient((request) async {
+          expect(
+            request.headers,
+            containsPair('authorization', 'Bearer test-jwt-token'),
+          );
+          return http.Response(jsonEncode({'ok': true}), 200);
+        });
+
+        client = HttpClient(
+          baseUrl: baseUrl,
+          client: mockClient,
+          authService: mockAuthService,
+        );
+
+        await client.get('/test');
+        verify(mockAuthService.getAccessToken()).called(1);
+      });
+
+      test('does not include Authorization header when authService returns null', () async {
+        final mockAuthService = MockAuthService();
+        when(mockAuthService.getAccessToken()).thenAnswer((_) async => null);
+
+        mockClient = MockClient((request) async {
+          expect(request.headers.containsKey('authorization'), isFalse);
+          return http.Response(jsonEncode({'ok': true}), 200);
+        });
+
+        client = HttpClient(
+          baseUrl: baseUrl,
+          client: mockClient,
+          authService: mockAuthService,
+        );
+
+        await client.get('/test');
+        verify(mockAuthService.getAccessToken()).called(1);
+      });
+
+      test('does not include Authorization header when authService is null', () async {
+        mockClient = MockClient((request) async {
+          expect(request.headers.containsKey('authorization'), isFalse);
+          return http.Response(jsonEncode({'ok': true}), 200);
+        });
+
+        client = HttpClient(
+          baseUrl: baseUrl,
+          client: mockClient,
+          authService: null,
+        );
+
+        await client.get('/test');
+      });
+
+      test('includes Authorization header in POST requests', () async {
+        final mockAuthService = MockAuthService();
+        when(mockAuthService.getAccessToken())
+            .thenAnswer((_) async => 'test-jwt-token');
+
+        mockClient = MockClient((request) async {
+          expect(
+            request.headers,
+            containsPair('authorization', 'Bearer test-jwt-token'),
+          );
+          return http.Response(jsonEncode({'ok': true}), 200);
+        });
+
+        client = HttpClient(
+          baseUrl: baseUrl,
+          client: mockClient,
+          authService: mockAuthService,
+        );
+
+        await client.post('/test', body: {'key': 'value'});
+        verify(mockAuthService.getAccessToken()).called(1);
+      });
+
+      test('includes Authorization header in PUT requests', () async {
+        final mockAuthService = MockAuthService();
+        when(mockAuthService.getAccessToken())
+            .thenAnswer((_) async => 'test-jwt-token');
+
+        mockClient = MockClient((request) async {
+          expect(
+            request.headers,
+            containsPair('authorization', 'Bearer test-jwt-token'),
+          );
+          return http.Response(jsonEncode({'ok': true}), 200);
+        });
+
+        client = HttpClient(
+          baseUrl: baseUrl,
+          client: mockClient,
+          authService: mockAuthService,
+        );
+
+        await client.put('/test', body: {'key': 'value'});
+        verify(mockAuthService.getAccessToken()).called(1);
+      });
+
+      test('includes Authorization header in DELETE requests', () async {
+        final mockAuthService = MockAuthService();
+        when(mockAuthService.getAccessToken())
+            .thenAnswer((_) async => 'test-jwt-token');
+
+        mockClient = MockClient((request) async {
+          expect(
+            request.headers,
+            containsPair('authorization', 'Bearer test-jwt-token'),
+          );
+          return http.Response(jsonEncode({'ok': true}), 200);
+        });
+
+        client = HttpClient(
+          baseUrl: baseUrl,
+          client: mockClient,
+          authService: mockAuthService,
+        );
+
+        await client.delete('/test');
+        verify(mockAuthService.getAccessToken()).called(1);
+      });
+
+      test('custom headers are preserved alongside Authorization header', () async {
+        final mockAuthService = MockAuthService();
+        when(mockAuthService.getAccessToken())
+            .thenAnswer((_) async => 'test-jwt-token');
+
+        mockClient = MockClient((request) async {
+          expect(
+            request.headers,
+            containsPair('authorization', 'Bearer test-jwt-token'),
+          );
+          expect(request.headers, containsPair('x-custom', 'value'));
+          return http.Response(jsonEncode({'ok': true}), 200);
+        });
+
+        client = HttpClient(
+          baseUrl: baseUrl,
+          client: mockClient,
+          authService: mockAuthService,
+        );
+
+        await client.get('/test', headers: {'x-custom': 'value'});
+        verify(mockAuthService.getAccessToken()).called(1);
       });
     });
   });

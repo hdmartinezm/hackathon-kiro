@@ -67,6 +67,29 @@ class HttpClient {
   })  : _client = client ?? http.Client(),
         _timeout = timeout;
 
+  /// Builds headers map with optional JWT authorization.
+  ///
+  /// Includes `Authorization: Bearer <token>` if [authService] is available
+  /// and returns a non-null token. Merges [customHeaders] if provided.
+  Future<Map<String, String>> _getHeaders([
+    Map<String, String>? customHeaders,
+  ]) async {
+    final headers = <String, String>{};
+
+    if (authService != null) {
+      final token = await authService!.getAccessToken();
+      if (token != null) {
+        headers['authorization'] = 'Bearer $token';
+      }
+    }
+
+    if (customHeaders != null) {
+      headers.addAll(customHeaders);
+    }
+
+    return headers;
+  }
+
   /// Sends a GET request to [path] relative to [baseUrl].
   ///
   /// Optional [queryParams] are appended as URL query parameters.
@@ -80,7 +103,8 @@ class HttpClient {
     if (queryParams != null && queryParams.isNotEmpty) {
       uri = uri.replace(queryParameters: queryParams);
     }
-    return _sendRequest(() => _client.get(uri, headers: headers));
+    final mergedHeaders = await _getHeaders(headers);
+    return _sendRequest(() => _client.get(uri, headers: mergedHeaders));
   }
 
   /// Sends a POST request to [path] relative to [baseUrl].
@@ -93,10 +117,11 @@ class HttpClient {
     Map<String, String>? headers,
   }) async {
     final uri = Uri.parse('$baseUrl$path');
-    final mergedHeaders = <String, String>{
+    final customHeaders = <String, String>{
       'Content-Type': 'application/json',
       if (headers != null) ...headers,
     };
+    final mergedHeaders = await _getHeaders(customHeaders);
     return _sendRequest(
       () => _client.post(
         uri,
@@ -116,10 +141,11 @@ class HttpClient {
     Map<String, String>? headers,
   }) async {
     final uri = Uri.parse('$baseUrl$path');
-    final mergedHeaders = <String, String>{
+    final customHeaders = <String, String>{
       'Content-Type': 'application/json',
       if (headers != null) ...headers,
     };
+    final mergedHeaders = await _getHeaders(customHeaders);
     return _sendRequest(
       () => _client.put(
         uri,
@@ -137,7 +163,8 @@ class HttpClient {
     Map<String, String>? headers,
   }) async {
     final uri = Uri.parse('$baseUrl$path');
-    return _sendRequest(() => _client.delete(uri, headers: headers));
+    final mergedHeaders = await _getHeaders(headers);
+    return _sendRequest(() => _client.delete(uri, headers: mergedHeaders));
   }
 
   /// Executes [requestFn] with timeout and wraps errors.
