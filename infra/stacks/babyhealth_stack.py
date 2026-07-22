@@ -117,6 +117,17 @@ class BabyHealthStack(Stack):
             removal_policy=RemovalPolicy.DESTROY,
         )
 
+        # ─── Lambda Layer for Video Processing ─────────────────────────────
+        # Contains: numpy, imageio, matplotlib, pillow, av (pyav)
+        # Required for Bedrock endpoint to extract frames and generate spectrograms
+        self.video_processing_layer = lambda_.LayerVersion(
+            self,
+            "VideoProcessingLayer",
+            code=lambda_.Code.from_asset("layers/video-processing"),
+            compatible_runtimes=[lambda_.Runtime.PYTHON_3_11],
+            description="Video processing dependencies: numpy, imageio, matplotlib, pillow, av",
+        )
+
         # ─── Task 13.3: Lambda Function ─────────────────────────────────────
         self.lambda_function = lambda_.Function(
             self,
@@ -125,8 +136,9 @@ class BabyHealthStack(Stack):
             runtime=lambda_.Runtime.PYTHON_3_11,
             handler="lambda_handler.handler",
             code=lambda_.Code.from_asset("../backend"),
-            timeout=Duration.seconds(30),
-            memory_size=512,
+            timeout=Duration.seconds(60),  # Increased for video processing
+            memory_size=1024,  # Increased for video/image processing
+            layers=[self.video_processing_layer],
             environment={
                 "S3_BUCKET": self.bucket.bucket_name,
                 "BEDROCK_MODEL_ID": "us.anthropic.claude-sonnet-4-5-20250929-v1:0",
@@ -151,13 +163,20 @@ class BabyHealthStack(Stack):
             "dynamodb:Query",
         )
 
-        # Bedrock: InvokeModel permission
+        # Bedrock: InvokeModel and Converse permissions
         self.lambda_function.add_to_role_policy(
             iam.PolicyStatement(
                 effect=iam.Effect.ALLOW,
-                actions=["bedrock:InvokeModel"],
+                actions=[
+                    "bedrock:InvokeModel",
+                    "bedrock:InvokeModelWithResponseStream",
+                    "bedrock:Converse",
+                    "bedrock:ConverseStream",
+                ],
                 resources=[
                     f"arn:aws:bedrock:{self.region}::foundation-model/*",
+                    f"arn:aws:bedrock:{self.region}:{self.account}:inference-profile/*",
+                    f"arn:aws:bedrock:*::foundation-model/*",  # Cross-region models
                 ],
             )
         )

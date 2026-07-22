@@ -95,6 +95,17 @@ def analyze_image(image_bytes: bytes, media_type: str = "image/jpeg", prompt: st
             result_text = "\n".join(lines[1:-1])
 
         result = json.loads(result_text)
+
+        # Normalizar status a valores válidos
+        valid_statuses = {"normal", "requiere_atencion", "urgente"}
+        raw_status = result.get("status", "").lower()
+        if raw_status not in valid_statuses:
+            # Si el modelo no puede analizar (ej: no hay bebé), marcar como requiere_atencion
+            logger.warning(f"Status inválido '{raw_status}' normalizado a 'requiere_atencion'")
+            result["status"] = "requiere_atencion"
+            if not result.get("error"):
+                result["error"] = f"El modelo retornó status no válido: {raw_status}"
+
         logger.info(f"Análisis Bedrock completado: status={result.get('status', 'N/A')}")
         return result
 

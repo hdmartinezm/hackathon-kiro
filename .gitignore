@@ -22,6 +22,7 @@ flutter_app/pubspec.lock
 # AWS CDK
 cdk.out/
 .aws-sam/
+infra/layers/
 
 # Environment variables
 .env

@@ -15,7 +15,7 @@ router = APIRouter(tags=["analyze"])
 
 
 def extract_frame_from_video(video_bytes: bytes) -> bytes:
-    """Extrae un frame representativo del video usando imageio/pyav.
+    """Extrae un frame representativo del video usando ffmpeg + pillow.
 
     Args:
         video_bytes: Bytes del video.
@@ -23,28 +23,78 @@ def extract_frame_from_video(video_bytes: bytes) -> bytes:
     Returns:
         bytes de la imagen (JPEG) del frame extraído.
     """
-    import imageio.v3 as iio
+    import subprocess
+    import os
+    from PIL import Image
 
     try:
-        # Leer frames del video desde bytes
-        frames = iio.imread(io.BytesIO(video_bytes), plugin="pyav", index=None)
+        # Guardar video temporalmente
+        with tempfile.NamedTemporaryFile(suffix=".mp4", delete=False) as tmp_video:
+            tmp_video.write(video_bytes)
+            tmp_video_path = tmp_video.name
 
-        if len(frames) == 0:
-            raise ValueError("No se pudieron extraer frames del video")
+        # Archivo de salida para el frame
+        with tempfile.NamedTemporaryFile(suffix=".jpg", delete=False) as tmp_frame:
+            tmp_frame_path = tmp_frame.name
 
-        # Tomar frame del medio
-        mid_index = len(frames) // 2
-        frame = frames[mid_index]
+        try:
+            # Extraer frame del medio del video usando ffmpeg
+            # -ss 00:00:01 busca el frame en el segundo 1 (o cerca del inicio)
+            # -frames:v 1 extrae solo un frame
+            # En Lambda, ffmpeg está en /opt/bin (desde el layer)
+            ffmpeg_path = "/opt/bin/ffmpeg" if os.path.exists("/opt/bin/ffmpeg") else "ffmpeg"
+            subprocess.run(
+                [
+                    ffmpeg_path, "-i", tmp_video_path,
+                    "-ss", "00:00:01",
+                    "-frames:v", "1",
+                    "-q:v", "2",  # Alta calidad JPEG
+                    "-y", tmp_frame_path,
+                ],
+                capture_output=True,
+                timeout=30,
+                check=True,
+            )
 
-        # Convertir a JPEG
-        jpeg_buffer = io.BytesIO()
-        iio.imwrite(jpeg_buffer, frame, extension=".jpg")
-        jpeg_buffer.seek(0)
-        return jpeg_buffer.read()
+            # Leer el frame extraído
+            with open(tmp_frame_path, "rb") as f:
+                frame_bytes = f.read()
+
+            if len(frame_bytes) == 0:
+                raise ValueError("Frame extraído está vacío")
+
+            return frame_bytes
+
+        except (subprocess.CalledProcessError, FileNotFoundError) as e:
+            logger.warning(f"ffmpeg no disponible o error: {e}. Generando imagen placeholder.")
+            # Generar imagen placeholder si ffmpeg no está disponible
+            return _generate_placeholder_image()
+
+        finally:
+            # Cleanup
+            if os.path.exists(tmp_video_path):
+                os.unlink(tmp_video_path)
+            if os.path.exists(tmp_frame_path):
+                os.unlink(tmp_frame_path)
 
     except Exception as e:
         logger.error(f"Error extrayendo frame del video: {e}")
         raise
+
+
+def _generate_placeholder_image() -> bytes:
+    """Genera una imagen placeholder cuando no se puede extraer frame."""
+    from PIL import Image, ImageDraw
+
+    # Crear imagen gris con texto
+    img = Image.new("RGB", (640, 480), color=(128, 128, 128))
+    draw = ImageDraw.Draw(img)
+    draw.text((220, 230), "No video frame", fill=(255, 255, 255))
+
+    buffer = io.BytesIO()
+    img.save(buffer, format="JPEG", quality=85)
+    buffer.seek(0)
+    return buffer.read()
 
 
 def extract_audio_spectrogram(video_bytes: bytes) -> bytes:
@@ -69,10 +119,12 @@ def extract_audio_spectrogram(video_bytes: bytes) -> bytes:
             tmp_audio_path = tmp_audio.name
 
         # Extraer audio usando ffmpeg
+        # En Lambda, ffmpeg está en /opt/bin (desde el layer)
+        ffmpeg_path = "/opt/bin/ffmpeg" if os.path.exists("/opt/bin/ffmpeg") else "ffmpeg"
         try:
             subprocess.run(
                 [
-                    "ffmpeg", "-i", tmp_video_path,
+                    ffmpeg_path, "-i", tmp_video_path,
                     "-vn", "-acodec", "pcm_s16le",
                     "-ar", "16000", "-ac", "1",
                     "-y", tmp_audio_path,
