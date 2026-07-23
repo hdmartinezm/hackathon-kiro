@@ -49,6 +49,11 @@ class AuthService {
   /// Sign in with email and password.
   Future<AuthResult> signIn(String email, String password) async {
     try {
+      // First sign out any existing session
+      try {
+        await Amplify.Auth.signOut();
+      } catch (_) {}
+
       final result = await Amplify.Auth.signIn(
         username: email.trim().toLowerCase(),
         password: password,
@@ -61,6 +66,8 @@ class AuthService {
       return AuthResult.failure('No se pudo iniciar sesión');
     } on AuthException catch (e) {
       return AuthResult.failure(_mapAuthError(e));
+    } catch (e) {
+      return AuthResult.failure('Error inesperado: $e');
     }
   }
 
@@ -84,6 +91,8 @@ class AuthService {
       return AuthResult.confirmationRequired();
     } on AuthException catch (e) {
       return AuthResult.failure(_mapAuthError(e));
+    } catch (e) {
+      return AuthResult.failure('Error inesperado: $e');
     }
   }
 
@@ -174,7 +183,11 @@ class AuthService {
     if (message.contains('network') || message.contains('connection')) {
       return 'Error de conexión. Verifica tu internet.';
     }
+    if (message.contains('not configured') || message.contains('amplify')) {
+      return 'Error de configuración. Recarga la página.';
+    }
 
-    return 'Algo salió mal. Intenta de nuevo.';
+    // Debug: show actual error in development
+    return 'Error: ${e.message}';
   }
 }
