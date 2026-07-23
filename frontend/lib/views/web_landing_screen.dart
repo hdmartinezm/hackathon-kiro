@@ -184,35 +184,115 @@ class _NavBar extends StatelessWidget {
   }
 
   Widget _navLink(String label, VoidCallback onTap) {
+    return _HoverableNavLink(label: label, onTap: onTap);
+  }
+
+  Widget _ctaButton(BuildContext context) {
+    return _AnimatedCtaButton(
+      label: 'Solicitar acceso',
+      onPressed: onSolicitarAcceso,
+    );
+  }
+}
+
+// Hoverable nav link with animation
+class _HoverableNavLink extends StatefulWidget {
+  final String label;
+  final VoidCallback onTap;
+
+  const _HoverableNavLink({required this.label, required this.onTap});
+
+  @override
+  State<_HoverableNavLink> createState() => _HoverableNavLinkState();
+}
+
+class _HoverableNavLinkState extends State<_HoverableNavLink> {
+  bool _isHovered = false;
+
+  @override
+  Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: onTap,
+      onTap: widget.onTap,
       child: MouseRegion(
         cursor: SystemMouseCursors.click,
-        child: Text(
-          label,
-          style: TextStyle(
-            fontSize: 14,
-            fontWeight: FontWeight.w500,
-            color: const Color(0xFF2B2826).withValues(alpha: 0.7),
+        onEnter: (_) => setState(() => _isHovered = true),
+        onExit: (_) => setState(() => _isHovered = false),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          decoration: BoxDecoration(
+            color: _isHovered ? const Color(0xFF389BB0).withValues(alpha: 0.1) : Colors.transparent,
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Text(
+            widget.label,
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
+              color: _isHovered ? const Color(0xFF389BB0) : const Color(0xFF2B2826).withValues(alpha: 0.7),
+            ),
           ),
         ),
       ),
     );
   }
+}
 
-  Widget _ctaButton(BuildContext context) {
-    return FilledButton(
-      onPressed: onSolicitarAcceso,
-      style: FilledButton.styleFrom(
-        backgroundColor: const Color(0xFF389BB0),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(8),
+// Animated CTA button with hover effect
+class _AnimatedCtaButton extends StatefulWidget {
+  final String label;
+  final VoidCallback onPressed;
+  final bool isPrimary;
+
+  const _AnimatedCtaButton({
+    required this.label,
+    required this.onPressed,
+    this.isPrimary = true,
+  });
+
+  @override
+  State<_AnimatedCtaButton> createState() => _AnimatedCtaButtonState();
+}
+
+class _AnimatedCtaButtonState extends State<_AnimatedCtaButton> {
+  bool _isHovered = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return MouseRegion(
+      cursor: SystemMouseCursors.click,
+      onEnter: (_) => setState(() => _isHovered = true),
+      onExit: (_) => setState(() => _isHovered = false),
+      child: GestureDetector(
+        onTap: widget.onPressed,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: _isHovered
+                  ? [const Color(0xFF2D7E91), const Color(0xFF389BB0)]
+                  : [const Color(0xFF389BB0), const Color(0xFF389BB0)],
+            ),
+            borderRadius: BorderRadius.circular(10),
+            boxShadow: [
+              BoxShadow(
+                color: const Color(0xFF389BB0).withValues(alpha: _isHovered ? 0.4 : 0.2),
+                blurRadius: _isHovered ? 16 : 8,
+                offset: Offset(0, _isHovered ? 6 : 3),
+              ),
+            ],
+          ),
+          transform: _isHovered ? (Matrix4.identity()..translate(0.0, -2.0)) : Matrix4.identity(),
+          child: Text(
+            widget.label,
+            style: const TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
+              color: Colors.white,
+            ),
+          ),
         ),
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-      ),
-      child: const Text(
-        'Solicitar acceso',
-        style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
       ),
     );
   }
@@ -351,41 +431,20 @@ class _HeroSection extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 24),
-        // Double buttons
+        // Double buttons with better styling
         Wrap(
-          spacing: 12,
+          spacing: 16,
           runSpacing: 12,
           children: [
-            FilledButton(
+            _HeroPrimaryButton(
+              label: 'Comenzar ahora',
+              icon: Icons.arrow_forward_rounded,
               onPressed: onSolicitarAcceso,
-              style: FilledButton.styleFrom(
-                backgroundColor: const Color(0xFF389BB0),
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 28, vertical: 16),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                textStyle: const TextStyle(
-                    fontSize: 16, fontWeight: FontWeight.w600),
-              ),
-              child: const Text('Solicitar acceso →'),
             ),
-            OutlinedButton(
+            _HeroSecondaryButton(
+              label: 'Ver demostración',
+              icon: Icons.play_circle_outline_rounded,
               onPressed: onVerComoFunciona,
-              style: OutlinedButton.styleFrom(
-                foregroundColor: const Color(0xFF2B2826),
-                side: BorderSide(
-                  color: const Color(0xFF2B2826).withValues(alpha: 0.3),
-                ),
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 28, vertical: 16),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                textStyle: const TextStyle(
-                    fontSize: 16, fontWeight: FontWeight.w600),
-              ),
-              child: const Text('Ver cómo funciona'),
             ),
           ],
         ),
@@ -406,19 +465,25 @@ class _HeroSection extends StatelessWidget {
 
   Widget _badge(String label) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        border:
-            Border.all(color: const Color(0xFF389BB0).withValues(alpha: 0.3)),
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: const Color(0xFF389BB0).withValues(alpha: 0.2)),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFF389BB0).withValues(alpha: 0.08),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
       child: Text(
         label,
-        style: TextStyle(
+        style: const TextStyle(
           fontSize: 12,
           fontWeight: FontWeight.w600,
-          color: const Color(0xFF389BB0),
+          color: Color(0xFF389BB0),
         ),
       ),
     );
@@ -708,23 +773,26 @@ class _ComoFuncionaSection extends StatelessWidget {
                   runSpacing: 32,
                   alignment: WrapAlignment.center,
                   children: [
-                    _stepCard(
+                    _StepCard(
                       number: '01',
                       title: 'Captura',
                       description: 'Foto + 3 segundos de audio / video corto '
                           'de tu bebé.',
+                      icon: Icons.videocam_rounded,
                     ),
-                    _stepCard(
+                    _StepCard(
                       number: '02',
                       title: 'Analiza en AWS',
                       description: 'Claude 3.5 Sonnet Vision en Amazon Bedrock '
                           'procesa el contenido.',
+                      icon: Icons.psychology_rounded,
                     ),
-                    _stepCard(
+                    _StepCard(
                       number: '03',
                       title: 'Recibe orientación',
                       description: 'Resultados inmediatos con semáforo '
                           'y recomendaciones.',
+                      icon: Icons.check_circle_rounded,
                     ),
                   ],
                 ),
@@ -739,58 +807,118 @@ class _ComoFuncionaSection extends StatelessWidget {
     );
   }
 
-  Widget _stepCard({
-    required String number,
-    required String title,
-    required String description,
-  }) {
-    return Container(
-      width: 250,
-      padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFE5E0DA)),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.04),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
+}
+
+class _StepCard extends StatefulWidget {
+  final String number;
+  final String title;
+  final String description;
+  final IconData icon;
+
+  const _StepCard({
+    required this.number,
+    required this.title,
+    required this.description,
+    required this.icon,
+  });
+
+  @override
+  State<_StepCard> createState() => _StepCardState();
+}
+
+class _StepCardState extends State<_StepCard> {
+  bool _isHovered = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return MouseRegion(
+      onEnter: (_) => setState(() => _isHovered = true),
+      onExit: (_) => setState(() => _isHovered = false),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 250),
+        curve: Curves.easeOutCubic,
+        width: 260,
+        padding: const EdgeInsets.all(28),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: _isHovered ? const Color(0xFF389BB0).withValues(alpha: 0.3) : const Color(0xFFE5E0DA),
           ),
-        ],
-      ),
-      child: Column(
-        children: [
-          // Large number
-          Text(
-            number,
-            style: const TextStyle(
-              fontSize: 40,
-              fontWeight: FontWeight.w800,
-              color: Color(0xFF389BB0),
-              height: 1.0,
+          boxShadow: [
+            BoxShadow(
+              color: _isHovered
+                  ? const Color(0xFF389BB0).withValues(alpha: 0.15)
+                  : Colors.black.withValues(alpha: 0.04),
+              blurRadius: _isHovered ? 20 : 8,
+              offset: Offset(0, _isHovered ? 8 : 2),
             ),
-          ),
-          const SizedBox(height: 12),
-          Text(
-            title,
-            style: const TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: Color(0xFF2B2826),
+          ],
+        ),
+        transform: _isHovered
+            ? (Matrix4.identity()..translate(0.0, -4.0))
+            : Matrix4.identity(),
+        child: Column(
+          children: [
+            // Icon container
+            AnimatedContainer(
+              duration: const Duration(milliseconds: 250),
+              width: 64,
+              height: 64,
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: _isHovered
+                      ? [const Color(0xFF389BB0), const Color(0xFF4BA8BC)]
+                      : [const Color(0xFFD6F2F7), const Color(0xFFD6F2F7)],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: Icon(
+                widget.icon,
+                color: _isHovered ? Colors.white : const Color(0xFF389BB0),
+                size: 28,
+              ),
             ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            description,
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              fontSize: 14,
-              color: const Color(0xFF2B2826).withValues(alpha: 0.6),
-              height: 1.5,
+            const SizedBox(height: 16),
+            // Number badge
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+              decoration: BoxDecoration(
+                color: const Color(0xFF389BB0).withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Text(
+                'Paso ${widget.number}',
+                style: const TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w700,
+                  color: Color(0xFF389BB0),
+                ),
+              ),
             ),
-          ),
-        ],
+            const SizedBox(height: 12),
+            Text(
+              widget.title,
+              style: const TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: Color(0xFF2B2826),
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              widget.description,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 14,
+                color: const Color(0xFF2B2826).withValues(alpha: 0.6),
+                height: 1.5,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -1376,24 +1504,9 @@ class _CtaBandSection extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 24),
-                    FilledButton(
+                    _CtaWhiteButton(
+                      label: 'Crear cuenta gratis',
                       onPressed: onCrearCuenta,
-                      style: FilledButton.styleFrom(
-                        backgroundColor: Colors.white,
-                        foregroundColor: const Color(0xFF389BB0),
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 32,
-                          vertical: 16,
-                        ),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        textStyle: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                      child: const Text('Crear cuenta gratis →'),
                     ),
                   ],
                 ),
@@ -1648,6 +1761,233 @@ class _FooterSection extends StatelessWidget {
           style: TextStyle(
             fontSize: 13,
             color: Colors.white.withValues(alpha: 0.5),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Hero Section Buttons
+// ---------------------------------------------------------------------------
+
+class _HeroPrimaryButton extends StatefulWidget {
+  final String label;
+  final IconData icon;
+  final VoidCallback onPressed;
+
+  const _HeroPrimaryButton({
+    required this.label,
+    required this.icon,
+    required this.onPressed,
+  });
+
+  @override
+  State<_HeroPrimaryButton> createState() => _HeroPrimaryButtonState();
+}
+
+class _HeroPrimaryButtonState extends State<_HeroPrimaryButton> {
+  bool _isHovered = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return MouseRegion(
+      cursor: SystemMouseCursors.click,
+      onEnter: (_) => setState(() => _isHovered = true),
+      onExit: (_) => setState(() => _isHovered = false),
+      child: GestureDetector(
+        onTap: widget.onPressed,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 250),
+          curve: Curves.easeOutCubic,
+          padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 18),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: _isHovered
+                  ? [const Color(0xFF2D7E91), const Color(0xFF389BB0)]
+                  : [const Color(0xFF389BB0), const Color(0xFF4BA8BC)],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+            borderRadius: BorderRadius.circular(14),
+            boxShadow: [
+              BoxShadow(
+                color: const Color(0xFF389BB0).withValues(alpha: _isHovered ? 0.5 : 0.3),
+                blurRadius: _isHovered ? 24 : 12,
+                offset: Offset(0, _isHovered ? 8 : 4),
+              ),
+            ],
+          ),
+          transform: _isHovered
+              ? (Matrix4.identity()..translate(0.0, -3.0))
+              : Matrix4.identity(),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                widget.label,
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.white,
+                  letterSpacing: 0.3,
+                ),
+              ),
+              const SizedBox(width: 10),
+              AnimatedContainer(
+                duration: const Duration(milliseconds: 250),
+                transform: _isHovered
+                    ? (Matrix4.identity()..translate(4.0, 0.0))
+                    : Matrix4.identity(),
+                child: Icon(
+                  widget.icon,
+                  color: Colors.white,
+                  size: 20,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _HeroSecondaryButton extends StatefulWidget {
+  final String label;
+  final IconData icon;
+  final VoidCallback onPressed;
+
+  const _HeroSecondaryButton({
+    required this.label,
+    required this.icon,
+    required this.onPressed,
+  });
+
+  @override
+  State<_HeroSecondaryButton> createState() => _HeroSecondaryButtonState();
+}
+
+class _HeroSecondaryButtonState extends State<_HeroSecondaryButton> {
+  bool _isHovered = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return MouseRegion(
+      cursor: SystemMouseCursors.click,
+      onEnter: (_) => setState(() => _isHovered = true),
+      onExit: (_) => setState(() => _isHovered = false),
+      child: GestureDetector(
+        onTap: widget.onPressed,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 250),
+          curve: Curves.easeOutCubic,
+          padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 16),
+          decoration: BoxDecoration(
+            color: _isHovered ? const Color(0xFF2B2826).withValues(alpha: 0.08) : Colors.transparent,
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(
+              color: _isHovered
+                  ? const Color(0xFF2B2826).withValues(alpha: 0.5)
+                  : const Color(0xFF2B2826).withValues(alpha: 0.25),
+              width: 1.5,
+            ),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                widget.icon,
+                color: const Color(0xFF2B2826).withValues(alpha: 0.8),
+                size: 20,
+              ),
+              const SizedBox(width: 10),
+              Text(
+                widget.label,
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                  color: const Color(0xFF2B2826).withValues(alpha: 0.85),
+                  letterSpacing: 0.3,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// CTA White button for colored backgrounds
+class _CtaWhiteButton extends StatefulWidget {
+  final String label;
+  final VoidCallback onPressed;
+
+  const _CtaWhiteButton({
+    required this.label,
+    required this.onPressed,
+  });
+
+  @override
+  State<_CtaWhiteButton> createState() => _CtaWhiteButtonState();
+}
+
+class _CtaWhiteButtonState extends State<_CtaWhiteButton> {
+  bool _isHovered = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return MouseRegion(
+      cursor: SystemMouseCursors.click,
+      onEnter: (_) => setState(() => _isHovered = true),
+      onExit: (_) => setState(() => _isHovered = false),
+      child: GestureDetector(
+        onTap: widget.onPressed,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 250),
+          curve: Curves.easeOutCubic,
+          padding: const EdgeInsets.symmetric(horizontal: 36, vertical: 18),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(14),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: _isHovered ? 0.2 : 0.1),
+                blurRadius: _isHovered ? 20 : 10,
+                offset: Offset(0, _isHovered ? 8 : 4),
+              ),
+            ],
+          ),
+          transform: _isHovered
+              ? (Matrix4.identity()..translate(0.0, -3.0))
+              : Matrix4.identity(),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                widget.label,
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w700,
+                  color: Color(0xFF389BB0),
+                  letterSpacing: 0.3,
+                ),
+              ),
+              const SizedBox(width: 10),
+              AnimatedContainer(
+                duration: const Duration(milliseconds: 250),
+                transform: _isHovered
+                    ? (Matrix4.identity()..translate(4.0, 0.0))
+                    : Matrix4.identity(),
+                child: const Icon(
+                  Icons.arrow_forward_rounded,
+                  color: Color(0xFF389BB0),
+                  size: 20,
+                ),
+              ),
+            ],
           ),
         ),
       ),
