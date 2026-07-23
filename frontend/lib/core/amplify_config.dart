@@ -14,8 +14,8 @@ const amplifyConfig = '''{
         "Version": "1.0",
         "CognitoUserPool": {
           "Default": {
-            "PoolId": "us-east-1_XXXXXXXXX",
-            "AppClientId": "XXXXXXXXXXXXXXXXXXXXXXXXXX",
+            "PoolId": "us-east-1_Rnhi55AWC",
+            "AppClientId": "5rd961hmc9hjjnvvan7m28sck2",
             "Region": "us-east-1"
           }
         },
