@@ -179,6 +179,8 @@ class BabyHealthStack(Stack):
         )
 
         # ─── Task 13.3: Lambda Function ─────────────────────────────────────
+        # Note: Dependencies must be pre-installed in backend folder
+        # Run: pip install -r requirements.txt -t . --upgrade
         self.lambda_function = lambda_.Function(
             self,
             "BabyHealthApiFunction",
