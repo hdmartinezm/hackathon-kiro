@@ -101,7 +101,7 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Color(0xFF2B2826)),
-          onPressed: () => Navigator.of(context).pop(),
+          onPressed: () => Navigator.of(context).pushReplacementNamed('/web-landing'),
         ),
       ),
       body: SafeArea(

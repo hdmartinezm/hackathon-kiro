@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../viewmodels/auth_viewmodel.dart';
 import '../viewmodels/home_viewmodel.dart';
 import '../widgets/disclaimer_widget.dart';
 
@@ -31,6 +32,19 @@ class HomeScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text('BabyHealth'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.logout_rounded),
+            tooltip: 'Cerrar sesión',
+            onPressed: () async {
+              final authViewModel = context.read<AuthViewModel>();
+              await authViewModel.logout();
+              if (context.mounted) {
+                Navigator.of(context).pushReplacementNamed('/web-landing');
+              }
+            },
+          ),
+        ],
       ),
       body: SafeArea(
         child: SingleChildScrollView(
