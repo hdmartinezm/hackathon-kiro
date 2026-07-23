@@ -96,3 +96,4 @@ backend/annotated_types/
 backend/anyio/
 backend/google_auth*/
 backend/google_genai*/
+infra/cdk-outputs.json
