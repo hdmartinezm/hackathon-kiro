@@ -1,9 +1,12 @@
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../models/captured_media.dart';
 import '../viewmodels/auth_viewmodel.dart';
 import '../viewmodels/home_viewmodel.dart';
 import '../widgets/disclaimer_widget.dart';
+import 'web_record_screen.dart';
 
 /// Home screen that displays the medical disclaimer and capture options.
 ///
@@ -31,7 +34,21 @@ class HomeScreen extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('BabyHealth'),
+        title: MouseRegion(
+          cursor: SystemMouseCursors.click,
+          child: GestureDetector(
+            onTap: () => Navigator.of(context)
+                .pushNamedAndRemoveUntil('/web-landing', (route) => false),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: const [
+                Icon(Icons.home_rounded, size: 20, color: Color(0xFF389BB0)),
+                SizedBox(width: 6),
+                Text('BabyHealth'),
+              ],
+            ),
+          ),
+        ),
         actions: [
           IconButton(
             icon: const Icon(Icons.logout_rounded),
@@ -235,7 +252,7 @@ class HomeScreen extends StatelessWidget {
                       child: FilledButton.icon(
                         onPressed: state.captureStatus == 'idle' ||
                                 state.captureStatus == 'error'
-                            ? () => viewModel.recordVideo()
+                            ? () => _handleRecord(context, viewModel)
                             : null,
                         icon: const Icon(Icons.videocam_rounded),
                         label: const Text(
@@ -295,6 +312,27 @@ class HomeScreen extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  /// Handles the "Grabar Video" action.
+  ///
+  /// On web, opens the in-browser [WebRecordScreen] (camera + MediaRecorder)
+  /// and stores the resulting media. On native platforms, delegates to the
+  /// existing `image_picker` camera flow via the view model.
+  Future<void> _handleRecord(
+    BuildContext context,
+    HomeViewModel viewModel,
+  ) async {
+    if (kIsWeb) {
+      final media = await Navigator.of(context).push<CapturedMedia>(
+        MaterialPageRoute(builder: (_) => const WebRecordScreen()),
+      );
+      if (media != null) {
+        viewModel.setCapturedMedia(media);
+      }
+    } else {
+      viewModel.recordVideo();
+    }
   }
 
   Widget _buildPreviewPlaceholder(BuildContext context, String fileName) {

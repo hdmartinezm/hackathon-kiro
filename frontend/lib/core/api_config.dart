@@ -19,4 +19,12 @@ class ApiConfig {
   static String get baseUrl =>
       const String.fromEnvironment('API_BASE_URL',
           defaultValue: _defaultBaseUrl);
+
+  /// Whether federated social login (Google / Apple / Facebook) is live.
+  ///
+  /// Google is configured (Cognito Hosted UI domain `babyhealth-auth` +
+  /// federated Google Identity Provider). Apple/Facebook are not set up yet,
+  /// so their buttons still show the "coming soon" notice at the screen level.
+  static const bool socialLoginEnabled =
+      bool.fromEnvironment('SOCIAL_LOGIN_ENABLED', defaultValue: true);
 }

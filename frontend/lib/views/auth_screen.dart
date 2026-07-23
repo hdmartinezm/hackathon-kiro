@@ -1,6 +1,8 @@
+import 'package:amplify_flutter/amplify_flutter.dart' show AuthProvider;
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../core/api_config.dart';
 import '../viewmodels/auth_viewmodel.dart';
 import '../widgets/auth_text_field.dart';
 import '../widgets/babyhealth_logo_widget.dart';
@@ -36,8 +38,17 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
 
-    // Check if we should open signup tab
-    WidgetsBinding.instance.addPostFrameCallback((_) {
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      // If there's already an active session, skip auth and go straight home.
+      final viewModel = context.read<AuthViewModel>();
+      await viewModel.checkAuthStatus();
+      if (!mounted) return;
+      if (viewModel.state == AuthState.authenticated) {
+        Navigator.of(context).pushReplacementNamed('/home');
+        return;
+      }
+
+      // Otherwise, check if we should open the signup tab.
       final args = ModalRoute.of(context)?.settings.arguments;
       if (args == 'signup') {
         _tabController.animateTo(1);
@@ -54,6 +65,92 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
     _signupPasswordController.dispose();
     _signupConfirmPasswordController.dispose();
     super.dispose();
+  }
+
+  Future<void> _handleSocialLogin(AuthProvider provider) async {
+    // Google and Facebook are configured as Cognito federated providers.
+    // Apple still requires its own OAuth app + Cognito setup.
+    final isReady = ApiConfig.socialLoginEnabled &&
+        (provider == AuthProvider.google ||
+            provider == AuthProvider.facebook);
+
+    if (!isReady) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Este proveedor estará disponible pronto. '
+            'Por ahora usa Google o tu email y contraseña.',
+          ),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      return;
+    }
+
+    final viewModel = context.read<AuthViewModel>();
+    viewModel.clearError();
+    final success = await viewModel.loginWithProvider(provider);
+    if (success && mounted) {
+      Navigator.of(context).pushReplacementNamed('/home');
+    }
+  }
+
+  /// Multi-color "G" for the Google button rendered with a gradient shader.
+  Widget _googleIcon() {
+    return ShaderMask(
+      shaderCallback: (bounds) => const LinearGradient(
+        colors: [
+          Color(0xFF4285F4),
+          Color(0xFF34A853),
+          Color(0xFFFBBC05),
+          Color(0xFFEA4335),
+        ],
+      ).createShader(bounds),
+      child: const Text(
+        'G',
+        style: TextStyle(
+          fontSize: 20,
+          fontWeight: FontWeight.w800,
+          color: Colors.white,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSocialButton({
+    required String label,
+    required Widget icon,
+    required VoidCallback onTap,
+  }) {
+    return SizedBox(
+      width: double.infinity,
+      height: 52,
+      child: OutlinedButton(
+        onPressed: onTap,
+        style: OutlinedButton.styleFrom(
+          side: const BorderSide(color: Color(0xFFE5E0DA)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(26),
+          ),
+          backgroundColor: Colors.white,
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            icon,
+            const SizedBox(width: 12),
+            Text(
+              label,
+              style: const TextStyle(
+                fontSize: 15,
+                fontWeight: FontWeight.w600,
+                color: Color(0xFF2B2826),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   Future<void> _handleLogin() async {
@@ -135,6 +232,46 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
                     ),
                   ),
                   const SizedBox(height: 32),
+
+                  // Social login buttons
+                  _buildSocialButton(
+                    label: 'Continuar con Google',
+                    icon: _googleIcon(),
+                    onTap: () => _handleSocialLogin(AuthProvider.google),
+                  ),
+                  const SizedBox(height: 12),
+                  _buildSocialButton(
+                    label: 'Continuar con Apple',
+                    icon: const Icon(Icons.apple, size: 22, color: Colors.black),
+                    onTap: () => _handleSocialLogin(AuthProvider.apple),
+                  ),
+                  const SizedBox(height: 12),
+                  _buildSocialButton(
+                    label: 'Continuar con Facebook',
+                    icon: const Icon(Icons.facebook,
+                        size: 22, color: Color(0xFF1877F2)),
+                    onTap: () => _handleSocialLogin(AuthProvider.facebook),
+                  ),
+                  const SizedBox(height: 20),
+
+                  // "o" divider
+                  Row(
+                    children: [
+                      const Expanded(child: Divider(color: Color(0xFFE5E0DA))),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 12),
+                        child: Text(
+                          'o',
+                          style: TextStyle(
+                            color: const Color(0xFF2B2826).withOpacity(0.5),
+                            fontSize: 14,
+                          ),
+                        ),
+                      ),
+                      const Expanded(child: Divider(color: Color(0xFFE5E0DA))),
+                    ],
+                  ),
+                  const SizedBox(height: 20),
 
                   // Tab bar
                   Container(

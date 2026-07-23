@@ -1,3 +1,5 @@
+import 'package:amplify_flutter/amplify_flutter.dart'
+    show Amplify, HubChannel, AuthHubEvent, AuthHubEventType;
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -25,6 +27,10 @@ import 'views/splash_screen.dart';
 import 'views/verify_email_screen.dart';
 import 'views/web_landing_screen.dart';
 
+/// Global navigator key so we can navigate from outside the widget tree
+/// (e.g. when the Amplify Hub reports a completed Hosted UI social login).
+final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
@@ -34,6 +40,22 @@ void main() async {
     await authService.configure();
   } catch (e) {
     debugPrint('Amplify configuration error: $e');
+  }
+
+  // After a federated (Google/Facebook) Hosted UI login, the browser is
+  // redirected back to the app with `?code=...`. Amplify exchanges it for
+  // tokens and emits a `signedIn` Hub event; navigate to /home when it fires.
+  try {
+    Amplify.Hub.listen(HubChannel.Auth, (AuthHubEvent event) {
+      if (event.type == AuthHubEventType.signedIn) {
+        navigatorKey.currentState?.pushNamedAndRemoveUntil(
+          '/home',
+          (route) => false,
+        );
+      }
+    });
+  } catch (e) {
+    debugPrint('Amplify Hub listen error: $e');
   }
 
   runApp(
@@ -117,6 +139,7 @@ class BabyHealthApp extends StatelessWidget {
     return MaterialApp(
       title: 'BabyHealth',
       debugShowCheckedModeBanner: false,
+      navigatorKey: navigatorKey,
       theme: ThemeData(
         scaffoldBackgroundColor: const Color(0xFFFAF7F4),
         colorScheme: const ColorScheme.light(
@@ -148,6 +171,12 @@ class BabyHealthApp extends StatelessWidget {
               config: ModalRoute.of(ctx)!.settings.arguments as AnalysisConfig,
             ),
       },
+      // OAuth redirects (e.g. Facebook adds `#_=_`) can produce an unknown
+      // initial route. Fall back to the landing/splash instead of a blank page.
+      onUnknownRoute: (settings) => MaterialPageRoute(
+        builder: (_) =>
+            kIsWeb ? const WebLandingScreen() : const SplashScreen(),
+      ),
     );
   }
 }

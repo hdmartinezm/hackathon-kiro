@@ -25,6 +25,7 @@ from aws_cdk import (
     aws_lambda as lambda_,
     aws_logs as logs,
     aws_s3 as s3,
+    aws_secretsmanager as secretsmanager,
     CfnOutput,
 )
 from constructs import Construct
@@ -132,6 +133,68 @@ class BabyHealthStack(Stack):
             removal_policy=RemovalPolicy.DESTROY,
         )
 
+        # ─── Cognito Hosted UI domain (needed for federated social login) ──
+        self.user_pool_domain = self.user_pool.add_domain(
+            "BabyHealthAuthDomain",
+            cognito_domain=cognito.CognitoDomainOptions(
+                domain_prefix="babyhealth-auth",
+            ),
+        )
+
+        # ─── Google Identity Provider (federated login) ────────────────────
+        # The client secret is stored in AWS Secrets Manager (secret
+        # "babyhealth/google-oauth", JSON field "client_secret") and resolved
+        # at deploy time via a CloudFormation dynamic reference, so it never
+        # lives in source control.
+        self.google_oauth_secret = secretsmanager.Secret.from_secret_name_v2(
+            self,
+            "GoogleOAuthSecret",
+            "babyhealth/google-oauth",
+        )
+        self.google_idp = cognito.UserPoolIdentityProviderGoogle(
+            self,
+            "GoogleIdP",
+            user_pool=self.user_pool,
+            client_id=(
+                "304993661427-5s4jp489n2spiec5m0jop0s08kjvtfum"
+                ".apps.googleusercontent.com"
+            ),
+            client_secret_value=self.google_oauth_secret.secret_value_from_json(
+                "client_secret"
+            ),
+            scopes=["openid", "email", "profile"],
+            attribute_mapping=cognito.AttributeMapping(
+                email=cognito.ProviderAttribute.GOOGLE_EMAIL,
+            ),
+        )
+
+        # ─── Facebook Identity Provider (federated login) ──────────────────
+        # App id + secret stored in AWS Secrets Manager ("babyhealth/facebook-
+        # oauth"), resolved at deploy time via a dynamic reference.
+        self.facebook_oauth_secret = secretsmanager.Secret.from_secret_name_v2(
+            self,
+            "FacebookOAuthSecret",
+            "babyhealth/facebook-oauth",
+        )
+        self.facebook_idp = cognito.UserPoolIdentityProviderFacebook(
+            self,
+            "FacebookIdP",
+            user_pool=self.user_pool,
+            client_id=self.facebook_oauth_secret.secret_value_from_json(
+                "app_id"
+            ).unsafe_unwrap(),
+            client_secret=self.facebook_oauth_secret.secret_value_from_json(
+                "app_secret"
+            ).unsafe_unwrap(),
+            scopes=["public_profile", "email"],
+            attribute_mapping=cognito.AttributeMapping(
+                email=cognito.ProviderAttribute.FACEBOOK_EMAIL,
+            ),
+        )
+
+        # Frontend URL used as OAuth callback / logout target.
+        frontend_url = "https://d272sj5fujdytw.cloudfront.net/"
+
         # User Pool Client for Flutter app
         self.user_pool_client = self.user_pool.add_client(
             "BabyHealthAppClient",
@@ -141,7 +204,34 @@ class BabyHealthStack(Stack):
                 user_srp=True,
             ),
             generate_secret=False,  # Mobile apps don't use secrets
+            # OAuth / Hosted UI settings for federated social login.
+            o_auth=cognito.OAuthSettings(
+                flows=cognito.OAuthFlows(authorization_code_grant=True),
+                scopes=[
+                    cognito.OAuthScope.OPENID,
+                    cognito.OAuthScope.EMAIL,
+                    cognito.OAuthScope.PROFILE,
+                ],
+                callback_urls=[frontend_url, "http://localhost:8443/"],
+                logout_urls=[frontend_url, "http://localhost:8443/"],
+            ),
+            supported_identity_providers=[
+                cognito.UserPoolClientIdentityProvider.GOOGLE,
+                cognito.UserPoolClientIdentityProvider.FACEBOOK,
+                cognito.UserPoolClientIdentityProvider.COGNITO,
+            ],
+            # Session lifetime: access/id tokens valid 1h, refresh token 30 days.
+            # Amplify auto-refreshes the access token using the refresh token,
+            # so the session stays alive well beyond an hour without re-login.
+            access_token_validity=Duration.hours(1),
+            id_token_validity=Duration.hours(1),
+            refresh_token_validity=Duration.days(30),
+            enable_token_revocation=True,
         )
+
+        # Ensure the federated providers exist before the client references them.
+        self.user_pool_client.node.add_dependency(self.google_idp)
+        self.user_pool_client.node.add_dependency(self.facebook_idp)
 
         # ─── Task 13.2: DynamoDB Table ──────────────────────────────────────
         self.table = dynamodb.Table(
@@ -187,7 +277,24 @@ class BabyHealthStack(Stack):
             # function_name omitted - let CDK generate unique name
             runtime=lambda_.Runtime.PYTHON_3_11,
             handler="lambda_handler.handler",
-            code=lambda_.Code.from_asset("../backend"),
+            code=lambda_.Code.from_asset(
+                "../backend",
+                # Keep the deployment package small (code + layers must stay
+                # under the 250MB unzipped Lambda limit). Exclude build
+                # artifacts and files not needed at runtime.
+                exclude=[
+                    "lambda_package",
+                    "**/__pycache__",
+                    "**/*.pyc",
+                    "**/*.dist-info",
+                    "**/*.egg-info",
+                    "tests",
+                    "**/tests",
+                    ".venv",
+                    "venv",
+                    "*.md",
+                ],
+            ),
             timeout=Duration.seconds(60),  # Increased for video processing
             memory_size=1024,  # Increased for video/image processing
             layers=[self.video_processing_layer],
@@ -360,6 +467,16 @@ class BabyHealthStack(Stack):
             "CognitoRegion",
             value=self.region,
             description="AWS Region for Cognito",
+        )
+
+        CfnOutput(
+            self,
+            "CognitoDomain",
+            value=(
+                f"https://{self.user_pool_domain.domain_name}"
+                f".auth.{self.region}.amazoncognito.com"
+            ),
+            description="Cognito Hosted UI domain for federated login",
         )
 
         CfnOutput(

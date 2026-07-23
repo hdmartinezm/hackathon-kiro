@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../repositories/capture_repository.dart';
+import '../viewmodels/auth_viewmodel.dart';
 import '../viewmodels/home_viewmodel.dart';
 import '../widgets/babyhealth_logo_widget.dart';
 import '../widgets/phone_mockup_widget.dart';
@@ -33,6 +34,30 @@ class _WebLandingScreenState extends State<WebLandingScreen> {
   final _arquitecturaKey = GlobalKey();
   final _seguridadKey = GlobalKey();
 
+  @override
+  void initState() {
+    super.initState();
+    // Fallback for the federated (Google/Facebook) OAuth callback: if we land
+    // here with a `?code=` param, Amplify is completing the sign-in. Poll the
+    // auth state briefly and jump to /home once the session is ready.
+    if (Uri.base.queryParameters.containsKey('code')) {
+      WidgetsBinding.instance.addPostFrameCallback((_) => _completeOAuthLogin());
+    }
+  }
+
+  Future<void> _completeOAuthLogin() async {
+    final authViewModel = context.read<AuthViewModel>();
+    for (var attempt = 0; attempt < 10; attempt++) {
+      await authViewModel.checkAuthStatus();
+      if (!mounted) return;
+      if (authViewModel.state == AuthState.authenticated) {
+        Navigator.of(context).pushNamedAndRemoveUntil('/home', (r) => false);
+        return;
+      }
+      await Future.delayed(const Duration(milliseconds: 500));
+    }
+  }
+
   void _scrollToSection(GlobalKey key) {
     final context = key.currentContext;
     if (context != null) {
@@ -51,6 +76,21 @@ class _WebLandingScreenState extends State<WebLandingScreen> {
     );
   }
 
+  /// "Ver demostración": if the user already has an active session, go straight
+  /// to /home; otherwise send them through the auth flow. Once authenticated,
+  /// the auth screen redirects back to /home so no re-login is needed.
+  Future<void> _navigateToDemo() async {
+    final authViewModel = context.read<AuthViewModel>();
+    await authViewModel.checkAuthStatus();
+    if (!mounted) return;
+
+    if (authViewModel.state == AuthState.authenticated) {
+      Navigator.of(context).pushNamed('/home');
+    } else {
+      _navigateToAuth();
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -67,7 +107,7 @@ class _WebLandingScreenState extends State<WebLandingScreen> {
             ),
             _HeroSection(
               onSolicitarAcceso: () => _navigateToAuth(),
-              onVerComoFunciona: () => _scrollToSection(_comoFuncionaKey),
+              onVerComoFunciona: _navigateToDemo,
             ),
             _DesafioSection(),
             _ComoFuncionaSection(key: _comoFuncionaKey),
@@ -454,7 +494,7 @@ class _HeroSection extends StatelessWidget {
           spacing: 8,
           runSpacing: 8,
           children: [
-            _badge('★ AWS Bedrock'),
+            _badge('★ Bedrock + Gemini'),
             _badge('🕒 Análisis en segundos'),
             _badge('+ Multimodal'),
           ],
@@ -768,34 +808,7 @@ class _ComoFuncionaSection extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 48),
-                Wrap(
-                  spacing: 32,
-                  runSpacing: 32,
-                  alignment: WrapAlignment.center,
-                  children: [
-                    _StepCard(
-                      number: '01',
-                      title: 'Captura',
-                      description: 'Foto + 3 segundos de audio / video corto '
-                          'de tu bebé.',
-                      icon: Icons.videocam_rounded,
-                    ),
-                    _StepCard(
-                      number: '02',
-                      title: 'Analiza en AWS',
-                      description: 'Claude 3.5 Sonnet Vision en Amazon Bedrock '
-                          'procesa el contenido.',
-                      icon: Icons.psychology_rounded,
-                    ),
-                    _StepCard(
-                      number: '03',
-                      title: 'Recibe orientación',
-                      description: 'Resultados inmediatos con semáforo '
-                          'y recomendaciones.',
-                      icon: Icons.check_circle_rounded,
-                    ),
-                  ],
-                ),
+                _buildSteps(constraints),
               ],
             ),
           );
@@ -807,6 +820,73 @@ class _ComoFuncionaSection extends StatelessWidget {
     );
   }
 
+  Widget _buildSteps(BoxConstraints constraints) {
+    const steps = <({String number, String title, String description, IconData icon})>[
+      (
+        number: '01',
+        title: 'Captura',
+        description: 'Graba o sube un video corto de tu bebé desde el navegador.',
+        icon: Icons.videocam_rounded,
+      ),
+      (
+        number: '02',
+        title: 'Analiza en AWS',
+        description:
+            'IA multimodal (Claude Sonnet 4.5 en Bedrock o Gemini 2.5 Flash) procesa el contenido.',
+        icon: Icons.psychology_rounded,
+      ),
+      (
+        number: '03',
+        title: 'Recibe orientación',
+        description: 'Resultados inmediatos con semáforo y recomendaciones.',
+        icon: Icons.check_circle_rounded,
+      ),
+    ];
+
+    // Single centered row when there's room; otherwise stack vertically.
+    final isWide = constraints.maxWidth >= 720;
+
+    if (isWide) {
+      final children = <Widget>[];
+      for (var i = 0; i < steps.length; i++) {
+        children.add(
+          Expanded(
+            child: _StepCard(
+              number: steps[i].number,
+              title: steps[i].title,
+              description: steps[i].description,
+              icon: steps[i].icon,
+            ),
+          ),
+        );
+        if (i != steps.length - 1) children.add(const SizedBox(width: 24));
+      }
+      return Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: children,
+      );
+    }
+
+    // Narrow: vertical stack of full-width cards.
+    final children = <Widget>[];
+    for (var i = 0; i < steps.length; i++) {
+      children.add(
+        _StepCard(
+          number: steps[i].number,
+          title: steps[i].title,
+          description: steps[i].description,
+          icon: steps[i].icon,
+          width: 320,
+        ),
+      );
+      if (i != steps.length - 1) children.add(const SizedBox(height: 24));
+    }
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: children,
+    );
+  }
 }
 
 class _StepCard extends StatefulWidget {
@@ -815,11 +895,16 @@ class _StepCard extends StatefulWidget {
   final String description;
   final IconData icon;
 
+  /// Fixed card width. When null, the card fills the space given by its parent
+  /// (used inside an [Expanded] in the single-row layout).
+  final double? width;
+
   const _StepCard({
     required this.number,
     required this.title,
     required this.description,
     required this.icon,
+    this.width,
   });
 
   @override
@@ -837,7 +922,8 @@ class _StepCardState extends State<_StepCard> {
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 250),
         curve: Curves.easeOutCubic,
-        width: 260,
+        width: widget.width,
+        height: 320,
         padding: const EdgeInsets.all(28),
         decoration: BoxDecoration(
           color: Colors.white,
@@ -859,6 +945,7 @@ class _StepCardState extends State<_StepCard> {
             ? (Matrix4.identity()..translate(0.0, -4.0))
             : Matrix4.identity(),
         child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
             // Icon container
             AnimatedContainer(
@@ -985,12 +1072,14 @@ class _CaracteristicasSection extends StatelessWidget {
                   childAspectRatio: isWide ? 1.1 : 3.5,
                   children: [
                     _featureCard(
+                      icon: Icons.visibility_outlined,
                       label: 'VISIÓN POR IA',
                       title: 'Análisis visual',
                       description:
                           'Detección de ictericia y evaluación del estado general del bebé.',
                     ),
                     _featureCard(
+                      icon: Icons.graphic_eq,
                       label: 'AUDIO IA',
                       title: 'Análisis de llanto',
                       description:
@@ -998,23 +1087,27 @@ class _CaracteristicasSection extends StatelessWidget {
                       badge: 'PRÓXIMAMENTE',
                     ),
                     _featureCard(
+                      icon: Icons.cloud_outlined,
                       label: 'AWS NATIVE',
                       title: 'Infraestructura cloud',
                       description:
                           'Serverless con S3 Pre-signed URLs y Lambda.',
                     ),
                     _featureCard(
+                      icon: Icons.lock_outline,
                       label: 'PRIVACIDAD',
                       title: 'Tus datos seguros',
                       description:
                           'Sin almacenamiento permanente de imágenes ni videos.',
                     ),
                     _featureCard(
+                      icon: Icons.memory,
                       label: 'EDGE ML',
                       title: 'Procesamiento local',
                       description: 'Detección on-device para respuestas rápidas.',
                     ),
                     _featureCard(
+                      icon: Icons.favorite_outline,
                       label: 'UX CUIDADO',
                       title: 'Diseño para padres',
                       description:
@@ -1034,6 +1127,7 @@ class _CaracteristicasSection extends StatelessWidget {
   }
 
   Widget _featureCard({
+    required IconData icon,
     required String label,
     required String title,
     required String description,
@@ -1051,15 +1145,26 @@ class _CaracteristicasSection extends StatelessWidget {
         children: [
           Row(
             children: [
-              // Uppercase label
-              Text(
-                label,
-                style: const TextStyle(
-                  fontSize: 11,
-                  fontWeight: FontWeight.w700,
-                  color: Color(0xFF389BB0),
-                  letterSpacing: 1.0,
+              // Icon in colored circle
+              Container(
+                width: 44,
+                height: 44,
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    colors: [Color(0xFF389BB0), Color(0xFF4BA8BC)],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  borderRadius: BorderRadius.circular(12),
+                  boxShadow: [
+                    BoxShadow(
+                      color: const Color(0xFF389BB0).withValues(alpha: 0.25),
+                      blurRadius: 8,
+                      offset: const Offset(0, 3),
+                    ),
+                  ],
                 ),
+                child: Icon(icon, color: Colors.white, size: 22),
               ),
               const Spacer(),
               if (badge != null)
@@ -1082,7 +1187,18 @@ class _CaracteristicasSection extends StatelessWidget {
                 ),
             ],
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 14),
+          // Uppercase label
+          Text(
+            label,
+            style: const TextStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.w700,
+              color: Color(0xFF389BB0),
+              letterSpacing: 1.0,
+            ),
+          ),
+          const SizedBox(height: 6),
           Text(
             title,
             style: const TextStyle(
@@ -1172,61 +1288,104 @@ class _ArquitecturaSection extends StatelessWidget {
   }
 
   Widget _architectureFlow() {
-    final nodes = [
-      _ArchNode(
-        label: 'Flutter App',
-        sublabel: 'App nativa',
-        icon: Icons.phone_android_rounded,
+    const items = <({String label, String sublabel, IconData icon})>[
+      (
+        label: 'Flutter Web',
+        sublabel: 'CloudFront + S3',
+        icon: Icons.public_rounded,
       ),
-      _ArchNode(
+      (
+        label: 'Amplify Auth',
+        sublabel: 'Cognito User Pool',
+        icon: Icons.verified_user_rounded,
+      ),
+      (
         label: 'API Gateway',
-        sublabel: 'Endpoint HTTPS',
+        sublabel: 'HTTP API',
         icon: Icons.api_rounded,
       ),
-      _ArchNode(
+      (
         label: 'AWS Lambda',
-        sublabel: 'FastAPI + mangum',
+        sublabel: 'FastAPI + Mangum',
         icon: Icons.code_rounded,
       ),
-      _ArchNode(
+      (
         label: 'Amazon S3',
-        sublabel: 'Media storage',
+        sublabel: 'Videos (pre-signed)',
         icon: Icons.storage_rounded,
       ),
-      _ArchNode(
-        label: 'Bedrock',
-        sublabel: 'Claude 3.5 Vision',
+      (
+        label: 'IA Multimodal',
+        sublabel: 'Bedrock + Gemini',
         icon: Icons.psychology_rounded,
       ),
-      _ArchNode(
+      (
         label: 'DynamoDB',
         sublabel: 'Resultados',
         icon: Icons.table_chart_rounded,
       ),
     ];
 
-    return Wrap(
-      alignment: WrapAlignment.center,
-      crossAxisAlignment: WrapCrossAlignment.center,
-      spacing: 4,
-      runSpacing: 12,
-      children: nodes.expand((node) {
-        final isLast = nodes.indexOf(node) == nodes.length - 1;
-        return [
-          node,
-          if (!isLast) const _ArchArrow(),
-        ];
-      }).toList(),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        // Single centered row when there's room for all 7 nodes; otherwise a
+        // vertical stack with downward arrows (mobile/tablet friendly).
+        final isWide = constraints.maxWidth >= 900;
+
+        if (isWide) {
+          final children = <Widget>[];
+          for (var i = 0; i < items.length; i++) {
+            // Expanded → every node gets exactly the same width.
+            children.add(
+              Expanded(
+                child: _ArchNode(
+                  label: items[i].label,
+                  sublabel: items[i].sublabel,
+                  icon: items[i].icon,
+                ),
+              ),
+            );
+            if (i != items.length - 1) children.add(const _ArchArrow());
+          }
+          return Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: children,
+          );
+        }
+
+        // Narrow: vertical flow with equally sized nodes.
+        final children = <Widget>[];
+        for (var i = 0; i < items.length; i++) {
+          children.add(
+            _ArchNode(
+              label: items[i].label,
+              sublabel: items[i].sublabel,
+              icon: items[i].icon,
+              width: 240,
+            ),
+          );
+          if (i != items.length - 1) {
+            children.add(const _ArchArrow(vertical: true));
+          }
+        }
+        return Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: children,
+        );
+      },
     );
   }
 
   Widget _infrastructurePills() {
     final pills = [
       '☁️ Full serverless',
+      '🌐 CloudFront CDN',
       '⚡ Lambda + API Gateway',
-      '🧠 Bedrock Vision',
-      '📦 CDK mínimo',
-      '🔒 API Key + rate limiting',
+      '🧠 Bedrock + Gemini',
+      '🔒 Amplify + Cognito',
+      '📦 Infra como código (CDK)',
       '📊 CloudWatch logs',
     ];
 
@@ -1262,51 +1421,79 @@ class _ArchNode extends StatelessWidget {
   final String sublabel;
   final IconData icon;
 
+  /// Fixed node width. When null, the node fills the space given by its parent
+  /// (used inside a [Flexible] in the wide, single-row layout).
+  final double? width;
+
   const _ArchNode({
     required this.label,
     required this.sublabel,
     required this.icon,
+    this.width,
   });
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: 130,
-      padding: const EdgeInsets.all(14),
+      width: width,
+      height: 132,
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 14),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(16),
         border: Border.all(color: const Color(0xFFE5E0DA)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.04),
-            blurRadius: 6,
-            offset: const Offset(0, 2),
+            color: Colors.black.withValues(alpha: 0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 3),
           ),
         ],
       ),
       child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(icon, color: const Color(0xFF389BB0), size: 24),
-          const SizedBox(height: 6),
+          // Icon in a soft circular badge for a consistent, polished look.
+          Container(
+            width: 42,
+            height: 42,
+            decoration: const BoxDecoration(
+              color: Color(0xFFD6F2F7),
+              shape: BoxShape.circle,
+            ),
+            alignment: Alignment.center,
+            child: Icon(
+              icon,
+              color: const Color(0xFF389BB0),
+              size: 22,
+            ),
+          ),
+          const SizedBox(height: 8),
           Text(
             label,
             textAlign: TextAlign.center,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
             style: const TextStyle(
-              fontSize: 11,
+              fontSize: 11.5,
               fontWeight: FontWeight.w700,
               color: Color(0xFF2B2826),
-              height: 1.2,
+              height: 1.15,
             ),
           ),
-          const SizedBox(height: 2),
-          Text(
-            sublabel,
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              fontSize: 9,
-              color: const Color(0xFF2B2826).withValues(alpha: 0.5),
-              height: 1.2,
+          const SizedBox(height: 3),
+          SizedBox(
+            height: 24,
+            child: Text(
+              sublabel,
+              textAlign: TextAlign.center,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                fontSize: 9,
+                color: const Color(0xFF2B2826).withValues(alpha: 0.55),
+                height: 1.2,
+              ),
             ),
           ),
         ],
@@ -1316,15 +1503,21 @@ class _ArchNode extends StatelessWidget {
 }
 
 class _ArchArrow extends StatelessWidget {
-  const _ArchArrow();
+  final bool vertical;
+
+  const _ArchArrow({this.vertical = false});
 
   @override
   Widget build(BuildContext context) {
-    return const Padding(
-      padding: EdgeInsets.symmetric(horizontal: 2),
+    return Padding(
+      padding: vertical
+          ? const EdgeInsets.symmetric(vertical: 6)
+          : const EdgeInsets.symmetric(horizontal: 4),
       child: Icon(
-        Icons.arrow_forward_rounded,
-        color: Color(0xFF389BB0),
+        vertical
+            ? Icons.arrow_downward_rounded
+            : Icons.arrow_forward_rounded,
+        color: const Color(0xFF389BB0),
         size: 20,
       ),
     );

@@ -1,3 +1,4 @@
+import 'package:amplify_flutter/amplify_flutter.dart' show AuthProvider;
 import 'package:flutter/foundation.dart';
 
 import '../services/auth_service.dart';
@@ -136,6 +137,25 @@ class AuthViewModel extends ChangeNotifier {
     }
 
     _setError(result.error ?? 'Error al reenviar código');
+    return false;
+  }
+
+  /// Login with a federated social provider (Google, Apple, Facebook).
+  Future<bool> loginWithProvider(AuthProvider provider) async {
+    _clearError();
+    _setLoading(true);
+
+    final result = await _authService.signInWithProvider(provider);
+
+    _setLoading(false);
+
+    if (result.isSuccess) {
+      _state = AuthState.authenticated;
+      notifyListeners();
+      return true;
+    }
+
+    _setError(result.error ?? 'Error al iniciar sesión');
     return false;
   }
 

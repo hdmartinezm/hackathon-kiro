@@ -126,6 +126,25 @@ class AuthService {
     }
   }
 
+  /// Sign in with a federated social provider (Google, Apple, Facebook).
+  ///
+  /// Opens the Cognito Hosted UI via [Amplify.Auth.signInWithWebUI]. Requires
+  /// the OAuth/Hosted UI section to be configured in `amplifyConfig` and the
+  /// provider to be registered as a Cognito Identity Provider.
+  Future<AuthResult> signInWithProvider(AuthProvider provider) async {
+    try {
+      final result = await Amplify.Auth.signInWithWebUI(provider: provider);
+      if (result.isSignedIn) {
+        return AuthResult.success();
+      }
+      return AuthResult.failure('No se pudo iniciar sesión');
+    } on AuthException catch (e) {
+      return AuthResult.failure(_mapAuthError(e));
+    } catch (e) {
+      return AuthResult.failure('Error inesperado: $e');
+    }
+  }
+
   /// Sign out current user.
   Future<void> signOut() async {
     await Amplify.Auth.signOut();
