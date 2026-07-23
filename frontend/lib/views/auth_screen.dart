@@ -113,15 +113,25 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  // Logo
-                  const BabyHealthLogoWidget(size: 64),
-                  const SizedBox(height: 12),
-                  const Text(
-                    'BabyHealth',
-                    style: TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                      color: Color(0xFF2B2826),
+                  // Logo - clickable to go back to landing
+                  MouseRegion(
+                    cursor: SystemMouseCursors.click,
+                    child: GestureDetector(
+                      onTap: () => Navigator.of(context).pushReplacementNamed('/web-landing'),
+                      child: Column(
+                        children: [
+                          const BabyHealthLogoWidget(size: 64),
+                          const SizedBox(height: 12),
+                          const Text(
+                            'BabyHealth',
+                            style: TextStyle(
+                              fontSize: 24,
+                              fontWeight: FontWeight.bold,
+                              color: Color(0xFF2B2826),
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                   const SizedBox(height: 32),
