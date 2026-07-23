@@ -79,7 +79,7 @@ class HttpClient {
     if (authService != null) {
       final token = await authService!.getAccessToken();
       if (token != null) {
-        headers['authorization'] = 'Bearer $token';
+        headers['Authorization'] = 'Bearer $token';
       }
     }
 
