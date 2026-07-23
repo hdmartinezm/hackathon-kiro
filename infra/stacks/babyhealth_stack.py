@@ -17,6 +17,8 @@ from aws_cdk import (
     aws_apigatewayv2 as apigwv2,
     aws_apigatewayv2_integrations as apigwv2_integrations,
     aws_apigatewayv2_authorizers as apigwv2_authorizers,
+    aws_cloudfront as cloudfront,
+    aws_cloudfront_origins as origins,
     aws_cognito as cognito,
     aws_dynamodb as dynamodb,
     aws_iam as iam,
@@ -60,6 +62,41 @@ class BabyHealthStack(Stack):
                     allowed_headers=["*"],
                     max_age=3600,
                 )
+            ],
+        )
+
+        # ─── Frontend S3 Bucket ────────────────────────────────────────────
+        self.frontend_bucket = s3.Bucket(
+            self,
+            "BabyHealthFrontendBucket",
+            block_public_access=s3.BlockPublicAccess.BLOCK_ALL,
+            removal_policy=RemovalPolicy.DESTROY,
+            auto_delete_objects=True,
+        )
+
+        # ─── CloudFront Distribution ───────────────────────────────────────
+        self.distribution = cloudfront.Distribution(
+            self,
+            "BabyHealthFrontendDistribution",
+            default_behavior=cloudfront.BehaviorOptions(
+                origin=origins.S3BucketOrigin(self.frontend_bucket),
+                viewer_protocol_policy=cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
+                cache_policy=cloudfront.CachePolicy.CACHING_OPTIMIZED,
+            ),
+            default_root_object="index.html",
+            error_responses=[
+                cloudfront.ErrorResponse(
+                    http_status=404,
+                    response_http_status=200,
+                    response_page_path="/index.html",
+                    ttl=Duration.seconds(0),
+                ),
+                cloudfront.ErrorResponse(
+                    http_status=403,
+                    response_http_status=200,
+                    response_page_path="/index.html",
+                    ttl=Duration.seconds(0),
+                ),
             ],
         )
 
@@ -308,4 +345,25 @@ class BabyHealthStack(Stack):
             "CognitoRegion",
             value=self.region,
             description="AWS Region for Cognito",
+        )
+
+        CfnOutput(
+            self,
+            "FrontendUrl",
+            value=f"https://{self.distribution.domain_name}",
+            description="CloudFront URL for the frontend",
+        )
+
+        CfnOutput(
+            self,
+            "FrontendBucketName",
+            value=self.frontend_bucket.bucket_name,
+            description="S3 bucket for frontend static files",
+        )
+
+        CfnOutput(
+            self,
+            "CloudFrontDistributionId",
+            value=self.distribution.distribution_id,
+            description="CloudFront distribution ID for cache invalidation",
         )
