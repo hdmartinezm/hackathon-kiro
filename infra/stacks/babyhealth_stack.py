@@ -74,12 +74,25 @@ class BabyHealthStack(Stack):
             auto_delete_objects=True,
         )
 
+        # ─── Origin Access Identity for CloudFront (Legacy but compatible) ─
+        self.origin_access_identity = cloudfront.OriginAccessIdentity(
+            self,
+            "BabyHealthFrontendOAI",
+            comment="OAI for BabyHealth frontend bucket",
+        )
+
+        # Grant CloudFront read access to the bucket
+        self.frontend_bucket.grant_read(self.origin_access_identity)
+
         # ─── CloudFront Distribution ───────────────────────────────────────
         self.distribution = cloudfront.Distribution(
             self,
             "BabyHealthFrontendDistribution",
             default_behavior=cloudfront.BehaviorOptions(
-                origin=origins.S3BucketOrigin(self.frontend_bucket),
+                origin=origins.S3Origin(
+                    self.frontend_bucket,
+                    origin_access_identity=self.origin_access_identity,
+                ),
                 viewer_protocol_policy=cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
                 cache_policy=cloudfront.CachePolicy.CACHING_OPTIMIZED,
             ),
