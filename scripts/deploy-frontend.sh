@@ -24,7 +24,7 @@ if [[ "$1" != "--skip-cdk" ]]; then
     cd "$PROJECT_ROOT/infra"
     cdk deploy --require-approval never --outputs-file cdk-outputs.json
 else
-    echo -e "${YELLOW}[2/4] Skipping CDK deploy (--skip-cdc)${NC}"
+    echo -e "${YELLOW}[2/4] Skipping CDK deploy (--skip-cdk)${NC}"
 fi
 
 # Step 3: Get outputs and upload to S3
