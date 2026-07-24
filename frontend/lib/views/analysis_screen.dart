@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../core/app_localizations.dart';
 import '../models/analysis_config.dart';
 import '../models/analysis_result.dart';
+import '../services/profile_service.dart';
 import '../viewmodels/analysis_viewmodel.dart';
 import '../viewmodels/states/analysis_state.dart';
 import '../widgets/confidence_bar_widget.dart';
@@ -42,9 +43,11 @@ class _AnalysisScreenState extends State<AnalysisScreen> {
       _analysisStarted = true;
       _errorDialogShown = false;
       WidgetsBinding.instance.addPostFrameCallback((_) {
+        final profile = context.read<ProfileService>().profile;
         viewModel.startAnalysis(
           widget.config.media,
           provider: widget.config.provider,
+          profile: profile,
         );
       });
     }
@@ -285,11 +288,8 @@ class _AnalysisScreenState extends State<AnalysisScreen> {
             ),
           ],
           const SizedBox(height: 24),
-          // Medical disclaimer
-          DisclaimerWidget(
-            compact: true,
-            text: result.disclaimer,
-          ),
+          // Medical disclaimer (always shown in the selected UI language)
+          const DisclaimerWidget(compact: true),
           const SizedBox(height: 24),
           // Reset button
           SizedBox(
