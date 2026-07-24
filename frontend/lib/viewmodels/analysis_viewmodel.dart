@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 
 import '../models/analysis_provider.dart';
 import '../models/captured_media.dart';
+import '../models/profile_data.dart';
 import '../repositories/analysis_repository.dart';
 import '../repositories/upload_repository.dart';
 import 'states/analysis_state.dart';
@@ -45,6 +46,7 @@ class AnalysisViewModel extends ChangeNotifier {
   Future<void> startAnalysis(
     CapturedMedia media, {
     AnalysisProvider provider = AnalysisProvider.bedrock,
+    ProfileData? profile,
   }) async {
     _state = _state.copyWith(status: 'uploading', errorMessage: null);
     notifyListeners();
@@ -55,10 +57,17 @@ class AnalysisViewModel extends ChangeNotifier {
       _state = _state.copyWith(status: 'analyzing');
       notifyListeners();
 
+      final profileContext = profile?.toAnalysisContext();
+
       final result = switch (provider) {
-        AnalysisProvider.bedrock => await _analysisRepository.analyze(videoKey),
-        AnalysisProvider.gemini =>
-          await _analysisRepository.analyzeWithGemini(videoKey),
+        AnalysisProvider.bedrock => await _analysisRepository.analyze(
+            videoKey,
+            profileContext: profileContext,
+          ),
+        AnalysisProvider.gemini => await _analysisRepository.analyzeWithGemini(
+            videoKey,
+            profileContext: profileContext,
+          ),
       };
 
       _state = _state.copyWith(status: 'completed', result: result);
