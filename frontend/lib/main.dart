@@ -2,9 +2,13 @@ import 'package:amplify_flutter/amplify_flutter.dart'
     show Amplify, HubChannel, AuthHubEvent, AuthHubEventType;
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:provider/provider.dart';
 
 import 'core/api_config.dart';
+import 'core/app_localizations.dart';
+import 'core/app_settings.dart';
+import 'core/app_theme.dart';
 import 'models/analysis_config.dart';
 import 'models/captured_media.dart';
 import 'repositories/analysis_repository.dart';
@@ -13,6 +17,7 @@ import 'repositories/upload_repository.dart';
 import 'services/auth_service.dart';
 import 'services/http_client.dart';
 import 'services/platform_service.dart';
+import 'services/profile_service.dart';
 import 'services/storage_service.dart';
 import 'services/video_capture_service.dart';
 import 'viewmodels/analysis_viewmodel.dart';
@@ -33,6 +38,14 @@ final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Load persisted user preferences (theme + language).
+  final appSettings = AppSettings();
+  await appSettings.load();
+
+  // Load profile data
+  final profileService = ProfileService();
+  await profileService.load();
 
   // Initialize AuthService and configure Amplify
   final authService = AuthService();
@@ -61,8 +74,14 @@ void main() async {
   runApp(
     MultiProvider(
       providers: [
+        // -- User preferences (theme + language) --
+        ChangeNotifierProvider<AppSettings>.value(value: appSettings),
+
         // -- Auth service (singleton) --
         Provider<AuthService>.value(value: authService),
+
+        // -- Profile service (singleton) --
+        ChangeNotifierProvider<ProfileService>.value(value: profileService),
 
         // -- Core services --
         Provider<PlatformService>(create: (_) => PlatformService()),
@@ -136,27 +155,24 @@ class BabyHealthApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final settings = context.watch<AppSettings>();
+
     return MaterialApp(
       title: 'BabyHealth',
       debugShowCheckedModeBanner: false,
       navigatorKey: navigatorKey,
-      theme: ThemeData(
-        scaffoldBackgroundColor: const Color(0xFFFAF7F4),
-        colorScheme: const ColorScheme.light(
-          primary: Color(0xFF389BB0),
-          primaryContainer: Color(0xFFD6F2F7),
-          secondary: Color(0xFFE87055),
-          surface: Color(0xFFFFFFFF),
-          onSurface: Color(0xFF2B2826),
-        ),
-        useMaterial3: true,
-        appBarTheme: const AppBarTheme(
-          backgroundColor: Colors.transparent,
-          elevation: 0,
-          foregroundColor: Color(0xFF2B2826),
-          centerTitle: true,
-        ),
-      ),
+      theme: AppTheme.light,
+      darkTheme: AppTheme.dark,
+      themeMode: settings.themeMode,
+      // null → follow the browser/system language.
+      locale: settings.locale,
+      supportedLocales: AppSettings.supportedLocales,
+      localizationsDelegates: const [
+        AppLocalizations.delegate,
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
       initialRoute: kIsWeb ? '/web-landing' : '/splash',
       routes: {
         if (kIsWeb) '/web-landing': (_) => const WebLandingScreen(),
