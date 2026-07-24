@@ -2,10 +2,12 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../core/app_localizations.dart';
 import '../models/captured_media.dart';
 import '../viewmodels/auth_viewmodel.dart';
 import '../viewmodels/home_viewmodel.dart';
 import '../widgets/disclaimer_widget.dart';
+import '../widgets/settings_controls.dart';
 import 'web_record_screen.dart';
 
 /// Home screen that displays the medical disclaimer and capture options.
@@ -34,6 +36,7 @@ class HomeScreen extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
+        titleSpacing: 0,
         title: MouseRegion(
           cursor: SystemMouseCursors.click,
           child: GestureDetector(
@@ -41,18 +44,30 @@ class HomeScreen extends StatelessWidget {
                 .pushNamedAndRemoveUntil('/web-landing', (route) => false),
             child: Row(
               mainAxisSize: MainAxisSize.min,
-              children: const [
-                Icon(Icons.home_rounded, size: 20, color: Color(0xFF389BB0)),
-                SizedBox(width: 6),
-                Text('BabyHealth'),
+              children: [
+                const Icon(Icons.home_rounded,
+                    size: 20, color: Color(0xFF389BB0)),
+                const SizedBox(width: 6),
+                Flexible(
+                  child: Text(
+                    'BabyHealth',
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
               ],
             ),
           ),
         ),
         actions: [
           IconButton(
+            icon: const Icon(Icons.person_rounded),
+            tooltip: context.l10n.profile,
+            onPressed: () => Navigator.of(context).pushNamed('/profile'),
+          ),
+          const SettingsControls(),
+          IconButton(
             icon: const Icon(Icons.logout_rounded),
-            tooltip: 'Cerrar sesión',
+            tooltip: context.l10n.logout,
             onPressed: () async {
               final authViewModel = context.read<AuthViewModel>();
               await authViewModel.logout();
@@ -124,7 +139,7 @@ class HomeScreen extends StatelessWidget {
                         right: 16,
                         bottom: 16,
                         child: Text(
-                          '¿Cómo está tu bebé hoy?',
+                          context.l10n.homeGreeting,
                           style: Theme.of(context)
                               .textTheme
                               .titleLarge
@@ -162,21 +177,23 @@ class HomeScreen extends StatelessWidget {
               // Title
               Center(
                 child: Text(
-                  'Analizar bebé',
+                  context.l10n.homeAnalyzeTitle,
                   style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                         fontWeight: FontWeight.bold,
-                        color: const Color(0xFF2B2826),
+                        color: Theme.of(context).colorScheme.onSurface,
                       ),
                 ),
               ),
               const SizedBox(height: 8),
               Center(
                 child: Text(
-                  'Grabe o seleccione un video corto de su bebé para '
-                  'obtener una orientación preliminar sobre su estado de salud.',
+                  context.l10n.homeAnalyzeSubtitle,
                   textAlign: TextAlign.center,
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: const Color(0xFF2B2826).withValues(alpha: 0.6),
+                        color: Theme.of(context)
+                            .colorScheme
+                            .onSurface
+                            .withValues(alpha: 0.6),
                         height: 1.4,
                       ),
                 ),
@@ -186,9 +203,11 @@ class HomeScreen extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(24),
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: Theme.of(context).colorScheme.surface,
                   borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: const Color(0xFFE5E0DA)),
+                  border: Border.all(
+                    color: Theme.of(context).colorScheme.outline,
+                  ),
                   boxShadow: [
                     BoxShadow(
                       color: Colors.black.withValues(alpha: 0.04),
@@ -232,15 +251,15 @@ class HomeScreen extends StatelessWidget {
                       ),
                     // Loading indicator
                     if (state.captureStatus == 'recording')
-                      const Padding(
-                        padding: EdgeInsets.only(bottom: 16),
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 16),
                         child: Column(
                           children: [
-                            CircularProgressIndicator(),
-                            SizedBox(height: 8),
+                            const CircularProgressIndicator(),
+                            const SizedBox(height: 8),
                             Text(
-                              'Grabando video...',
-                              style: TextStyle(color: Colors.grey),
+                              context.l10n.recording,
+                              style: const TextStyle(color: Colors.grey),
                             ),
                           ],
                         ),
@@ -255,9 +274,9 @@ class HomeScreen extends StatelessWidget {
                             ? () => _handleRecord(context, viewModel)
                             : null,
                         icon: const Icon(Icons.videocam_rounded),
-                        label: const Text(
-                          'Grabar Video',
-                          style: TextStyle(fontSize: 16),
+                        label: Text(
+                          context.l10n.recordVideo,
+                          style: const TextStyle(fontSize: 16),
                         ),
                         style: FilledButton.styleFrom(
                           backgroundColor: const Color(0xFF389BB0),
@@ -277,9 +296,9 @@ class HomeScreen extends StatelessWidget {
                             ? () => viewModel.pickVideo()
                             : null,
                         icon: const Icon(Icons.folder_open_rounded),
-                        label: const Text(
-                          'Seleccionar Video',
-                          style: TextStyle(fontSize: 16),
+                        label: Text(
+                          context.l10n.selectVideo,
+                          style: const TextStyle(fontSize: 16),
                         ),
                         style: FilledButton.styleFrom(
                           backgroundColor: const Color(0xFFE87055),
@@ -297,9 +316,9 @@ class HomeScreen extends StatelessWidget {
                         child: TextButton.icon(
                           onPressed: () => viewModel.resetCapture(),
                           icon: const Icon(Icons.refresh_rounded),
-                          label: const Text(
-                            'Reiniciar',
-                            style: TextStyle(fontSize: 16),
+                          label: Text(
+                            context.l10n.reset,
+                            style: const TextStyle(fontSize: 16),
                           ),
                         ),
                       ),
@@ -350,9 +369,9 @@ class HomeScreen extends StatelessWidget {
                 size: 48, color: const Color(0xFF389BB0)),
             const SizedBox(height: 8),
             Text(
-              'Video listo',
-              style: TextStyle(
-                color: const Color(0xFF389BB0),
+              context.l10n.videoReady,
+              style: const TextStyle(
+                color: Color(0xFF389BB0),
                 fontWeight: FontWeight.bold,
               ),
             ),
