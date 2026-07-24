@@ -92,6 +92,26 @@ Si no detectas llanto de bebé en el audio:
 """
 
 
+def _language_directive(language: str) -> str:
+    """Devuelve una instrucción para que el modelo responda en el idioma dado.
+
+    Solo afecta a los campos de texto libre (observations, recommendations,
+    cry_label, cry_recommendation). Los valores enum (status, cry_category)
+    permanecen en su forma canónica.
+    """
+    if (language or "es").lower().startswith("en"):
+        return (
+            "\n\nIMPORTANT: Write ALL free-text fields (observations, "
+            "recommendations, cry_label, cry_recommendation) in ENGLISH. "
+            "Keep the enum values for 'status' and 'cry_category' exactly as "
+            "specified (in Spanish)."
+        )
+    return (
+        "\n\nIMPORTANTE: Escribe TODOS los campos de texto (observations, "
+        "recommendations, cry_label, cry_recommendation) en ESPAÑOL."
+    )
+
+
 def _get_client() -> genai.Client:
     """Crea y retorna un cliente de Gemini."""
     if not settings.GEMINI_API_KEY:
@@ -163,7 +183,12 @@ def _validate_video_response(data: dict[str, Any]) -> dict[str, Any]:
     return data
 
 
-def analyze_video(video_bytes: bytes, content_type: str, session_id: str) -> dict[str, Any]:
+def analyze_video(
+    video_bytes: bytes,
+    content_type: str,
+    session_id: str,
+    language: str = "es",
+) -> dict[str, Any]:
     """Analiza un video de bebé usando Gemini (multimodal nativo).
 
     Gemini procesa el video completo incluyendo visual y audio de forma nativa,
@@ -173,6 +198,7 @@ def analyze_video(video_bytes: bytes, content_type: str, session_id: str) -> dic
         video_bytes: Bytes del video.
         content_type: MIME type del video (video/mp4, video/webm, etc.).
         session_id: ID de sesión para logging.
+        language: Idioma del texto generado ("es" o "en").
 
     Returns:
         Dict con: status, observations, recommendations, confidence,
@@ -196,10 +222,14 @@ def analyze_video(video_bytes: bytes, content_type: str, session_id: str) -> dic
 
     if video_size_mb > 20:
         # Usar Files API para videos grandes
-        result = _analyze_video_with_upload(client, video_bytes, content_type, session_id)
+        result = _analyze_video_with_upload(
+            client, video_bytes, content_type, session_id, language
+        )
     else:
         # Usar inline data para videos pequeños
-        result = _analyze_video_inline(client, video_bytes, content_type, session_id)
+        result = _analyze_video_inline(
+            client, video_bytes, content_type, session_id, language
+        )
 
     validated = _validate_video_response(result)
 
@@ -220,7 +250,8 @@ def _analyze_video_inline(
     client: genai.Client,
     video_bytes: bytes,
     content_type: str,
-    session_id: str
+    session_id: str,
+    language: str = "es",
 ) -> dict[str, Any]:
     """Analiza video usando datos inline (para videos < 20MB)."""
     video_b64 = base64.b64encode(video_bytes).decode("utf-8")
@@ -236,7 +267,9 @@ def _analyze_video_inline(
                             data=video_b64,
                         )
                     ),
-                    types.Part(text=VIDEO_ANALYSIS_PROMPT),
+                    types.Part(
+                        text=VIDEO_ANALYSIS_PROMPT + _language_directive(language)
+                    ),
                 ]
             )
         ],
@@ -257,7 +290,8 @@ def _analyze_video_with_upload(
     client: genai.Client,
     video_bytes: bytes,
     content_type: str,
-    session_id: str
+    session_id: str,
+    language: str = "es",
 ) -> dict[str, Any]:
     """Analiza video usando Files API (para videos > 20MB)."""
     import tempfile
@@ -298,7 +332,10 @@ def _analyze_video_with_upload(
                                 mime_type=uploaded_file.mime_type,
                             )
                         ),
-                        types.Part(text=VIDEO_ANALYSIS_PROMPT),
+                        types.Part(
+                            text=VIDEO_ANALYSIS_PROMPT
+                            + _language_directive(language)
+                        ),
                     ]
                 )
             ],

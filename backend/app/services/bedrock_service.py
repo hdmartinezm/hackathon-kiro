@@ -56,19 +56,42 @@ Responde EXCLUSIVAMENTE en formato JSON:
 }"""
 
 
-def analyze_image(image_bytes: bytes, media_type: str = "image/jpeg", prompt: str = None) -> dict:
+def _language_directive(language: str) -> str:
+    """Instrucción para que Claude responda en el idioma indicado.
+
+    Solo afecta a los campos de texto libre; los valores enum permanecen igual.
+    """
+    if (language or "es").lower().startswith("en"):
+        return (
+            "\n\nIMPORTANT: Write ALL free-text fields (observations, "
+            "recommendations, cry_label, cry_recommendation) in ENGLISH. "
+            "Keep enum values (status, cry_category) exactly as specified."
+        )
+    return (
+        "\n\nIMPORTANTE: Escribe todos los campos de texto en ESPAÑOL."
+    )
+
+
+def analyze_image(
+    image_bytes: bytes,
+    media_type: str = "image/jpeg",
+    prompt: str = None,
+    language: str = "es",
+) -> dict:
     """Analiza una imagen usando Claude via Bedrock Converse API.
 
     Args:
         image_bytes: Bytes de la imagen a analizar.
         media_type: MIME type de la imagen.
         prompt: Prompt personalizado (usa VISUAL_ANALYSIS_PROMPT por defecto).
+        language: Idioma del texto generado ("es" o "en").
 
     Returns:
         Dict con el resultado del análisis.
     """
     if prompt is None:
         prompt = VISUAL_ANALYSIS_PROMPT
+    prompt = prompt + _language_directive(language)
 
     try:
         response = bedrock_client.converse(
@@ -137,14 +160,24 @@ def analyze_image(image_bytes: bytes, media_type: str = "image/jpeg", prompt: st
         raise
 
 
-def analyze_cry_spectrogram(spectrogram_bytes: bytes, media_type: str = "image/png") -> dict:
+def analyze_cry_spectrogram(
+    spectrogram_bytes: bytes,
+    media_type: str = "image/png",
+    language: str = "es",
+) -> dict:
     """Analiza un espectrograma de llanto usando Claude via Bedrock.
 
     Args:
         spectrogram_bytes: Bytes de la imagen del espectrograma.
         media_type: MIME type de la imagen.
+        language: Idioma del texto generado ("es" o "en").
 
     Returns:
         Dict con clasificación del llanto.
     """
-    return analyze_image(spectrogram_bytes, media_type=media_type, prompt=CRY_ANALYSIS_PROMPT)
+    return analyze_image(
+        spectrogram_bytes,
+        media_type=media_type,
+        prompt=CRY_ANALYSIS_PROMPT,
+        language=language,
+    )

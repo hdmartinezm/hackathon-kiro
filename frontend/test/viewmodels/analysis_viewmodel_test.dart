@@ -55,7 +55,11 @@ class FakeAnalysisRepository implements AnalysisRepository {
   });
 
   @override
-  Future<AnalysisResult> analyze(String videoKey, {String? sessionId}) async {
+  Future<AnalysisResult> analyze(
+    String videoKey, {
+    String? sessionId,
+    Map<String, dynamic>? profileContext,
+  }) async {
     analyzeCalled = true;
     videoKeyArg = videoKey;
     if (analyzeError != null) {
@@ -65,7 +69,11 @@ class FakeAnalysisRepository implements AnalysisRepository {
   }
 
   @override
-  Future<AnalysisResult> analyzeWithGemini(String videoKey, {String? sessionId}) async {
+  Future<AnalysisResult> analyzeWithGemini(
+    String videoKey, {
+    String? sessionId,
+    Map<String, dynamic>? profileContext,
+  }) async {
     analyzeWithGeminiCalled = true;
     videoKeyArg = videoKey;
     if (analyzeError != null) {

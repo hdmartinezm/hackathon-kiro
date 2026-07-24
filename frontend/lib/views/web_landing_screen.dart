@@ -202,9 +202,9 @@ class _NavBar extends StatelessWidget {
         const SizedBox(width: 24),
         _navLink(context.l10n.navSecurity, onSeguridad),
         const SizedBox(width: 24),
-        const SettingsControls(),
-        const SizedBox(width: 16),
         _ctaButton(context),
+        const SizedBox(width: 16),
+        const SettingsControls(),
       ],
     );
   }
@@ -223,9 +223,9 @@ class _NavBar extends StatelessWidget {
           ),
         ),
         const Spacer(),
-        const SettingsControls(),
-        const SizedBox(width: 8),
         _ctaButton(context),
+        const SizedBox(width: 8),
+        const SettingsControls(),
       ],
     );
   }
@@ -434,9 +434,9 @@ class _HeroSection extends StatelessWidget {
             color: context.tealContainer,
             borderRadius: BorderRadius.circular(20),
           ),
-          child: const Text(
-            'INNOVACIÓN EN SALUD NEONATAL',
-            style: TextStyle(
+          child: Text(
+            context.l10n.heroChip,
+            style: const TextStyle(
               fontSize: 12,
               fontWeight: FontWeight.w700,
               color: Color(0xFF389BB0),
@@ -623,9 +623,9 @@ class _DesafioSection extends StatelessWidget {
             color: context.tealContainer,
             borderRadius: BorderRadius.circular(20),
           ),
-          child: const Text(
-            'EL DESAFÍO',
-            style: TextStyle(
+          child: Text(
+            context.l10n.challengeChip,
+            style: const TextStyle(
               fontSize: 12,
               fontWeight: FontWeight.w700,
               color: Color(0xFF389BB0),
@@ -635,7 +635,7 @@ class _DesafioSection extends StatelessWidget {
         ),
         const SizedBox(height: 16),
         Text(
-          'La incertidumbre de los primeros meses',
+          context.l10n.challengeTitle,
           style: TextStyle(
             fontSize: 32,
             fontWeight: FontWeight.bold,
@@ -736,7 +736,7 @@ class _DesafioSection extends StatelessWidget {
           ),
           const SizedBox(height: 16),
           Text(
-            '— Preguntas que todo padre se hace',
+            context.l10n.challengeQuoteAuthor,
             style: TextStyle(
               fontSize: 13,
               color: Colors.white.withValues(alpha: 0.5),
@@ -1775,9 +1775,7 @@ class _FooterSection extends StatelessWidget {
                   child: Column(
                     children: [
                       Text(
-                        'Esta aplicación no reemplaza la evaluación de un '
-                        'profesional de la salud. Consulte a su pediatra ante '
-                        'cualquier preocupación sobre la salud de su bebé.',
+                        context.l10n.footerDisclaimer,
                         textAlign: TextAlign.center,
                         style: TextStyle(
                           fontSize: 12,
@@ -1787,7 +1785,7 @@ class _FooterSection extends StatelessWidget {
                       ),
                       const SizedBox(height: 8),
                       Text(
-                        '© 2026 BabyHealth. Todos los derechos reservados.',
+                        context.l10n.footerRights,
                         style: TextStyle(
                           fontSize: 12,
                           color: Colors.white.withValues(alpha: 0.4),
@@ -1829,7 +1827,7 @@ class _FooterSection extends StatelessWidget {
               ),
               const SizedBox(height: 12),
               Text(
-                'Asistente de cuidado neonatal con IA multimodal.',
+                context.l10n.footerTagline,
                 style: TextStyle(
                   fontSize: 13,
                   color: Colors.white.withValues(alpha: 0.5),
@@ -1845,7 +1843,7 @@ class _FooterSection extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'Producto',
+                context.l10n.footerProduct,
                 style: TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w600,
@@ -1869,7 +1867,7 @@ class _FooterSection extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'Hackathon',
+                context.l10n.footerHackathon,
                 style: TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w600,

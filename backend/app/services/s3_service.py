@@ -24,7 +24,12 @@ def generate_presigned_url_for_video(
     Returns:
         Dict con upload_url, video_key, expires_at y content_type.
     """
-    extension = "mp4" if "mp4" in content_type else "webm"
+    if "mp4" in content_type:
+        extension = "mp4"
+    elif "quicktime" in content_type or "mov" in content_type:
+        extension = "mov"
+    else:
+        extension = "webm"
     video_key = f"videos/{uuid.uuid4()}.{extension}"
 
     try:

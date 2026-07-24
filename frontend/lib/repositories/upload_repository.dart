@@ -19,9 +19,11 @@ class UploadRepository {
   /// Defined in `docs/api-contracts.md`. Currently:
   /// - `video/mp4` (Android recording, file picker)
   /// - `video/webm` (Web recording, file picker)
+  /// - `video/quicktime` (iOS/iPhone recording, .mov)
   static const List<String> acceptedMimeTypes = [
     'video/mp4',
     'video/webm',
+    'video/quicktime',
   ];
 
   UploadRepository({
