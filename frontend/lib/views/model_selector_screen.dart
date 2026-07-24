@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../core/app_localizations.dart';
 import '../models/analysis_config.dart';
 import '../models/analysis_provider.dart';
 import '../models/captured_media.dart';
@@ -24,9 +25,10 @@ class _ModelSelectorScreenState extends State<ModelSelectorScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Seleccionar Modelo'),
+        title: Text(l10n.selectModel),
       ),
       body: SafeArea(
         child: Padding(
@@ -36,7 +38,7 @@ class _ModelSelectorScreenState extends State<ModelSelectorScreen> {
             children: [
               // Header
               Text(
-                'Elige el modelo de IA',
+                l10n.chooseAiModel,
                 style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                       fontWeight: FontWeight.bold,
                       color: const Color(0xFF2B2826),
@@ -45,7 +47,7 @@ class _ModelSelectorScreenState extends State<ModelSelectorScreen> {
               ),
               const SizedBox(height: 8),
               Text(
-                'Selecciona qué modelo de inteligencia artificial analizará el video de tu bebé.',
+                l10n.selectModelDescription,
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                       color: const Color(0xFF2B2826).withValues(alpha: 0.6),
                       height: 1.4,
@@ -64,9 +66,9 @@ class _ModelSelectorScreenState extends State<ModelSelectorScreen> {
                       icon: Icons.auto_awesome_rounded,
                       color: const Color(0xFF4285F4),
                       features: [
-                        'Análisis nativo de video completo',
-                        'Clasificación de llanto por tipo',
-                        'Detección de audio integrada',
+                        l10n.nativeVideoAnalysis,
+                        l10n.cryClassification,
+                        l10n.integratedAudioDetection,
                       ],
                       recommended: true,
                     ),
@@ -77,9 +79,9 @@ class _ModelSelectorScreenState extends State<ModelSelectorScreen> {
                       icon: Icons.cloud_rounded,
                       color: const Color(0xFFFF9900),
                       features: [
-                        'Análisis visual por frames',
-                        'Modelo Claude Sonnet',
-                        'Extracción de espectrograma',
+                        l10n.visualFrameAnalysis,
+                        l10n.claudeSonnetModel,
+                        l10n.spectrogramExtraction,
                       ],
                       recommended: false,
                     ),
@@ -94,9 +96,9 @@ class _ModelSelectorScreenState extends State<ModelSelectorScreen> {
                 child: FilledButton.icon(
                   onPressed: _onContinue,
                   icon: const Icon(Icons.play_arrow_rounded),
-                  label: const Text(
-                    'Iniciar Análisis',
-                    style: TextStyle(fontSize: 16),
+                  label: Text(
+                    l10n.startAnalysis,
+                    style: const TextStyle(fontSize: 16),
                   ),
                   style: FilledButton.styleFrom(
                     backgroundColor: const Color(0xFF389BB0),
@@ -191,9 +193,9 @@ class _ModelSelectorScreenState extends State<ModelSelectorScreen> {
                                 color: const Color(0xFF4CAF50),
                                 borderRadius: BorderRadius.circular(12),
                               ),
-                              child: const Text(
-                                'Recomendado',
-                                style: TextStyle(
+                              child: Text(
+                                context.l10n.recommended,
+                                style: const TextStyle(
                                   color: Colors.white,
                                   fontSize: 10,
                                   fontWeight: FontWeight.bold,
@@ -204,7 +206,9 @@ class _ModelSelectorScreenState extends State<ModelSelectorScreen> {
                         ],
                       ),
                       Text(
-                        provider.description,
+                        provider == AnalysisProvider.gemini
+                            ? context.l10n.geminiDescription
+                            : context.l10n.bedrockDescription,
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
                               color:
                                   const Color(0xFF2B2826).withValues(alpha: 0.6),

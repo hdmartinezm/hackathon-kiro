@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../core/app_localizations.dart';
 import '../models/analysis_config.dart';
 import '../models/analysis_result.dart';
 import '../viewmodels/analysis_viewmodel.dart';
@@ -54,7 +55,7 @@ class _AnalysisScreenState extends State<AnalysisScreen> {
       WidgetsBinding.instance.addPostFrameCallback((_) async {
         final shouldRetry = await showNetworkErrorDialog(
           context: context,
-          error: Exception(state.errorMessage ?? 'Ocurrió un error inesperado.'),
+          error: Exception(state.errorMessage ?? context.l10n.unexpectedErrorOccurred),
         );
         if (shouldRetry) {
           viewModel.reset();
@@ -66,7 +67,7 @@ class _AnalysisScreenState extends State<AnalysisScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Resultado del Análisis'),
+        title: Text(context.l10n.analysisResult),
       ),
       body: SafeArea(
         child: _buildBody(context, viewModel, state),
@@ -82,7 +83,7 @@ class _AnalysisScreenState extends State<AnalysisScreen> {
     switch (state.status) {
       case 'uploading':
       case 'analyzing':
-        return _buildLoading(state.status);
+        return _buildLoading(context, state.status);
       case 'error':
         // Return empty container; the dialog is shown via postFrameCallback.
         return const SizedBox.shrink();
@@ -92,16 +93,17 @@ class _AnalysisScreenState extends State<AnalysisScreen> {
         }
         return const SizedBox.shrink();
       default:
-        return _buildLoading('idle');
+        return _buildLoading(context, 'idle');
     }
   }
 
-  Widget _buildLoading(String status) {
+  Widget _buildLoading(BuildContext context, String status) {
+    final l10n = context.l10n;
     final message = status == 'uploading'
-        ? 'Subiendo video...'
+        ? l10n.uploadingVideo
         : status == 'analyzing'
-            ? 'Analizando video...'
-            : 'Preparando...';
+            ? l10n.analyzingVideo
+            : l10n.preparing;
 
     return Center(
       child: Column(
@@ -123,6 +125,7 @@ class _AnalysisScreenState extends State<AnalysisScreen> {
     AnalysisViewModel viewModel,
     AnalysisResult result,
   ) {
+    final l10n = context.l10n;
     return SingleChildScrollView(
       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
       child: Column(
@@ -134,7 +137,7 @@ class _AnalysisScreenState extends State<AnalysisScreen> {
           // Observations
           _buildSection(
             context,
-            title: 'Observaciones',
+            title: l10n.observations,
             icon: Icons.description_outlined,
             child: Text(
               result.observations,
@@ -147,7 +150,7 @@ class _AnalysisScreenState extends State<AnalysisScreen> {
           // Recommendations
           _buildSection(
             context,
-            title: 'Recomendaciones',
+            title: l10n.recommendations,
             icon: Icons.lightbulb_outline,
             child: Text(
               result.recommendations,
@@ -161,7 +164,7 @@ class _AnalysisScreenState extends State<AnalysisScreen> {
             const SizedBox(height: 16),
             _buildSection(
               context,
-              title: 'Nivel de Confianza',
+              title: l10n.confidenceLevel,
               icon: Icons.speed_rounded,
               child: ConfidenceBarWidget(confidence: result.confidence!),
             ),
@@ -171,7 +174,7 @@ class _AnalysisScreenState extends State<AnalysisScreen> {
             const SizedBox(height: 16),
             _buildSection(
               context,
-              title: 'Análisis de Llanto',
+              title: l10n.cryAnalysis,
               icon: Icons.hearing_rounded,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -200,7 +203,7 @@ class _AnalysisScreenState extends State<AnalysisScreen> {
                       if (result.cryConfidence != null) ...[
                         const SizedBox(width: 12),
                         Text(
-                          '${(result.cryConfidence! * 100).toStringAsFixed(0)}% confianza',
+                          l10n.confidence((result.cryConfidence! * 100).toInt()),
                           style:
                               Theme.of(context).textTheme.bodySmall?.copyWith(
                                     color: const Color(0xFF2B2826)
@@ -297,9 +300,9 @@ class _AnalysisScreenState extends State<AnalysisScreen> {
                 _navigateHome(context);
               },
               icon: const Icon(Icons.refresh_rounded),
-              label: const Text(
-                'Reiniciar',
-                style: TextStyle(fontSize: 16),
+              label: Text(
+                l10n.reset,
+                style: const TextStyle(fontSize: 16),
               ),
               style: OutlinedButton.styleFrom(
                 foregroundColor: const Color(0xFF389BB0),

@@ -2,24 +2,28 @@ import 'package:amplify_auth_cognito/amplify_auth_cognito.dart';
 import 'package:amplify_flutter/amplify_flutter.dart';
 
 import '../core/amplify_config.dart';
+import '../core/app_localizations.dart';
 
 /// Result of an authentication operation.
 class AuthResult {
   final bool isSuccess;
-  final String? error;
+  final AuthErrorCode? errorCode;
+  final String? errorDetail;
   final bool needsConfirmation;
 
   const AuthResult._({
     required this.isSuccess,
-    this.error,
+    this.errorCode,
+    this.errorDetail,
     this.needsConfirmation = false,
   });
 
   factory AuthResult.success() => const AuthResult._(isSuccess: true);
 
-  factory AuthResult.failure(String error) => AuthResult._(
+  factory AuthResult.failure(AuthErrorCode code, [String? detail]) => AuthResult._(
         isSuccess: false,
-        error: error,
+        errorCode: code,
+        errorDetail: detail,
       );
 
   factory AuthResult.confirmationRequired() => const AuthResult._(
@@ -63,11 +67,11 @@ class AuthService {
         return AuthResult.success();
       }
 
-      return AuthResult.failure('No se pudo iniciar sesión');
+      return AuthResult.failure(AuthErrorCode.loginFailed);
     } on AuthException catch (e) {
       return AuthResult.failure(_mapAuthError(e));
     } catch (e) {
-      return AuthResult.failure('Error inesperado: $e');
+      return AuthResult.failure(AuthErrorCode.unknown, e.toString());
     }
   }
 
@@ -92,7 +96,7 @@ class AuthService {
     } on AuthException catch (e) {
       return AuthResult.failure(_mapAuthError(e));
     } catch (e) {
-      return AuthResult.failure('Error inesperado: $e');
+      return AuthResult.failure(AuthErrorCode.unknown, e.toString());
     }
   }
 
@@ -108,7 +112,7 @@ class AuthService {
         return AuthResult.success();
       }
 
-      return AuthResult.failure('No se pudo verificar el código');
+      return AuthResult.failure(AuthErrorCode.verifyCodeFailed);
     } on AuthException catch (e) {
       return AuthResult.failure(_mapAuthError(e));
     }
@@ -137,11 +141,11 @@ class AuthService {
       if (result.isSignedIn) {
         return AuthResult.success();
       }
-      return AuthResult.failure('No se pudo iniciar sesión');
+      return AuthResult.failure(AuthErrorCode.loginFailed);
     } on AuthException catch (e) {
       return AuthResult.failure(_mapAuthError(e));
     } catch (e) {
-      return AuthResult.failure('Error inesperado: $e');
+      return AuthResult.failure(AuthErrorCode.unknown, e.toString());
     }
   }
 
@@ -176,37 +180,36 @@ class AuthService {
     }
   }
 
-  /// Map Amplify auth exceptions to user-friendly Spanish messages.
-  String _mapAuthError(AuthException e) {
+  /// Map Amplify auth exceptions to error codes.
+  AuthErrorCode _mapAuthError(AuthException e) {
     final message = e.message.toLowerCase();
 
     if (message.contains('user not found') ||
         message.contains('user does not exist')) {
-      return 'No existe una cuenta con este email';
+      return AuthErrorCode.noAccountWithEmail;
     }
     if (message.contains('incorrect') || message.contains('invalid')) {
-      return 'Email o contraseña incorrectos';
+      return AuthErrorCode.incorrectCredentials;
     }
     if (message.contains('already exists') || message.contains('username exists')) {
-      return 'Ya existe una cuenta con este email';
+      return AuthErrorCode.accountAlreadyExists;
     }
     if (message.contains('invalid code') || message.contains('code mismatch')) {
-      return 'Código incorrecto. Intenta de nuevo.';
+      return AuthErrorCode.incorrectCode;
     }
     if (message.contains('expired')) {
-      return 'El código ha expirado. Solicita uno nuevo.';
+      return AuthErrorCode.codeExpired;
     }
     if (message.contains('password') && message.contains('policy')) {
-      return 'La contraseña debe tener al menos 8 caracteres, una minúscula y un número';
+      return AuthErrorCode.passwordPolicyError;
     }
     if (message.contains('network') || message.contains('connection')) {
-      return 'Error de conexión. Verifica tu internet.';
+      return AuthErrorCode.connectionError;
     }
     if (message.contains('not configured') || message.contains('amplify')) {
-      return 'Error de configuración. Recarga la página.';
+      return AuthErrorCode.configurationError;
     }
 
-    // Debug: show actual error in development
-    return 'Error: ${e.message}';
+    return AuthErrorCode.unknown;
   }
 }

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../core/app_localizations.dart';
+
 /// Reusable medical disclaimer widget.
 ///
 /// Shows a warning banner with medical disclaimer text.
@@ -49,7 +51,7 @@ class DisclaimerWidget extends StatelessWidget {
               ),
               const SizedBox(width: 8),
               Text(
-                'Aviso importante',
+                context.l10n.importantNotice,
                 style: TextStyle(
                   fontWeight: FontWeight.bold,
                   color: Colors.amber[900],
@@ -59,17 +61,7 @@ class DisclaimerWidget extends StatelessWidget {
           ),
           const SizedBox(height: 12),
           Text(
-            text ??
-                'Esta aplicación proporciona una orientación preliminar '
-                    'basada en inteligencia artificial y NO reemplaza la '
-                    'evaluación de un profesional de la salud. \n\n'
-                    'Los resultados generados son indicativos y no '
-                    'constituyen un diagnóstico médico. Si tiene alguna '
-                    'preocupación sobre la salud de su bebé, consulte '
-                    'inmediatamente a un pediatra o acuda al centro de '
-                    'salud más cercano. '
-                    'Al aceptar, usted reconoce haber leído y comprendido '
-                    'este aviso.',
+            text ?? context.l10n.fullDisclaimer,
             textAlign: TextAlign.justify,
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
               color: Colors.brown[800],
@@ -104,11 +96,7 @@ class DisclaimerWidget extends StatelessWidget {
           const SizedBox(width: 8),
           Expanded(
             child: Text(
-              text ??
-                  'Esta aplicación proporciona orientación preliminar '
-                      'basada en IA y NO reemplaza la evaluación de un '
-                      'profesional de la salud. Consulte a un pediatra ante '
-                      'cualquier preocupación.',
+              text ?? context.l10n.compactDisclaimer,
               style: TextStyle(
                 color: Colors.brown[700],
                 fontSize: 12,

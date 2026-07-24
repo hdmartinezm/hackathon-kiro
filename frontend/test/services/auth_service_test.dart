@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:babyhealth/core/app_localizations.dart';
 import 'package:babyhealth/services/auth_service.dart';
 
 void main() {
@@ -6,14 +7,14 @@ void main() {
     test('success result has isSuccess true', () {
       final result = AuthResult.success();
       expect(result.isSuccess, true);
-      expect(result.error, isNull);
+      expect(result.errorCode, isNull);
       expect(result.needsConfirmation, false);
     });
 
     test('failure result has isSuccess false with error', () {
-      final result = AuthResult.failure('Invalid password');
+      final result = AuthResult.failure(AuthErrorCode.incorrectCredentials);
       expect(result.isSuccess, false);
-      expect(result.error, 'Invalid password');
+      expect(result.errorCode, AuthErrorCode.incorrectCredentials);
       expect(result.needsConfirmation, false);
     });
 

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
+import '../core/app_localizations.dart';
 import '../viewmodels/auth_viewmodel.dart';
 
 /// Screen for email verification code entry.
@@ -33,9 +34,9 @@ class _VerifyEmailScreenState extends State<VerifyEmailScreen> {
     if (success && mounted) {
       // Show success message then navigate
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('¡Email verificado! Inicia sesión para continuar.'),
-          backgroundColor: Color(0xFF389BB0),
+        SnackBar(
+          content: Text(context.l10n.emailVerified),
+          backgroundColor: const Color(0xFF389BB0),
         ),
       );
       Navigator.of(context).pushReplacementNamed('/auth');
@@ -48,9 +49,9 @@ class _VerifyEmailScreenState extends State<VerifyEmailScreen> {
 
     if (success && mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Código reenviado a tu email'),
-          backgroundColor: Color(0xFF389BB0),
+        SnackBar(
+          content: Text(context.l10n.codeResent),
+          backgroundColor: const Color(0xFF389BB0),
         ),
       );
     }
@@ -97,9 +98,9 @@ class _VerifyEmailScreenState extends State<VerifyEmailScreen> {
                   const SizedBox(height: 24),
 
                   // Title
-                  const Text(
-                    'Verifica tu correo',
-                    style: TextStyle(
+                  Text(
+                    context.l10n.verifyYourEmail,
+                    style: const TextStyle(
                       fontSize: 24,
                       fontWeight: FontWeight.bold,
                       color: Color(0xFF2B2826),
@@ -109,7 +110,7 @@ class _VerifyEmailScreenState extends State<VerifyEmailScreen> {
 
                   // Subtitle
                   Text(
-                    'Enviamos un código de 6 dígitos a:',
+                    context.l10n.codeSentTo,
                     style: TextStyle(
                       fontSize: 16,
                       color: const Color(0xFF2B2826).withOpacity(0.7),
@@ -127,7 +128,7 @@ class _VerifyEmailScreenState extends State<VerifyEmailScreen> {
                   const SizedBox(height: 32),
 
                   // Error message
-                  if (viewModel.errorMessage != null)
+                  if (viewModel.errorCode != null)
                     Container(
                       width: double.infinity,
                       padding: const EdgeInsets.all(12),
@@ -149,7 +150,10 @@ class _VerifyEmailScreenState extends State<VerifyEmailScreen> {
                           const SizedBox(width: 8),
                           Expanded(
                             child: Text(
-                              viewModel.errorMessage!,
+                              context.l10n.translateAuthError(
+                                viewModel.errorCode!,
+                                viewModel.errorDetail,
+                              ),
                               style: const TextStyle(
                                 color: Color(0xFFE87055),
                                 fontSize: 14,
@@ -210,7 +214,7 @@ class _VerifyEmailScreenState extends State<VerifyEmailScreen> {
                       ),
                       validator: (value) {
                         if (value == null || value.length != 6) {
-                          return 'Ingresa el código de 6 dígitos';
+                          return context.l10n.enterCode;
                         }
                         return null;
                       },
@@ -239,9 +243,9 @@ class _VerifyEmailScreenState extends State<VerifyEmailScreen> {
                                 strokeWidth: 2,
                               ),
                             )
-                          : const Text(
-                              'Verificar',
-                              style: TextStyle(
+                          : Text(
+                              context.l10n.verify,
+                              style: const TextStyle(
                                 fontSize: 16,
                                 fontWeight: FontWeight.w600,
                               ),
@@ -253,9 +257,9 @@ class _VerifyEmailScreenState extends State<VerifyEmailScreen> {
                   // Resend link
                   TextButton(
                     onPressed: viewModel.isLoading ? null : _handleResend,
-                    child: const Text(
-                      '¿No recibiste el código? Reenviar',
-                      style: TextStyle(color: Color(0xFF389BB0)),
+                    child: Text(
+                      context.l10n.didNotReceiveCode,
+                      style: const TextStyle(color: Color(0xFF389BB0)),
                     ),
                   ),
                 ],

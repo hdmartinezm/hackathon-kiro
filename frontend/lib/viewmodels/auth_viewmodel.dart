@@ -1,6 +1,7 @@
 import 'package:amplify_flutter/amplify_flutter.dart' show AuthProvider;
 import 'package:flutter/foundation.dart';
 
+import '../core/app_localizations.dart';
 import '../services/auth_service.dart';
 
 /// Authentication states.
@@ -16,7 +17,8 @@ class AuthViewModel extends ChangeNotifier {
 
   AuthState _state = AuthState.unauthenticated;
   bool _isLoading = false;
-  String? _errorMessage;
+  AuthErrorCode? _errorCode;
+  String? _errorDetail;
   String? _pendingEmail;
 
   AuthViewModel({required AuthService authService}) : _authService = authService;
@@ -24,7 +26,8 @@ class AuthViewModel extends ChangeNotifier {
   // Getters
   AuthState get state => _state;
   bool get isLoading => _isLoading;
-  String? get errorMessage => _errorMessage;
+  AuthErrorCode? get errorCode => _errorCode;
+  String? get errorDetail => _errorDetail;
   String? get pendingEmail => _pendingEmail;
 
   /// Check current authentication status.
@@ -57,7 +60,7 @@ class AuthViewModel extends ChangeNotifier {
       return true;
     }
 
-    _setError(result.error ?? 'Error al iniciar sesión');
+    _setError(result.errorCode ?? AuthErrorCode.loginError, result.errorDetail);
     return false;
   }
 
@@ -81,14 +84,14 @@ class AuthViewModel extends ChangeNotifier {
       return true;
     }
 
-    _setError(result.error ?? 'Error al registrarse');
+    _setError(result.errorCode ?? AuthErrorCode.registerError, result.errorDetail);
     return false;
   }
 
   /// Verify email with confirmation code.
   Future<bool> verifyCode(String code) async {
     if (_pendingEmail == null) {
-      _setError('No hay email pendiente de verificación');
+      _setError(AuthErrorCode.noPendingEmail);
       return false;
     }
 
@@ -114,14 +117,14 @@ class AuthViewModel extends ChangeNotifier {
       return true;
     }
 
-    _setError(result.error ?? 'Error al verificar código');
+    _setError(result.errorCode ?? AuthErrorCode.verifyError, result.errorDetail);
     return false;
   }
 
   /// Resend confirmation code.
   Future<bool> resendCode() async {
     if (_pendingEmail == null) {
-      _setError('No hay email pendiente de verificación');
+      _setError(AuthErrorCode.noPendingEmail);
       return false;
     }
 
@@ -136,7 +139,7 @@ class AuthViewModel extends ChangeNotifier {
       return true;
     }
 
-    _setError(result.error ?? 'Error al reenviar código');
+    _setError(result.errorCode ?? AuthErrorCode.resendError, result.errorDetail);
     return false;
   }
 
@@ -155,7 +158,7 @@ class AuthViewModel extends ChangeNotifier {
       return true;
     }
 
-    _setError(result.error ?? 'Error al iniciar sesión');
+    _setError(result.errorCode ?? AuthErrorCode.loginError, result.errorDetail);
     return false;
   }
 
@@ -178,13 +181,15 @@ class AuthViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  void _setError(String message) {
-    _errorMessage = message;
+  void _setError(AuthErrorCode code, [String? detail]) {
+    _errorCode = code;
+    _errorDetail = detail;
     notifyListeners();
   }
 
   void _clearError() {
-    _errorMessage = null;
+    _errorCode = null;
+    _errorDetail = null;
     notifyListeners();
   }
 }

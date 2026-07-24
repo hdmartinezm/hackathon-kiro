@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../core/app_localizations.dart';
 import '../models/analysis_status.dart';
 
 /// Reusable traffic light widget that displays the analysis severity status.
@@ -16,7 +17,7 @@ class TrafficLightWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     final bgColor = _bgColor;
     final icon = _icon;
-    final label = _label;
+    final label = _getLabel(context);
 
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 24),
@@ -75,14 +76,15 @@ class TrafficLightWidget extends StatelessWidget {
     }
   }
 
-  String get _label {
+  String _getLabel(BuildContext context) {
+    final l10n = context.l10n;
     switch (status) {
       case AnalysisStatus.normal:
-        return 'Normal';
+        return l10n.statusNormal;
       case AnalysisStatus.requiereAtencion:
-        return 'Requiere Atención';
+        return l10n.needsAttention;
       case AnalysisStatus.urgente:
-        return 'Urgente';
+        return l10n.urgent;
     }
   }
 }

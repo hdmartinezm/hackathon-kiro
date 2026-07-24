@@ -3,9 +3,11 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../core/api_config.dart';
+import '../core/app_localizations.dart';
 import '../viewmodels/auth_viewmodel.dart';
 import '../widgets/auth_text_field.dart';
 import '../widgets/babyhealth_logo_widget.dart';
+import '../widgets/settings_controls.dart';
 
 /// Authentication screen with Login and Signup tabs.
 class AuthScreen extends StatefulWidget {
@@ -76,11 +78,8 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
 
     if (!isReady) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(
-            'Este proveedor estará disponible pronto. '
-            'Por ahora usa Google o tu email y contraseña.',
-          ),
+        SnackBar(
+          content: Text(context.l10n.socialComingSoon),
           behavior: SnackBarBehavior.floating,
         ),
       );
@@ -128,11 +127,11 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
       child: OutlinedButton(
         onPressed: onTap,
         style: OutlinedButton.styleFrom(
-          side: const BorderSide(color: Color(0xFFE5E0DA)),
+          side: BorderSide(color: Theme.of(context).colorScheme.outline),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(26),
           ),
-          backgroundColor: Colors.white,
+          backgroundColor: Theme.of(context).colorScheme.surface,
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -141,10 +140,10 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
             const SizedBox(width: 12),
             Text(
               label,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 15,
                 fontWeight: FontWeight.w600,
-                color: Color(0xFF2B2826),
+                color: Theme.of(context).colorScheme.onSurface,
               ),
             ),
           ],
@@ -192,14 +191,18 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFFAF7F4),
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Color(0xFF2B2826)),
+          icon: Icon(Icons.arrow_back,
+              color: Theme.of(context).colorScheme.onSurface),
           onPressed: () => Navigator.of(context).pushReplacementNamed('/web-landing'),
         ),
+        actions: const [
+          SettingsControls(),
+          SizedBox(width: 8),
+        ],
       ),
       body: SafeArea(
         child: Center(
@@ -235,19 +238,21 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
 
                   // Social login buttons
                   _buildSocialButton(
-                    label: 'Continuar con Google',
+                    label: context.l10n.continueWithGoogle,
                     icon: _googleIcon(),
                     onTap: () => _handleSocialLogin(AuthProvider.google),
                   ),
                   const SizedBox(height: 12),
                   _buildSocialButton(
-                    label: 'Continuar con Apple',
-                    icon: const Icon(Icons.apple, size: 22, color: Colors.black),
+                    label: context.l10n.continueWithApple,
+                    icon: Icon(Icons.apple,
+                        size: 22,
+                        color: Theme.of(context).colorScheme.onSurface),
                     onTap: () => _handleSocialLogin(AuthProvider.apple),
                   ),
                   const SizedBox(height: 12),
                   _buildSocialButton(
-                    label: 'Continuar con Facebook',
+                    label: context.l10n.continueWithFacebook,
                     icon: const Icon(Icons.facebook,
                         size: 22, color: Color(0xFF1877F2)),
                     onTap: () => _handleSocialLogin(AuthProvider.facebook),
@@ -257,18 +262,21 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
                   // "o" divider
                   Row(
                     children: [
-                      const Expanded(child: Divider(color: Color(0xFFE5E0DA))),
+                      const Expanded(child: Divider()),
                       Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 12),
                         child: Text(
-                          'o',
+                          context.l10n.orDivider,
                           style: TextStyle(
-                            color: const Color(0xFF2B2826).withOpacity(0.5),
+                            color: Theme.of(context)
+                                .colorScheme
+                                .onSurface
+                                .withValues(alpha: 0.5),
                             fontSize: 14,
                           ),
                         ),
                       ),
-                      const Expanded(child: Divider(color: Color(0xFFE5E0DA))),
+                      const Expanded(child: Divider()),
                     ],
                   ),
                   const SizedBox(height: 20),
@@ -292,9 +300,9 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
                         fontWeight: FontWeight.w600,
                         fontSize: 14,
                       ),
-                      tabs: const [
-                        Tab(text: 'Ingresar'),
-                        Tab(text: 'Registrarse'),
+                      tabs: [
+                        Tab(text: context.l10n.tabLogin),
+                        Tab(text: context.l10n.tabSignup),
                       ],
                     ),
                   ),
@@ -303,7 +311,11 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
                   // Error message
                   Consumer<AuthViewModel>(
                     builder: (context, vm, _) {
-                      if (vm.errorMessage == null) return const SizedBox.shrink();
+                      if (vm.errorCode == null) return const SizedBox.shrink();
+                      final errorMessage = context.l10n.translateAuthError(
+                        vm.errorCode!,
+                        vm.errorDetail,
+                      );
                       return Container(
                         width: double.infinity,
                         padding: const EdgeInsets.all(12),
@@ -325,7 +337,7 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
                             const SizedBox(width: 8),
                             Expanded(
                               child: Text(
-                                vm.errorMessage!,
+                                errorMessage,
                                 style: const TextStyle(
                                   color: Color(0xFFE87055),
                                   fontSize: 14,
@@ -364,17 +376,17 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
       child: Column(
         children: [
           AuthTextField(
-            label: 'Email',
+            label: context.l10n.email,
             controller: _loginEmailController,
             keyboardType: TextInputType.emailAddress,
-            validator: validateEmail,
+            validator: emailValidator(context),
           ),
           const SizedBox(height: 16),
           AuthTextField(
-            label: 'Contraseña',
+            label: context.l10n.password,
             controller: _loginPasswordController,
             obscureText: _obscureLoginPassword,
-            validator: (v) => v?.isEmpty == true ? 'Requerido' : null,
+            validator: (v) => v?.isEmpty == true ? context.l10n.fieldRequired : null,
             suffixIcon: IconButton(
               icon: Icon(
                 _obscureLoginPassword ? Icons.visibility_off : Icons.visibility,
@@ -408,9 +420,9 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
                             strokeWidth: 2,
                           ),
                         )
-                      : const Text(
-                          'Iniciar sesión',
-                          style: TextStyle(
+                      : Text(
+                          context.l10n.signIn,
+                          style: const TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.w600,
                           ),
@@ -422,9 +434,9 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
           const SizedBox(height: 16),
           TextButton(
             onPressed: () => _tabController.animateTo(1),
-            child: const Text(
-              '¿No tienes cuenta? Regístrate',
-              style: TextStyle(color: Color(0xFF389BB0)),
+            child: Text(
+              context.l10n.noAccountSignup,
+              style: const TextStyle(color: Color(0xFF389BB0)),
             ),
           ),
         ],
@@ -438,17 +450,17 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
       child: Column(
         children: [
           AuthTextField(
-            label: 'Email',
+            label: context.l10n.email,
             controller: _signupEmailController,
             keyboardType: TextInputType.emailAddress,
-            validator: validateEmail,
+            validator: emailValidator(context),
           ),
           const SizedBox(height: 16),
           AuthTextField(
-            label: 'Contraseña',
+            label: context.l10n.password,
             controller: _signupPasswordController,
             obscureText: _obscureSignupPassword,
-            validator: validatePassword,
+            validator: passwordValidator(context),
             suffixIcon: IconButton(
               icon: Icon(
                 _obscureSignupPassword ? Icons.visibility_off : Icons.visibility,
@@ -461,13 +473,13 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
           ),
           const SizedBox(height: 16),
           AuthTextField(
-            label: 'Confirmar contraseña',
+            label: context.l10n.confirmPassword,
             controller: _signupConfirmPasswordController,
             obscureText: _obscureConfirmPassword,
             validator: (v) {
-              if (v?.isEmpty == true) return 'Requerido';
+              if (v?.isEmpty == true) return context.l10n.fieldRequired;
               if (v != _signupPasswordController.text) {
-                return 'Las contraseñas no coinciden';
+                return context.l10n.passwordsDoNotMatch;
               }
               return null;
             },
@@ -504,9 +516,9 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
                             strokeWidth: 2,
                           ),
                         )
-                      : const Text(
-                          'Crear cuenta',
-                          style: TextStyle(
+                      : Text(
+                          context.l10n.createAccount,
+                          style: const TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.w600,
                           ),

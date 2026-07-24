@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../core/app_localizations.dart';
 import '../viewmodels/splash_viewmodel.dart';
 import '../widgets/babyhealth_logo_widget.dart';
 import '../widgets/disclaimer_widget.dart';
@@ -95,7 +96,7 @@ class SplashScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  'Tu bebé te habla. Nosotros te ayudamos a entenderlo.',
+                  context.l10n.splashTagline,
                   textAlign: TextAlign.center,
                   style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                         color: const Color(0xFF2B2826).withValues(alpha: 0.7),
@@ -110,9 +111,9 @@ class SplashScreen extends StatelessWidget {
                   child: FilledButton.icon(
                     onPressed: () => viewModel.acceptDisclaimer(),
                     icon: const Icon(Icons.check_circle_outline),
-                    label: const Text(
-                      'Aceptar y continuar',
-                      style: TextStyle(fontSize: 16),
+                    label: Text(
+                      context.l10n.acceptAndContinue,
+                      style: const TextStyle(fontSize: 16),
                     ),
                     style: FilledButton.styleFrom(
                       backgroundColor: const Color(0xFF389BB0),

@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../core/app_localizations.dart';
+import '../core/app_theme.dart';
 import '../repositories/capture_repository.dart';
 import '../viewmodels/auth_viewmodel.dart';
 import '../viewmodels/home_viewmodel.dart';
 import '../widgets/babyhealth_logo_widget.dart';
 import '../widgets/phone_mockup_widget.dart';
+import '../widgets/settings_controls.dart';
 import 'home_screen.dart';
 
 /// Web landing screen with full informational sections and a phone mockup.
@@ -94,7 +97,7 @@ class _WebLandingScreenState extends State<WebLandingScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFFAF7F4),
+      backgroundColor: context.bg,
       body: SingleChildScrollView(
         child: Column(
           children: [
@@ -152,9 +155,9 @@ class _NavBar extends StatelessWidget {
     return Container(
       width: double.infinity,
       decoration: BoxDecoration(
-        color: const Color(0xFFFAF7F4),
+        color: context.bg,
         border: Border(
-          bottom: BorderSide(color: const Color(0xFFE5E0DA), width: 1),
+          bottom: BorderSide(color: context.border, width: 1),
         ),
       ),
       child: Center(
@@ -187,18 +190,20 @@ class _NavBar extends StatelessWidget {
           style: TextStyle(
             fontSize: 20,
             fontWeight: FontWeight.bold,
-            color: const Color(0xFF2B2826),
+            color: context.textColor,
           ),
         ),
         const Spacer(),
-        _navLink('Cómo funciona', onComoFunciona),
+        _navLink(context.l10n.navHowItWorks, onComoFunciona),
         const SizedBox(width: 24),
-        _navLink('Características', onCaracteristicas),
+        _navLink(context.l10n.navFeatures, onCaracteristicas),
         const SizedBox(width: 24),
-        _navLink('Arquitectura', onArquitectura),
+        _navLink(context.l10n.navArchitecture, onArquitectura),
         const SizedBox(width: 24),
-        _navLink('Seguridad', onSeguridad),
-        const SizedBox(width: 32),
+        _navLink(context.l10n.navSecurity, onSeguridad),
+        const SizedBox(width: 24),
+        const SettingsControls(),
+        const SizedBox(width: 16),
         _ctaButton(context),
       ],
     );
@@ -214,10 +219,12 @@ class _NavBar extends StatelessWidget {
           style: TextStyle(
             fontSize: 18,
             fontWeight: FontWeight.bold,
-            color: const Color(0xFF2B2826),
+            color: context.textColor,
           ),
         ),
         const Spacer(),
+        const SettingsControls(),
+        const SizedBox(width: 8),
         _ctaButton(context),
       ],
     );
@@ -229,7 +236,7 @@ class _NavBar extends StatelessWidget {
 
   Widget _ctaButton(BuildContext context) {
     return _AnimatedCtaButton(
-      label: 'Solicitar acceso',
+      label: context.l10n.navRequestAccess,
       onPressed: onSolicitarAcceso,
     );
   }
@@ -269,7 +276,7 @@ class _HoverableNavLinkState extends State<_HoverableNavLink> {
             style: TextStyle(
               fontSize: 14,
               fontWeight: FontWeight.w500,
-              color: _isHovered ? const Color(0xFF389BB0) : const Color(0xFF2B2826).withValues(alpha: 0.7),
+              color: _isHovered ? const Color(0xFF389BB0) : context.textColor.withValues(alpha: 0.7),
             ),
           ),
         ),
@@ -355,13 +362,13 @@ class _HeroSection extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
-      decoration: const BoxDecoration(
+      decoration: BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [
-            Color(0xFFFAF7F4),
-            Color(0xFFD6F2F7),
+            context.bg,
+            context.tealContainer,
           ],
         ),
       ),
@@ -424,7 +431,7 @@ class _HeroSection extends StatelessWidget {
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
           decoration: BoxDecoration(
-            color: const Color(0xFFD6F2F7),
+            color: context.tealContainer,
             borderRadius: BorderRadius.circular(20),
           ),
           child: const Text(
@@ -440,17 +447,17 @@ class _HeroSection extends StatelessWidget {
         const SizedBox(height: 20),
         // Title line 1
         Text(
-          'Tu bebé te habla.',
+          context.l10n.heroTitleLine1,
           style: TextStyle(
             fontSize: isLarge ? 40 : 28,
             fontWeight: FontWeight.bold,
-            color: const Color(0xFF2B2826),
+            color: context.textColor,
             height: 1.2,
           ),
         ),
         // Title line 2
         Text(
-          'Nosotros te ayudamos a entenderlo.',
+          context.l10n.heroTitleLine2,
           style: TextStyle(
             fontSize: isLarge ? 40 : 28,
             fontWeight: FontWeight.bold,
@@ -461,12 +468,10 @@ class _HeroSection extends StatelessWidget {
         const SizedBox(height: 16),
         // Subtitle
         Text(
-          'BabyHealth analiza imagen y audio de tu bebé con inteligencia '
-          'artificial para darte orientación temprana sobre su salud. '
-          'Un asistente informativo para padres primerizos, impulsado por AWS.',
+          context.l10n.heroSubtitle,
           style: TextStyle(
             fontSize: 16,
-            color: const Color(0xFF2B2826).withValues(alpha: 0.7),
+            color: context.textColor.withValues(alpha: 0.7),
             height: 1.5,
           ),
         ),
@@ -477,12 +482,12 @@ class _HeroSection extends StatelessWidget {
           runSpacing: 12,
           children: [
             _HeroPrimaryButton(
-              label: 'Comenzar ahora',
+              label: context.l10n.heroStart,
               icon: Icons.arrow_forward_rounded,
               onPressed: onSolicitarAcceso,
             ),
             _HeroSecondaryButton(
-              label: 'Ver demostración',
+              label: context.l10n.heroDemo,
               icon: Icons.play_circle_outline_rounded,
               onPressed: onVerComoFunciona,
             ),
@@ -494,20 +499,20 @@ class _HeroSection extends StatelessWidget {
           spacing: 8,
           runSpacing: 8,
           children: [
-            _badge('★ Bedrock + Gemini'),
-            _badge('🕒 Análisis en segundos'),
-            _badge('+ Multimodal'),
+            _badge(context, context.l10n.badgeModels),
+            _badge(context, context.l10n.badgeFast),
+            _badge(context, context.l10n.badgeMultimodal),
           ],
         ),
       ],
     );
   }
 
-  Widget _badge(String label) {
+  Widget _badge(BuildContext context, String label) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: context.surface,
         borderRadius: BorderRadius.circular(24),
         border: Border.all(color: const Color(0xFF389BB0).withValues(alpha: 0.2)),
         boxShadow: [
@@ -557,7 +562,7 @@ class _DesafioSection extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
-      color: Colors.white,
+      color: context.surface,
       child: Center(
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 1200),
@@ -615,7 +620,7 @@ class _DesafioSection extends StatelessWidget {
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
           decoration: BoxDecoration(
-            color: const Color(0xFFD6F2F7),
+            color: context.tealContainer,
             borderRadius: BorderRadius.circular(20),
           ),
           child: const Text(
@@ -629,38 +634,35 @@ class _DesafioSection extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 16),
-        const Text(
+        Text(
           'La incertidumbre de los primeros meses',
           style: TextStyle(
             fontSize: 32,
             fontWeight: FontWeight.bold,
-            color: Color(0xFF2B2826),
+            color: context.textColor,
             height: 1.2,
           ),
         ),
         const SizedBox(height: 16),
         Text(
-          'Cada llanto de un bebé tiene un significado. Los padres primerizos '
-          'enfrentan noches de incertidumbre preguntándose si todo está bien. '
-          'BabyHealth usa inteligencia artificial para ayudarte a interpretar '
-          'las señales de tu bebé.',
+          context.l10n.challengeDescription,
           style: TextStyle(
             fontSize: 16,
-            color: const Color(0xFF2B2826).withValues(alpha: 0.7),
+            color: context.textColor.withValues(alpha: 0.7),
             height: 1.6,
           ),
         ),
         const SizedBox(height: 24),
-        _checkItem('El 70% de las consultas nocturnas son por causas no urgentes'),
+        _checkItem(context, context.l10n.statNonUrgent),
         const SizedBox(height: 12),
-        _checkItem('La ictericia neonatal afecta al 60% de los recién nacidos'),
+        _checkItem(context, context.l10n.jaundiceStats),
         const SizedBox(height: 12),
-        _checkItem('La ansiedad parental es la principal causa de visitas a urgencias'),
+        _checkItem(context, context.l10n.statAnxiety),
       ],
     );
   }
 
-  Widget _checkItem(String text) {
+  Widget _checkItem(BuildContext context, String text) {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -680,7 +682,7 @@ class _DesafioSection extends StatelessWidget {
             text,
             style: TextStyle(
               fontSize: 14,
-              color: const Color(0xFF2B2826).withValues(alpha: 0.8),
+              color: context.textColor.withValues(alpha: 0.8),
               height: 1.4,
             ),
           ),
@@ -712,7 +714,7 @@ class _DesafioSection extends StatelessWidget {
                   color: Colors.white.withValues(alpha: 0.6), size: 18),
               const SizedBox(width: 8),
               Text(
-                'Son las 2:37 AM',
+                context.l10n.itsTime,
                 style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w600,
@@ -723,7 +725,7 @@ class _DesafioSection extends StatelessWidget {
           ),
           const SizedBox(height: 20),
           Text(
-            '"¿Por qué llora así? ¿Es normal este color?"',
+            context.l10n.parentQuestion,
             style: TextStyle(
               fontSize: 20,
               fontStyle: FontStyle.italic,
@@ -757,7 +759,7 @@ class _ComoFuncionaSection extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
-      color: const Color(0xFFFAF7F4),
+      color: context.bg,
       child: Center(
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 1200),
@@ -774,12 +776,12 @@ class _ComoFuncionaSection extends StatelessWidget {
                   padding:
                       const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                   decoration: BoxDecoration(
-                    color: const Color(0xFFD6F2F7),
+                    color: context.tealContainer,
                     borderRadius: BorderRadius.circular(20),
                   ),
-                  child: const Text(
-                    'CÓMO FUNCIONA',
-                    style: TextStyle(
+                  child: Text(
+                    context.l10n.chipHowItWorks,
+                    style: const TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.w700,
                       color: Color(0xFF389BB0),
@@ -791,24 +793,24 @@ class _ComoFuncionaSection extends StatelessWidget {
                 // Title with highlighted "tres pasos"
                 RichText(
                   textAlign: TextAlign.center,
-                  text: const TextSpan(
+                  text: TextSpan(
                     style: TextStyle(
                       fontSize: 32,
                       fontWeight: FontWeight.bold,
-                      color: Color(0xFF2B2826),
+                      color: context.textColor,
                       height: 1.2,
                     ),
                     children: [
-                      TextSpan(text: 'De la duda a la orientación en '),
+                      TextSpan(text: context.l10n.howItWorksTitlePrefix),
                       TextSpan(
-                        text: 'tres pasos',
-                        style: TextStyle(color: Color(0xFFE87055)),
+                        text: context.l10n.howItWorksTitleHighlight,
+                        style: const TextStyle(color: Color(0xFFE87055)),
                       ),
                     ],
                   ),
                 ),
                 const SizedBox(height: 48),
-                _buildSteps(constraints),
+                _buildSteps(context, constraints),
               ],
             ),
           );
@@ -820,25 +822,24 @@ class _ComoFuncionaSection extends StatelessWidget {
     );
   }
 
-  Widget _buildSteps(BoxConstraints constraints) {
-    const steps = <({String number, String title, String description, IconData icon})>[
+  Widget _buildSteps(BuildContext context, BoxConstraints constraints) {
+    final steps = <({String number, String title, String description, IconData icon})>[
       (
         number: '01',
-        title: 'Captura',
-        description: 'Graba o sube un video corto de tu bebé desde el navegador.',
+        title: context.l10n.step1Title,
+        description: context.l10n.step1Desc,
         icon: Icons.videocam_rounded,
       ),
       (
         number: '02',
-        title: 'Analiza en AWS',
-        description:
-            'IA multimodal (Claude Sonnet 4.5 en Bedrock o Gemini 2.5 Flash) procesa el contenido.',
+        title: context.l10n.step2Title,
+        description: context.l10n.step2Desc,
         icon: Icons.psychology_rounded,
       ),
       (
         number: '03',
-        title: 'Recibe orientación',
-        description: 'Resultados inmediatos con semáforo y recomendaciones.',
+        title: context.l10n.step3Title,
+        description: context.l10n.step3Desc,
         icon: Icons.check_circle_rounded,
       ),
     ];
@@ -926,10 +927,10 @@ class _StepCardState extends State<_StepCard> {
         height: 320,
         padding: const EdgeInsets.all(28),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: context.surface,
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
-            color: _isHovered ? const Color(0xFF389BB0).withValues(alpha: 0.3) : const Color(0xFFE5E0DA),
+            color: _isHovered ? const Color(0xFF389BB0).withValues(alpha: 0.3) : context.border,
           ),
           boxShadow: [
             BoxShadow(
@@ -956,7 +957,7 @@ class _StepCardState extends State<_StepCard> {
                 gradient: LinearGradient(
                   colors: _isHovered
                       ? [const Color(0xFF389BB0), const Color(0xFF4BA8BC)]
-                      : [const Color(0xFFD6F2F7), const Color(0xFFD6F2F7)],
+                      : [context.tealContainer, context.tealContainer],
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                 ),
@@ -988,10 +989,10 @@ class _StepCardState extends State<_StepCard> {
             const SizedBox(height: 12),
             Text(
               widget.title,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
-                color: Color(0xFF2B2826),
+                color: context.textColor,
               ),
             ),
             const SizedBox(height: 8),
@@ -1000,7 +1001,7 @@ class _StepCardState extends State<_StepCard> {
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: 14,
-                color: const Color(0xFF2B2826).withValues(alpha: 0.6),
+                color: context.textColor.withValues(alpha: 0.6),
                 height: 1.5,
               ),
             ),
@@ -1022,7 +1023,7 @@ class _CaracteristicasSection extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
-      color: Colors.white,
+      color: context.surface,
       child: Center(
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 1200),
@@ -1040,12 +1041,12 @@ class _CaracteristicasSection extends StatelessWidget {
                   padding:
                       const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                   decoration: BoxDecoration(
-                    color: const Color(0xFFD6F2F7),
+                    color: context.tealContainer,
                     borderRadius: BorderRadius.circular(20),
                   ),
-                  child: const Text(
-                    'CARACTERÍSTICAS',
-                    style: TextStyle(
+                  child: Text(
+                    context.l10n.chipFeatures,
+                    style: const TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.w700,
                       color: Color(0xFF389BB0),
@@ -1054,12 +1055,12 @@ class _CaracteristicasSection extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 16),
-                const Text(
-                  'Tecnología al servicio de la tranquilidad',
+                Text(
+                  context.l10n.featuresTitle,
                   style: TextStyle(
                     fontSize: 32,
                     fontWeight: FontWeight.bold,
-                    color: Color(0xFF2B2826),
+                    color: context.textColor,
                   ),
                 ),
                 const SizedBox(height: 40),
@@ -1072,46 +1073,47 @@ class _CaracteristicasSection extends StatelessWidget {
                   childAspectRatio: isWide ? 1.1 : 3.5,
                   children: [
                     _featureCard(
+                      context,
                       icon: Icons.visibility_outlined,
-                      label: 'VISIÓN POR IA',
-                      title: 'Análisis visual',
-                      description:
-                          'Detección de ictericia y evaluación del estado general del bebé.',
+                      label: context.l10n.featVisionLabel,
+                      title: context.l10n.featVisionTitle,
+                      description: context.l10n.featVisionDesc,
                     ),
                     _featureCard(
+                      context,
                       icon: Icons.graphic_eq,
-                      label: 'AUDIO IA',
-                      title: 'Análisis de llanto',
-                      description:
-                          'Clasificación de patrones de llanto con inteligencia artificial.',
-                      badge: 'PRÓXIMAMENTE',
+                      label: context.l10n.featAudioLabel,
+                      title: context.l10n.featAudioTitle,
+                      description: context.l10n.featAudioDesc,
+                      badge: context.l10n.comingSoon,
                     ),
                     _featureCard(
+                      context,
                       icon: Icons.cloud_outlined,
-                      label: 'AWS NATIVE',
-                      title: 'Infraestructura cloud',
-                      description:
-                          'Serverless con S3 Pre-signed URLs y Lambda.',
+                      label: context.l10n.featAwsLabel,
+                      title: context.l10n.featAwsTitle,
+                      description: context.l10n.featAwsDesc,
                     ),
                     _featureCard(
+                      context,
                       icon: Icons.lock_outline,
-                      label: 'PRIVACIDAD',
-                      title: 'Tus datos seguros',
-                      description:
-                          'Sin almacenamiento permanente de imágenes ni videos.',
+                      label: context.l10n.featPrivacyLabel,
+                      title: context.l10n.featPrivacyTitle,
+                      description: context.l10n.featPrivacyDesc,
                     ),
                     _featureCard(
+                      context,
                       icon: Icons.memory,
-                      label: 'EDGE ML',
-                      title: 'Procesamiento local',
-                      description: 'Detección on-device para respuestas rápidas.',
+                      label: context.l10n.featEdgeLabel,
+                      title: context.l10n.featEdgeTitle,
+                      description: context.l10n.featEdgeDesc,
                     ),
                     _featureCard(
+                      context,
                       icon: Icons.favorite_outline,
-                      label: 'UX CUIDADO',
-                      title: 'Diseño para padres',
-                      description:
-                          'Interfaz optimizada para padres exhaustos.',
+                      label: context.l10n.featUxLabel,
+                      title: context.l10n.featUxTitle,
+                      description: context.l10n.featUxDesc,
                     ),
                   ],
                 ),
@@ -1126,7 +1128,8 @@ class _CaracteristicasSection extends StatelessWidget {
     );
   }
 
-  Widget _featureCard({
+  Widget _featureCard(
+    BuildContext context, {
     required IconData icon,
     required String label,
     required String title,
@@ -1136,9 +1139,9 @@ class _CaracteristicasSection extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: const Color(0xFFFAF7F4),
+        color: context.bg,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFE5E0DA)),
+        border: Border.all(color: context.border),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -1201,10 +1204,10 @@ class _CaracteristicasSection extends StatelessWidget {
           const SizedBox(height: 6),
           Text(
             title,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.bold,
-              color: Color(0xFF2B2826),
+              color: context.textColor,
             ),
           ),
           const SizedBox(height: 6),
@@ -1212,7 +1215,7 @@ class _CaracteristicasSection extends StatelessWidget {
             description,
             style: TextStyle(
               fontSize: 13,
-              color: const Color(0xFF2B2826).withValues(alpha: 0.6),
+              color: context.textColor.withValues(alpha: 0.6),
               height: 1.4,
             ),
           ),
@@ -1233,7 +1236,7 @@ class _ArquitecturaSection extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
-      color: const Color(0xFFFAF7F4),
+      color: context.bg,
       child: Center(
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 1200),
@@ -1250,12 +1253,12 @@ class _ArquitecturaSection extends StatelessWidget {
                   padding:
                       const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                   decoration: BoxDecoration(
-                    color: const Color(0xFFD6F2F7),
+                    color: context.tealContainer,
                     borderRadius: BorderRadius.circular(20),
                   ),
-                  child: const Text(
-                    'ARQUITECTURA',
-                    style: TextStyle(
+                  child: Text(
+                    context.l10n.chipArchitecture,
+                    style: const TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.w700,
                       color: Color(0xFF389BB0),
@@ -1264,18 +1267,18 @@ class _ArquitecturaSection extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 16),
-                const Text(
-                  'Infraestructura serverless en AWS',
+                Text(
+                  context.l10n.architectureTitle,
                   style: TextStyle(
                     fontSize: 32,
                     fontWeight: FontWeight.bold,
-                    color: Color(0xFF2B2826),
+                    color: context.textColor,
                   ),
                 ),
                 const SizedBox(height: 40),
                 _architectureFlow(),
                 const SizedBox(height: 32),
-                _infrastructurePills(),
+                _infrastructurePills(context),
               ],
             ),
           );
@@ -1378,7 +1381,7 @@ class _ArquitecturaSection extends StatelessWidget {
     );
   }
 
-  Widget _infrastructurePills() {
+  Widget _infrastructurePills(BuildContext context) {
     final pills = [
       '☁️ Full serverless',
       '🌐 CloudFront CDN',
@@ -1397,7 +1400,7 @@ class _ArquitecturaSection extends StatelessWidget {
         return Container(
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: context.surface,
             borderRadius: BorderRadius.circular(20),
             border:
                 Border.all(color: const Color(0xFF389BB0).withValues(alpha: 0.2)),
@@ -1439,9 +1442,9 @@ class _ArchNode extends StatelessWidget {
       height: 132,
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 14),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: context.surface,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFE5E0DA)),
+        border: Border.all(color: context.border),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.05),
@@ -1457,8 +1460,8 @@ class _ArchNode extends StatelessWidget {
           Container(
             width: 42,
             height: 42,
-            decoration: const BoxDecoration(
-              color: Color(0xFFD6F2F7),
+            decoration: BoxDecoration(
+              color: context.tealContainer,
               shape: BoxShape.circle,
             ),
             alignment: Alignment.center,
@@ -1474,10 +1477,10 @@ class _ArchNode extends StatelessWidget {
             textAlign: TextAlign.center,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 11.5,
               fontWeight: FontWeight.w700,
-              color: Color(0xFF2B2826),
+              color: context.textColor,
               height: 1.15,
             ),
           ),
@@ -1491,7 +1494,7 @@ class _ArchNode extends StatelessWidget {
               overflow: TextOverflow.ellipsis,
               style: TextStyle(
                 fontSize: 9,
-                color: const Color(0xFF2B2826).withValues(alpha: 0.55),
+                color: context.textColor.withValues(alpha: 0.55),
                 height: 1.2,
               ),
             ),
@@ -1535,7 +1538,7 @@ class _SeguridadSection extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
-      color: Colors.white,
+      color: context.surface,
       child: Center(
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 1200),
@@ -1548,10 +1551,10 @@ class _SeguridadSection extends StatelessWidget {
             child: Container(
               padding: const EdgeInsets.all(32),
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: context.surface,
                 borderRadius: BorderRadius.circular(20),
                 border:
-                    Border.all(color: const Color(0xFFE5E0DA)),
+                    Border.all(color: context.border),
                 boxShadow: [
                   BoxShadow(
                     color: Colors.black.withValues(alpha: 0.04),
@@ -1567,7 +1570,7 @@ class _SeguridadSection extends StatelessWidget {
                     width: 64,
                     height: 64,
                     decoration: BoxDecoration(
-                      color: const Color(0xFFD6F2F7),
+                      color: context.tealContainer,
                       borderRadius: BorderRadius.circular(16),
                     ),
                     child: const Icon(
@@ -1577,32 +1580,31 @@ class _SeguridadSection extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 20),
-                  const Text(
-                    'Seguridad y Privacidad',
+                  Text(
+                    context.l10n.securityAndPrivacy,
                     style: TextStyle(
                       fontSize: 22,
                       fontWeight: FontWeight.bold,
-                      color: Color(0xFF2B2826),
+                      color: context.textColor,
                     ),
                   ),
                   const SizedBox(height: 16),
                   _securityPoint(
+                    context,
                     Icons.lock_outline,
-                    'Privacidad total: No almacenamos permanentemente '
-                        'imágenes ni videos de tu bebé.',
+                    context.l10n.privacyPoint,
                   ),
                   const SizedBox(height: 12),
                   _securityPoint(
+                    context,
                     Icons.lock_rounded,
-                    'Transmisión cifrada: Todos los datos se transmiten '
-                        'de forma segura mediante HTTPS y pre-signed URLs.',
+                    context.l10n.encryptionPoint,
                   ),
                   const SizedBox(height: 12),
                   _securityPoint(
+                    context,
                     Icons.info_outline,
-                    'Descargo médico: Esta aplicación no reemplaza la '
-                        'evaluación de un profesional de la salud. '
-                        'Consulte a su pediatra ante cualquier preocupación.',
+                    context.l10n.disclaimerPoint,
                   ),
                 ],
               ),
@@ -1616,7 +1618,7 @@ class _SeguridadSection extends StatelessWidget {
     );
   }
 
-  Widget _securityPoint(IconData icon, String text) {
+  Widget _securityPoint(BuildContext context, IconData icon, String text) {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -1627,7 +1629,7 @@ class _SeguridadSection extends StatelessWidget {
             text,
             style: TextStyle(
               fontSize: 14,
-              color: const Color(0xFF2B2826).withValues(alpha: 0.7),
+              color: context.textColor.withValues(alpha: 0.7),
               height: 1.5,
             ),
           ),
@@ -1650,7 +1652,7 @@ class _CtaBandSection extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
-      color: const Color(0xFFFAF7F4),
+      color: context.bg,
       child: Center(
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 1200),
@@ -1677,10 +1679,10 @@ class _CtaBandSection extends StatelessWidget {
                 ),
                 child: Column(
                   children: [
-                    const Text(
-                      '¿Listo para probar BabyHealth?',
+                    Text(
+                      context.l10n.readyToTry,
                       textAlign: TextAlign.center,
-                      style: TextStyle(
+                      style: const TextStyle(
                         fontSize: 26,
                         fontWeight: FontWeight.bold,
                         color: Colors.white,
@@ -1688,7 +1690,7 @@ class _CtaBandSection extends StatelessWidget {
                     ),
                     const SizedBox(height: 12),
                     Text(
-                      'Crea tu cuenta gratis y comienza a usar BabyHealth hoy mismo.',
+                      context.l10n.ctaSubtitle,
                       textAlign: TextAlign.center,
                       style: TextStyle(
                         fontSize: 14,
@@ -1698,7 +1700,7 @@ class _CtaBandSection extends StatelessWidget {
                     ),
                     const SizedBox(height: 24),
                     _CtaWhiteButton(
-                      label: 'Crear cuenta gratis',
+                      label: context.l10n.createFreeAccount,
                       onPressed: onCrearCuenta,
                     ),
                   ],
@@ -1851,13 +1853,13 @@ class _FooterSection extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 12),
-              _footerLink('Cómo funciona', onComoFunciona),
+              _footerLink(context.l10n.navHowItWorks, onComoFunciona),
               const SizedBox(height: 8),
-              _footerLink('Características', onCaracteristicas),
+              _footerLink(context.l10n.navFeatures, onCaracteristicas),
               const SizedBox(height: 8),
-              _footerLink('Arquitectura', onArquitectura),
+              _footerLink(context.l10n.navArchitecture, onArquitectura),
               const SizedBox(height: 8),
-              _footerLink('Seguridad', onSeguridad),
+              _footerLink(context.l10n.navSecurity, onSeguridad),
             ],
           ),
         ),
@@ -1908,7 +1910,7 @@ class _FooterSection extends StatelessWidget {
         ),
         const SizedBox(height: 12),
         Text(
-          'Asistente de cuidado neonatal con IA multimodal.',
+          context.l10n.footerTagline,
           textAlign: TextAlign.center,
           style: TextStyle(
             fontSize: 13,
@@ -1923,10 +1925,10 @@ class _FooterSection extends StatelessWidget {
           runSpacing: 8,
           alignment: WrapAlignment.center,
           children: [
-            _footerLink('Cómo funciona', onComoFunciona),
-            _footerLink('Características', onCaracteristicas),
-            _footerLink('Arquitectura', onArquitectura),
-            _footerLink('Seguridad', onSeguridad),
+            _footerLink(context.l10n.navHowItWorks, onComoFunciona),
+            _footerLink(context.l10n.navFeatures, onCaracteristicas),
+            _footerLink(context.l10n.navArchitecture, onArquitectura),
+            _footerLink(context.l10n.navSecurity, onSeguridad),
           ],
         ),
         const SizedBox(height: 16),
@@ -2078,12 +2080,12 @@ class _HeroSecondaryButtonState extends State<_HeroSecondaryButton> {
           curve: Curves.easeOutCubic,
           padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 16),
           decoration: BoxDecoration(
-            color: _isHovered ? const Color(0xFF2B2826).withValues(alpha: 0.08) : Colors.transparent,
+            color: _isHovered ? context.textColor.withValues(alpha: 0.08) : Colors.transparent,
             borderRadius: BorderRadius.circular(14),
             border: Border.all(
               color: _isHovered
-                  ? const Color(0xFF2B2826).withValues(alpha: 0.5)
-                  : const Color(0xFF2B2826).withValues(alpha: 0.25),
+                  ? context.textColor.withValues(alpha: 0.5)
+                  : context.textColor.withValues(alpha: 0.25),
               width: 1.5,
             ),
           ),
@@ -2092,7 +2094,7 @@ class _HeroSecondaryButtonState extends State<_HeroSecondaryButton> {
             children: [
               Icon(
                 widget.icon,
-                color: const Color(0xFF2B2826).withValues(alpha: 0.8),
+                color: context.textColor.withValues(alpha: 0.8),
                 size: 20,
               ),
               const SizedBox(width: 10),
@@ -2101,7 +2103,7 @@ class _HeroSecondaryButtonState extends State<_HeroSecondaryButton> {
                 style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w600,
-                  color: const Color(0xFF2B2826).withValues(alpha: 0.85),
+                  color: context.textColor.withValues(alpha: 0.85),
                   letterSpacing: 0.3,
                 ),
               ),

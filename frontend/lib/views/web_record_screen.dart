@@ -3,7 +3,16 @@ import 'dart:async';
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 
+import '../core/app_localizations.dart';
 import '../models/captured_media.dart';
+
+/// Error types for the web record screen.
+enum _RecordError {
+  noCameraFound,
+  cameraAccessDenied,
+  recordingStartFailed,
+  recordingStopFailed,
+}
 
 /// Full-screen camera recorder for the web version.
 ///
@@ -22,7 +31,8 @@ class _WebRecordScreenState extends State<WebRecordScreen> {
   Future<void>? _initFuture;
   bool _isRecording = false;
   bool _isProcessing = false;
-  String? _error;
+  _RecordError? _errorType;
+  String? _errorDetail;
 
   // Elapsed recording time.
   Timer? _timer;
@@ -41,8 +51,7 @@ class _WebRecordScreenState extends State<WebRecordScreen> {
     try {
       final cameras = await availableCameras();
       if (cameras.isEmpty) {
-        setState(() => _error =
-            'No se encontró ninguna cámara disponible en este dispositivo.');
+        setState(() => _errorType = _RecordError.noCameraFound);
         return;
       }
 
@@ -64,9 +73,10 @@ class _WebRecordScreenState extends State<WebRecordScreen> {
       setState(() => _controller = controller);
     } catch (e) {
       if (!mounted) return;
-      setState(() => _error =
-          'No se pudo acceder a la cámara. Concede permisos de cámara y '
-          'micrófono en el navegador e inténtalo de nuevo.\n\nDetalle: $e');
+      setState(() {
+        _errorType = _RecordError.cameraAccessDenied;
+        _errorDetail = e.toString();
+      });
     }
   }
 
@@ -90,7 +100,10 @@ class _WebRecordScreenState extends State<WebRecordScreen> {
       });
     } catch (e) {
       if (!mounted) return;
-      setState(() => _error = 'Error al iniciar la grabación: $e');
+      setState(() {
+        _errorType = _RecordError.recordingStartFailed;
+        _errorDetail = e.toString();
+      });
     }
   }
 
@@ -131,7 +144,8 @@ class _WebRecordScreenState extends State<WebRecordScreen> {
       if (!mounted) return;
       setState(() {
         _isProcessing = false;
-        _error = 'Error al finalizar la grabación: $e';
+        _errorType = _RecordError.recordingStopFailed;
+        _errorDetail = e.toString();
       });
     }
   }
@@ -143,21 +157,38 @@ class _WebRecordScreenState extends State<WebRecordScreen> {
     super.dispose();
   }
 
+  String _getErrorMessage(BuildContext context) {
+    final l10n = context.l10n;
+    switch (_errorType) {
+      case _RecordError.noCameraFound:
+        return l10n.noCameraFound;
+      case _RecordError.cameraAccessDenied:
+        return l10n.cameraAccessError(_errorDetail ?? '');
+      case _RecordError.recordingStartFailed:
+        return l10n.recordingError(_errorDetail ?? '');
+      case _RecordError.recordingStopFailed:
+        return l10n.recordingError(_errorDetail ?? '');
+      case null:
+        return '';
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     return Scaffold(
       backgroundColor: Colors.black,
       appBar: AppBar(
         backgroundColor: Colors.black,
         foregroundColor: Colors.white,
-        title: const Text('Grabar video'),
+        title: Text(l10n.recordVideo),
         leading: IconButton(
           icon: const Icon(Icons.close),
           onPressed: () => Navigator.of(context).pop(),
         ),
       ),
-      body: _error != null
-          ? _buildError()
+      body: _errorType != null
+          ? _buildError(context)
           : FutureBuilder<void>(
               future: _initFuture,
               builder: (context, snapshot) {
@@ -167,13 +198,14 @@ class _WebRecordScreenState extends State<WebRecordScreen> {
                     child: CircularProgressIndicator(color: Colors.white),
                   );
                 }
-                return _buildCamera(controller);
+                return _buildCamera(context, controller);
               },
             ),
     );
   }
 
-  Widget _buildError() {
+  Widget _buildError(BuildContext context) {
+    final l10n = context.l10n;
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(24),
@@ -184,14 +216,14 @@ class _WebRecordScreenState extends State<WebRecordScreen> {
                 color: Colors.white70, size: 56),
             const SizedBox(height: 16),
             Text(
-              _error!,
+              _getErrorMessage(context),
               textAlign: TextAlign.center,
               style: const TextStyle(color: Colors.white70, fontSize: 14),
             ),
             const SizedBox(height: 24),
             FilledButton(
               onPressed: () => Navigator.of(context).pop(),
-              child: const Text('Volver'),
+              child: Text(l10n.cancel),
             ),
           ],
         ),
@@ -199,7 +231,8 @@ class _WebRecordScreenState extends State<WebRecordScreen> {
     );
   }
 
-  Widget _buildCamera(CameraController controller) {
+  Widget _buildCamera(BuildContext context, CameraController controller) {
+    final l10n = context.l10n;
     return Stack(
       children: [
         // Camera preview centered.
@@ -285,14 +318,14 @@ class _WebRecordScreenState extends State<WebRecordScreen> {
 
         // Hint text.
         if (!_isRecording && !_isProcessing)
-          const Positioned(
+          Positioned(
             left: 0,
             right: 0,
             bottom: 130,
             child: Center(
               child: Text(
-                'Toca para grabar (máx. 30s)',
-                style: TextStyle(color: Colors.white70, fontSize: 14),
+                l10n.tapToRecord,
+                style: const TextStyle(color: Colors.white70, fontSize: 14),
               ),
             ),
           ),

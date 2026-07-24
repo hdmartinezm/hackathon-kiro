@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:babyhealth/core/app_localizations.dart';
 import 'package:babyhealth/viewmodels/auth_viewmodel.dart';
 import 'package:babyhealth/services/auth_service.dart';
 
@@ -17,7 +18,7 @@ class MockAuthService extends AuthService {
       currentUser = email;
       return AuthResult.success();
     }
-    return AuthResult.failure('Test error');
+    return AuthResult.failure(AuthErrorCode.incorrectCredentials);
   }
 
   @override
@@ -28,7 +29,7 @@ class MockAuthService extends AuthService {
       }
       return AuthResult.success();
     }
-    return AuthResult.failure('Test error');
+    return AuthResult.failure(AuthErrorCode.registerError);
   }
 
   @override
@@ -37,7 +38,7 @@ class MockAuthService extends AuthService {
       currentUser = email;
       return AuthResult.success();
     }
-    return AuthResult.failure('Test error');
+    return AuthResult.failure(AuthErrorCode.verifyError);
   }
 
   @override
@@ -62,7 +63,7 @@ void main() {
     test('initial state is unauthenticated', () {
       expect(viewModel.state, AuthState.unauthenticated);
       expect(viewModel.isLoading, false);
-      expect(viewModel.errorMessage, isNull);
+      expect(viewModel.errorCode, isNull);
     });
 
     test('login success sets state to authenticated', () async {
@@ -73,17 +74,17 @@ void main() {
       expect(result, true);
       expect(viewModel.state, AuthState.authenticated);
       expect(viewModel.isLoading, false);
-      expect(viewModel.errorMessage, isNull);
+      expect(viewModel.errorCode, isNull);
     });
 
-    test('login failure sets error message', () async {
+    test('login failure sets error code', () async {
       mockAuthService.shouldSucceed = false;
 
       final result = await viewModel.login('test@example.com', 'wrongpass');
 
       expect(result, false);
       expect(viewModel.state, AuthState.unauthenticated);
-      expect(viewModel.errorMessage, 'Test error');
+      expect(viewModel.errorCode, AuthErrorCode.incorrectCredentials);
     });
 
     test('register with confirmation sets pendingEmail', () async {

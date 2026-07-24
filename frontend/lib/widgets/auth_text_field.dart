@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../core/app_localizations.dart';
+
 /// Styled text field for authentication forms.
 class AuthTextField extends StatelessWidget {
   final String label;
@@ -61,31 +63,37 @@ class AuthTextField extends StatelessWidget {
   }
 }
 
-/// Email validator.
-String? validateEmail(String? value) {
-  if (value == null || value.trim().isEmpty) {
-    return 'El email es requerido';
-  }
-  final emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
-  if (!emailRegex.hasMatch(value.trim())) {
-    return 'Ingresa un email válido';
-  }
-  return null;
+/// Email validator factory that uses localization.
+String? Function(String?) emailValidator(BuildContext context) {
+  final l10n = context.l10n;
+  return (String? value) {
+    if (value == null || value.trim().isEmpty) {
+      return l10n.emailRequired;
+    }
+    final emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
+    if (!emailRegex.hasMatch(value.trim())) {
+      return l10n.emailInvalid;
+    }
+    return null;
+  };
 }
 
-/// Password validator (min 8 chars, 1 lowercase, 1 digit).
-String? validatePassword(String? value) {
-  if (value == null || value.isEmpty) {
-    return 'La contraseña es requerida';
-  }
-  if (value.length < 8) {
-    return 'Mínimo 8 caracteres';
-  }
-  if (!value.contains(RegExp(r'[a-z]'))) {
-    return 'Debe contener al menos una minúscula';
-  }
-  if (!value.contains(RegExp(r'[0-9]'))) {
-    return 'Debe contener al menos un número';
-  }
-  return null;
+/// Password validator factory that uses localization (min 8 chars, 1 lowercase, 1 digit).
+String? Function(String?) passwordValidator(BuildContext context) {
+  final l10n = context.l10n;
+  return (String? value) {
+    if (value == null || value.isEmpty) {
+      return l10n.passwordRequired;
+    }
+    if (value.length < 8) {
+      return l10n.passwordMinLength;
+    }
+    if (!value.contains(RegExp(r'[a-z]'))) {
+      return l10n.passwordNeedsLowercase;
+    }
+    if (!value.contains(RegExp(r'[0-9]'))) {
+      return l10n.passwordNeedsNumber;
+    }
+    return null;
+  };
 }
