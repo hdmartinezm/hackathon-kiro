@@ -28,6 +28,7 @@ import 'views/analysis_screen.dart';
 import 'views/auth_screen.dart';
 import 'views/home_screen.dart';
 import 'views/model_selector_screen.dart';
+import 'views/profile_screen.dart';
 import 'views/splash_screen.dart';
 import 'views/verify_email_screen.dart';
 import 'views/web_landing_screen.dart';
@@ -180,6 +181,7 @@ class BabyHealthApp extends StatelessWidget {
         '/home': (_) => const HomeScreen(),
         '/auth': (_) => const AuthScreen(),
         '/verify-email': (_) => const VerifyEmailScreen(),
+        '/profile': (_) => const ProfileScreen(),
         '/model-selector': (ctx) => ModelSelectorScreen(
               media: ModalRoute.of(ctx)!.settings.arguments as CapturedMedia,
             ),
