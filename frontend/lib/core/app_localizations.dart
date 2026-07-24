@@ -191,6 +191,27 @@ class AppLocalizations {
             'email and password.',
       );
 
+  // ── El Desafío / hero extras (chip, title, quote author) ──
+  String get heroChip =>
+      _t('INNOVACIÓN EN SALUD NEONATAL', 'INNOVATION IN NEONATAL HEALTH');
+  String get challengeChip => _t('EL DESAFÍO', 'THE CHALLENGE');
+  String get challengeTitle => _t(
+        'La incertidumbre de los primeros meses',
+        'The uncertainty of the first months',
+      );
+  String get challengeQuoteAuthor => _t(
+        '— Preguntas que todo padre se hace',
+        '— Questions every parent asks',
+      );
+
+  // ── Footer extras ──
+  String get footerProduct => _t('Producto', 'Product');
+  String get footerHackathon => _t('Hackathon', 'Hackathon');
+  String get footerRights => _t(
+        '© 2026 BabyHealth. Todos los derechos reservados.',
+        '© 2026 BabyHealth. All rights reserved.',
+      );
+
   // ── Settings controls ──
   String get lightMode => _t('Modo claro', 'Light mode');
   String get darkMode => _t('Modo oscuro', 'Dark mode');
@@ -447,6 +468,29 @@ class AppLocalizations {
             'replace evaluation by a health professional. Consult a '
             'pediatrician with any concern.',
       );
+
+  // ── Profile ──
+  String get profile => _t('Perfil', 'Profile');
+  String get parents => _t('Padres', 'Parents');
+  String get baby => _t('Bebé', 'Baby');
+  String get pediatrician => _t('Pediatra', 'Pediatrician');
+  String get motherName => _t('Nombre de la madre', "Mother's name");
+  String get fatherName => _t('Nombre del padre', "Father's name");
+  String get babyName => _t('Nombre del bebé', "Baby's name");
+  String get birthDate => _t('Fecha de nacimiento', 'Birth date');
+  String get birthWeight => _t('Peso al nacer (kg)', 'Birth weight (kg)');
+  String get currentWeight => _t('Peso actual (kg)', 'Current weight (kg)');
+  String get birthHeight => _t('Talla al nacer (cm)', 'Birth height (cm)');
+  String get currentHeight => _t('Talla actual (cm)', 'Current height (cm)');
+  String get gestationalWeeks => _t('Semanas de gestación al nacer', 'Gestational weeks at birth');
+  String get pediatricianName => _t('Nombre del pediatra', "Pediatrician's name");
+  String get pediatricianPhone => _t('Teléfono', 'Phone');
+  String get clinicName => _t('Nombre de la clínica', 'Clinic name');
+  String get saveProfile => _t('Guardar perfil', 'Save profile');
+  String get profileSaved => _t('Perfil guardado', 'Profile saved');
+  String get selectDate => _t('Seleccionar fecha', 'Select date');
+  String get babyAge => _t('Edad del bebé', "Baby's age");
+  String babyAgeMonths(int months) => _t('$months meses', '$months months');
 }
 
 class _AppLocalizationsDelegate
