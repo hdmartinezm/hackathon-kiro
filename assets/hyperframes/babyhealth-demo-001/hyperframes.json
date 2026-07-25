@@ -1,0 +1,14 @@
+{
+  "compositions": [
+    {
+      "id": "babyhealth-pitch-001",
+      "name": "BabyHealth Pitch Técnico",
+      "file": "compositions/pitch-tecnico.html",
+      "duration": 90,
+      "width": 1920,
+      "height": 1080,
+      "fps": 30
+    }
+  ],
+  "activeComposition": "babyhealth-pitch-001"
+}

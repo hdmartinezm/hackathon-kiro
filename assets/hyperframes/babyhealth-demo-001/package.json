@@ -1,0 +1,11 @@
+{
+  "name": "babyhealth-demo-001",
+  "version": "1.0.0",
+  "description": "BabyHealth pitch técnico - Hackathon Kiro 2026",
+  "private": true,
+  "scripts": {
+    "check": "npx hyperframes check",
+    "test": "node test-composition.js",
+    "render": "npx hyperframes render . --output ../../video/BabyHealth-demo-001.mp4 --fps 30 --quality standard"
+  }
+}
