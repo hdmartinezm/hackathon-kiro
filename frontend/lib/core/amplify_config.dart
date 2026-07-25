@@ -25,8 +25,8 @@ const amplifyConfig = '''{
             "OAuth": {
               "WebDomain": "babyhealth-auth.auth.us-east-1.amazoncognito.com",
               "AppClientId": "5rd961hmc9hjjnvvan7m28sck2",
-              "SignInRedirectURI": "https://d272sj5fujdytw.cloudfront.net/,http://localhost:8443/",
-              "SignOutRedirectURI": "https://d272sj5fujdytw.cloudfront.net/,http://localhost:8443/",
+              "SignInRedirectURI": "https://babyhealth.hmartinez.info/,https://d272sj5fujdytw.cloudfront.net/,http://localhost:8443/",
+              "SignOutRedirectURI": "https://babyhealth.hmartinez.info/,https://d272sj5fujdytw.cloudfront.net/,http://localhost:8443/",
               "Scopes": ["openid", "email", "profile"]
             }
           }
