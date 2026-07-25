@@ -129,6 +129,9 @@ class _AnalysisScreenState extends State<AnalysisScreen> {
     AnalysisResult result,
   ) {
     final l10n = context.l10n;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final textColor = isDark ? Colors.white : const Color(0xFF2B2826);
+
     return SingleChildScrollView(
       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
       child: Column(
@@ -146,6 +149,7 @@ class _AnalysisScreenState extends State<AnalysisScreen> {
               result.observations,
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                     height: 1.5,
+                    color: textColor.withValues(alpha: 0.87),
                   ),
             ),
           ),
@@ -159,6 +163,7 @@ class _AnalysisScreenState extends State<AnalysisScreen> {
               result.recommendations,
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                     height: 1.5,
+                    color: textColor.withValues(alpha: 0.87),
                   ),
             ),
           ),
@@ -191,7 +196,7 @@ class _AnalysisScreenState extends State<AnalysisScreen> {
                           vertical: 6,
                         ),
                         decoration: BoxDecoration(
-                          color: const Color(0xFF4285F4).withValues(alpha: 0.1),
+                          color: const Color(0xFF4285F4).withValues(alpha: isDark ? 0.2 : 0.1),
                           borderRadius: BorderRadius.circular(20),
                         ),
                         child: Text(
@@ -199,7 +204,7 @@ class _AnalysisScreenState extends State<AnalysisScreen> {
                           style:
                               Theme.of(context).textTheme.titleSmall?.copyWith(
                                     fontWeight: FontWeight.bold,
-                                    color: const Color(0xFF4285F4),
+                                    color: isDark ? const Color(0xFF82B1FF) : const Color(0xFF4285F4),
                                   ),
                         ),
                       ),
@@ -209,8 +214,7 @@ class _AnalysisScreenState extends State<AnalysisScreen> {
                           l10n.confidence((result.cryConfidence! * 100).toInt()),
                           style:
                               Theme.of(context).textTheme.bodySmall?.copyWith(
-                                    color: const Color(0xFF2B2826)
-                                        .withValues(alpha: 0.6),
+                                    color: textColor.withValues(alpha: 0.6),
                                   ),
                         ),
                       ],
@@ -222,7 +226,7 @@ class _AnalysisScreenState extends State<AnalysisScreen> {
                     Container(
                       padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
-                        color: const Color(0xFFF0F7FF),
+                        color: isDark ? const Color(0xFF1E3A5F) : const Color(0xFFF0F7FF),
                         borderRadius: BorderRadius.circular(8),
                         border: Border.all(
                           color: const Color(0xFF4285F4).withValues(alpha: 0.3),
@@ -231,10 +235,10 @@ class _AnalysisScreenState extends State<AnalysisScreen> {
                       child: Row(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Icon(
+                          Icon(
                             Icons.tips_and_updates_rounded,
                             size: 18,
-                            color: Color(0xFF4285F4),
+                            color: isDark ? const Color(0xFF82B1FF) : const Color(0xFF4285F4),
                           ),
                           const SizedBox(width: 8),
                           Expanded(
@@ -245,7 +249,7 @@ class _AnalysisScreenState extends State<AnalysisScreen> {
                                   .bodySmall
                                   ?.copyWith(
                                     height: 1.4,
-                                    color: const Color(0xFF2B2826),
+                                    color: textColor.withValues(alpha: 0.87),
                                   ),
                             ),
                           ),
@@ -263,21 +267,23 @@ class _AnalysisScreenState extends State<AnalysisScreen> {
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: Colors.orange[50],
+                color: isDark ? const Color(0xFF3D2E1F) : Colors.orange[50],
                 borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: Colors.orange[200]!),
+                border: Border.all(
+                  color: isDark ? Colors.orange[700]! : Colors.orange[200]!,
+                ),
               ),
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Icon(Icons.warning_amber_rounded,
-                      color: Colors.orange[800], size: 20),
+                      color: isDark ? Colors.orange[300] : Colors.orange[800], size: 20),
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
                       result.error!,
                       style: TextStyle(
-                        color: Colors.orange[900],
+                        color: isDark ? Colors.orange[100] : Colors.orange[900],
                         fontSize: 13,
                         height: 1.4,
                       ),
@@ -325,15 +331,19 @@ class _AnalysisScreenState extends State<AnalysisScreen> {
     required IconData icon,
     required Widget child,
   }) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isDark ? const Color(0xFF2D2D2D) : Colors.white,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: const Color(0xFFE5E0DA)),
+        border: Border.all(
+          color: isDark ? Colors.white.withValues(alpha: 0.1) : const Color(0xFFE5E0DA),
+        ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.04),
+            color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.04),
             blurRadius: 6,
             offset: const Offset(0, 2),
           ),
@@ -350,6 +360,7 @@ class _AnalysisScreenState extends State<AnalysisScreen> {
                 title,
                 style: Theme.of(context).textTheme.titleSmall?.copyWith(
                       fontWeight: FontWeight.bold,
+                      color: isDark ? Colors.white : null,
                     ),
               ),
             ],
