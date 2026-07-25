@@ -130,44 +130,32 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   const SizedBox(height: 12),
                   _buildDatePicker(context),
                   const SizedBox(height: 12),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: _buildNumberField(
-                          controller: _birthWeightController,
-                          label: l10n.birthWeight,
-                          icon: Icons.monitor_weight_outlined,
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: _buildNumberField(
-                          controller: _currentWeightController,
-                          label: l10n.currentWeight,
-                          icon: Icons.monitor_weight_rounded,
-                        ),
-                      ),
-                    ],
+                  _buildResponsiveRow(
+                    context,
+                    first: _buildNumberField(
+                      controller: _birthWeightController,
+                      label: l10n.birthWeight,
+                      icon: Icons.monitor_weight_outlined,
+                    ),
+                    second: _buildNumberField(
+                      controller: _currentWeightController,
+                      label: l10n.currentWeight,
+                      icon: Icons.monitor_weight_rounded,
+                    ),
                   ),
                   const SizedBox(height: 12),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: _buildNumberField(
-                          controller: _birthHeightController,
-                          label: l10n.birthHeight,
-                          icon: Icons.straighten_outlined,
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: _buildNumberField(
-                          controller: _currentHeightController,
-                          label: l10n.currentHeight,
-                          icon: Icons.straighten_rounded,
-                        ),
-                      ),
-                    ],
+                  _buildResponsiveRow(
+                    context,
+                    first: _buildNumberField(
+                      controller: _birthHeightController,
+                      label: l10n.birthHeight,
+                      icon: Icons.straighten_outlined,
+                    ),
+                    second: _buildNumberField(
+                      controller: _currentHeightController,
+                      label: l10n.currentHeight,
+                      icon: Icons.straighten_rounded,
+                    ),
                   ),
                   const SizedBox(height: 12),
                   _buildNumberField(
@@ -321,6 +309,37 @@ class _ProfileScreenState extends State<ProfileScreen> {
           borderRadius: BorderRadius.circular(12),
         ),
       ),
+    );
+  }
+
+  /// Responsive row that shows fields side-by-side on wide screens,
+  /// stacked vertically on narrow screens (< 400px).
+  Widget _buildResponsiveRow(
+    BuildContext context, {
+    required Widget first,
+    required Widget second,
+  }) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        // Stack vertically on narrow screens
+        if (constraints.maxWidth < 350) {
+          return Column(
+            children: [
+              first,
+              const SizedBox(height: 12),
+              second,
+            ],
+          );
+        }
+        // Side-by-side on wider screens
+        return Row(
+          children: [
+            Expanded(child: first),
+            const SizedBox(width: 12),
+            Expanded(child: second),
+          ],
+        );
+      },
     );
   }
 

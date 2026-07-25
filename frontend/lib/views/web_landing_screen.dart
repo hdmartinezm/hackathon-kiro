@@ -210,23 +210,38 @@ class _NavBar extends StatelessWidget {
   }
 
   Widget _buildMobileNav(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isVeryNarrow = screenWidth < 360;
+
     return Row(
       children: [
         const BabyHealthLogoWidget(size: 32),
-        const SizedBox(width: 8),
-        Text(
-          'BabyHealth',
-          style: TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.bold,
-            color: context.textColor,
+        if (!isVeryNarrow) ...[
+          const SizedBox(width: 8),
+          Flexible(
+            child: Text(
+              'BabyHealth',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: context.textColor,
+              ),
+              overflow: TextOverflow.ellipsis,
+            ),
           ),
-        ),
+        ],
         const Spacer(),
-        _ctaButton(context),
-        const SizedBox(width: 8),
-        const SettingsControls(),
+        _ctaButtonCompact(context),
+        const SizedBox(width: 4),
+        const SettingsControls(compact: true),
       ],
+    );
+  }
+
+  Widget _ctaButtonCompact(BuildContext context) {
+    return _AnimatedCtaButtonCompact(
+      label: context.l10n.navRequestAccess,
+      onPressed: onSolicitarAcceso,
     );
   }
 
@@ -238,6 +253,65 @@ class _NavBar extends StatelessWidget {
     return _AnimatedCtaButton(
       label: context.l10n.navRequestAccess,
       onPressed: onSolicitarAcceso,
+    );
+  }
+}
+
+// Compact CTA button for mobile navigation
+class _AnimatedCtaButtonCompact extends StatefulWidget {
+  final String label;
+  final VoidCallback onPressed;
+
+  const _AnimatedCtaButtonCompact({
+    required this.label,
+    required this.onPressed,
+  });
+
+  @override
+  State<_AnimatedCtaButtonCompact> createState() =>
+      _AnimatedCtaButtonCompactState();
+}
+
+class _AnimatedCtaButtonCompactState extends State<_AnimatedCtaButtonCompact> {
+  bool _isHovered = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return MouseRegion(
+      cursor: SystemMouseCursors.click,
+      onEnter: (_) => setState(() => _isHovered = true),
+      onExit: (_) => setState(() => _isHovered = false),
+      child: GestureDetector(
+        onTap: widget.onPressed,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: _isHovered
+                  ? [const Color(0xFF2D7E91), const Color(0xFF389BB0)]
+                  : [const Color(0xFF389BB0), const Color(0xFF389BB0)],
+            ),
+            borderRadius: BorderRadius.circular(8),
+            boxShadow: [
+              BoxShadow(
+                color:
+                    const Color(0xFF389BB0).withValues(alpha: _isHovered ? 0.4 : 0.2),
+                blurRadius: _isHovered ? 12 : 6,
+                offset: Offset(0, _isHovered ? 4 : 2),
+              ),
+            ],
+          ),
+          child: Text(
+            widget.label,
+            style: const TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+              color: Colors.white,
+            ),
+          ),
+        ),
+      ),
     );
   }
 }
@@ -1070,7 +1144,8 @@ class _CaracteristicasSection extends StatelessWidget {
                   physics: const NeverScrollableScrollPhysics(),
                   mainAxisSpacing: 16,
                   crossAxisSpacing: 16,
-                  childAspectRatio: isWide ? 1.1 : 3.5,
+                  // More height for mobile cards to prevent text overflow
+                  childAspectRatio: isWide ? 1.1 : 2.2,
                   children: [
                     _featureCard(
                       context,

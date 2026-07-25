@@ -59,21 +59,85 @@ class HomeScreen extends StatelessWidget {
           ),
         ),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.person_rounded),
-            tooltip: context.l10n.profile,
-            onPressed: () => Navigator.of(context).pushNamed('/profile'),
-          ),
-          const SettingsControls(),
-          IconButton(
-            icon: const Icon(Icons.logout_rounded),
-            tooltip: context.l10n.logout,
-            onPressed: () async {
-              final authViewModel = context.read<AuthViewModel>();
-              await authViewModel.logout();
-              if (context.mounted) {
-                Navigator.of(context).pushReplacementNamed('/web-landing');
+          // Use LayoutBuilder to adapt actions based on available width
+          LayoutBuilder(
+            builder: (context, constraints) {
+              final screenWidth = MediaQuery.of(context).size.width;
+              // On narrow screens (< 400px), use a compact popup menu
+              if (screenWidth < 400) {
+                return Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const SettingsControls(),
+                    PopupMenuButton<String>(
+                      icon: const Icon(Icons.more_vert_rounded),
+                      tooltip: 'Menu',
+                      onSelected: (value) async {
+                        switch (value) {
+                          case 'profile':
+                            Navigator.of(context).pushNamed('/profile');
+                            break;
+                          case 'logout':
+                            final authViewModel = context.read<AuthViewModel>();
+                            await authViewModel.logout();
+                            if (context.mounted) {
+                              Navigator.of(context)
+                                  .pushReplacementNamed('/web-landing');
+                            }
+                            break;
+                        }
+                      },
+                      itemBuilder: (context) => [
+                        PopupMenuItem(
+                          value: 'profile',
+                          child: Row(
+                            children: [
+                              const Icon(Icons.person_rounded, size: 20),
+                              const SizedBox(width: 12),
+                              Text(context.l10n.profile),
+                            ],
+                          ),
+                        ),
+                        PopupMenuItem(
+                          value: 'logout',
+                          child: Row(
+                            children: [
+                              const Icon(Icons.logout_rounded, size: 20),
+                              const SizedBox(width: 12),
+                              Text(context.l10n.logout),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                );
               }
+              // Normal layout for wider screens
+              return Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  IconButton(
+                    icon: const Icon(Icons.person_rounded),
+                    tooltip: context.l10n.profile,
+                    onPressed: () =>
+                        Navigator.of(context).pushNamed('/profile'),
+                  ),
+                  const SettingsControls(),
+                  IconButton(
+                    icon: const Icon(Icons.logout_rounded),
+                    tooltip: context.l10n.logout,
+                    onPressed: () async {
+                      final authViewModel = context.read<AuthViewModel>();
+                      await authViewModel.logout();
+                      if (context.mounted) {
+                        Navigator.of(context)
+                            .pushReplacementNamed('/web-landing');
+                      }
+                    },
+                  ),
+                ],
+              );
             },
           ),
         ],
