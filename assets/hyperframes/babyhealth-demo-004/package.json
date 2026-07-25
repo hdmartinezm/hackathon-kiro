@@ -1,0 +1,13 @@
+{
+  "name": "babyhealth-demo-004",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "check": "hyperframes check",
+    "render": "hyperframes render . --output ../../video/BabyHealth-demo-004.mp4 --fps 30 --quality standard",
+    "preview": "hyperframes preview"
+  },
+  "devDependencies": {
+    "hyperframes": "^0.7.71"
+  }
+}
