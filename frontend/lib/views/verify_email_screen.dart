@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
 import '../core/app_localizations.dart';
+import '../core/app_theme.dart';
 import '../viewmodels/auth_viewmodel.dart';
 
 /// Screen for email verification code entry.
@@ -36,7 +37,7 @@ class _VerifyEmailScreenState extends State<VerifyEmailScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(context.l10n.emailVerified),
-          backgroundColor: const Color(0xFF389BB0),
+          backgroundColor: AppTheme.primary,
         ),
       );
       Navigator.of(context).pushReplacementNamed('/auth');
@@ -51,7 +52,7 @@ class _VerifyEmailScreenState extends State<VerifyEmailScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(context.l10n.codeResent),
-          backgroundColor: const Color(0xFF389BB0),
+          backgroundColor: AppTheme.primary,
         ),
       );
     }
@@ -61,14 +62,14 @@ class _VerifyEmailScreenState extends State<VerifyEmailScreen> {
   Widget build(BuildContext context) {
     final viewModel = context.watch<AuthViewModel>();
     final email = viewModel.pendingEmail ?? 'tu email';
+    final colorScheme = Theme.of(context).colorScheme;
 
     return Scaffold(
-      backgroundColor: const Color(0xFFFAF7F4),
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Color(0xFF2B2826)),
+          icon: Icon(Icons.arrow_back, color: colorScheme.onSurface),
           onPressed: () => Navigator.of(context).pop(),
         ),
       ),
@@ -86,13 +87,13 @@ class _VerifyEmailScreenState extends State<VerifyEmailScreen> {
                     width: 80,
                     height: 80,
                     decoration: BoxDecoration(
-                      color: const Color(0xFFD6F2F7),
+                      color: colorScheme.primaryContainer,
                       borderRadius: BorderRadius.circular(20),
                     ),
-                    child: const Icon(
+                    child: Icon(
                       Icons.email_outlined,
                       size: 40,
-                      color: Color(0xFF389BB0),
+                      color: AppTheme.primary,
                     ),
                   ),
                   const SizedBox(height: 24),
@@ -100,10 +101,11 @@ class _VerifyEmailScreenState extends State<VerifyEmailScreen> {
                   // Title
                   Text(
                     context.l10n.verifyYourEmail,
-                    style: const TextStyle(
+                    style: TextStyle(
+                      fontFamily: AppTheme.serifFamily,
                       fontSize: 24,
                       fontWeight: FontWeight.bold,
-                      color: Color(0xFF2B2826),
+                      color: colorScheme.onSurface,
                     ),
                   ),
                   const SizedBox(height: 12),
@@ -113,7 +115,7 @@ class _VerifyEmailScreenState extends State<VerifyEmailScreen> {
                     context.l10n.codeSentTo,
                     style: TextStyle(
                       fontSize: 16,
-                      color: const Color(0xFF2B2826).withOpacity(0.7),
+                      color: colorScheme.onSurface.withValues(alpha: 0.7),
                     ),
                   ),
                   const SizedBox(height: 4),
@@ -122,7 +124,7 @@ class _VerifyEmailScreenState extends State<VerifyEmailScreen> {
                     style: const TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
-                      color: Color(0xFF389BB0),
+                      color: AppTheme.primary,
                     ),
                   ),
                   const SizedBox(height: 32),
@@ -134,17 +136,17 @@ class _VerifyEmailScreenState extends State<VerifyEmailScreen> {
                       padding: const EdgeInsets.all(12),
                       margin: const EdgeInsets.only(bottom: 16),
                       decoration: BoxDecoration(
-                        color: const Color(0xFFE87055).withOpacity(0.1),
+                        color: AppTheme.accent.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(8),
                         border: Border.all(
-                          color: const Color(0xFFE87055).withOpacity(0.3),
+                          color: AppTheme.accent.withValues(alpha: 0.3),
                         ),
                       ),
                       child: Row(
                         children: [
                           const Icon(
                             Icons.error_outline,
-                            color: Color(0xFFE87055),
+                            color: AppTheme.accent,
                             size: 20,
                           ),
                           const SizedBox(width: 8),
@@ -155,7 +157,7 @@ class _VerifyEmailScreenState extends State<VerifyEmailScreen> {
                                 viewModel.errorDetail,
                               ),
                               style: const TextStyle(
-                                color: Color(0xFFE87055),
+                                color: AppTheme.accent,
                                 fontSize: 14,
                               ),
                             ),
@@ -175,11 +177,11 @@ class _VerifyEmailScreenState extends State<VerifyEmailScreen> {
                       inputFormatters: [
                         FilteringTextInputFormatter.digitsOnly,
                       ],
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 32,
                         fontWeight: FontWeight.bold,
                         letterSpacing: 8,
-                        color: Color(0xFF2B2826),
+                        color: colorScheme.onSurface,
                       ),
                       decoration: InputDecoration(
                         counterText: '',
@@ -188,22 +190,22 @@ class _VerifyEmailScreenState extends State<VerifyEmailScreen> {
                           fontSize: 32,
                           fontWeight: FontWeight.bold,
                           letterSpacing: 8,
-                          color: const Color(0xFF2B2826).withOpacity(0.2),
+                          color: colorScheme.onSurface.withValues(alpha: 0.2),
                         ),
                         filled: true,
-                        fillColor: Colors.white,
+                        fillColor: colorScheme.surface,
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
-                          borderSide: const BorderSide(color: Color(0xFFE5E0DA)),
+                          borderSide: BorderSide(color: colorScheme.outline),
                         ),
                         enabledBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
-                          borderSide: const BorderSide(color: Color(0xFFE5E0DA)),
+                          borderSide: BorderSide(color: colorScheme.outline),
                         ),
                         focusedBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
                           borderSide: const BorderSide(
-                            color: Color(0xFF389BB0),
+                            color: AppTheme.primary,
                             width: 2,
                           ),
                         ),
@@ -229,7 +231,7 @@ class _VerifyEmailScreenState extends State<VerifyEmailScreen> {
                     child: FilledButton(
                       onPressed: viewModel.isLoading ? null : _handleVerify,
                       style: FilledButton.styleFrom(
-                        backgroundColor: const Color(0xFF389BB0),
+                        backgroundColor: AppTheme.primary,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),
                         ),
@@ -259,7 +261,7 @@ class _VerifyEmailScreenState extends State<VerifyEmailScreen> {
                     onPressed: viewModel.isLoading ? null : _handleResend,
                     child: Text(
                       context.l10n.didNotReceiveCode,
-                      style: const TextStyle(color: Color(0xFF389BB0)),
+                      style: const TextStyle(color: AppTheme.primary),
                     ),
                   ),
                 ],

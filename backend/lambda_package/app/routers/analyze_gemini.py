@@ -82,7 +82,9 @@ def analyze_video_with_gemini(request: AnalyzeRequest):
 
     # 2. Analizar con Gemini (multimodal nativo)
     try:
-        result = gemini_service.analyze_video(video_bytes, content_type, session_id)
+        result = gemini_service.analyze_video(
+            video_bytes, content_type, session_id, language=request.language
+        )
     except ValueError as e:
         logger.error(f"Gemini analysis error: {e}", exc_info=True)
         raise HTTPException(

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../core/app_localizations.dart';
+import '../core/app_theme.dart';
 import '../viewmodels/splash_viewmodel.dart';
 import '../widgets/babyhealth_logo_widget.dart';
 import '../widgets/disclaimer_widget.dart';
@@ -58,14 +59,14 @@ class SplashScreen extends StatelessWidget {
                       errorBuilder: (context, error, stackTrace) {
                         return Container(
                           decoration: BoxDecoration(
-                            color: const Color(0xFFD6F2F7),
+                            color: const Color(0xFFC8E8E8),
                             borderRadius: BorderRadius.circular(16),
                           ),
                           child: const Center(
                             child: Icon(
                               Icons.child_friendly_rounded,
                               size: 48,
-                              color: Color(0xFF389BB0),
+                              color: Color(0xFF4B9B9B),
                             ),
                           ),
                         );
@@ -90,8 +91,9 @@ class SplashScreen extends StatelessWidget {
                 Text(
                   'BabyHealth',
                   style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                        fontFamily: AppTheme.serifFamily,
                         fontWeight: FontWeight.bold,
-                        color: const Color(0xFF2B2826),
+                        color: const Color(0xFF2A2A28),
                       ),
                 ),
                 const SizedBox(height: 8),
@@ -99,7 +101,7 @@ class SplashScreen extends StatelessWidget {
                   context.l10n.splashTagline,
                   textAlign: TextAlign.center,
                   style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                        color: const Color(0xFF2B2826).withValues(alpha: 0.7),
+                        color: const Color(0xFF2A2A28).withValues(alpha: 0.7),
                       ),
                 ),
                 const SizedBox(height: 32),
@@ -116,12 +118,12 @@ class SplashScreen extends StatelessWidget {
                       style: const TextStyle(fontSize: 16),
                     ),
                     style: FilledButton.styleFrom(
-                      backgroundColor: const Color(0xFF389BB0),
+                      backgroundColor: const Color(0xFF4B9B9B),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
                       elevation: 2,
-                      shadowColor: const Color(0xFF389BB0).withValues(alpha: 0.3),
+                      shadowColor: const Color(0xFF4B9B9B).withValues(alpha: 0.3),
                     ),
                   ),
                 ),

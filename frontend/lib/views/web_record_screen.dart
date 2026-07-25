@@ -264,7 +264,7 @@ class _WebRecordScreenState extends State<WebRecordScreen> {
                       width: 10,
                       height: 10,
                       decoration: const BoxDecoration(
-                        color: Color(0xFFE87055),
+                        color: Color(0xFFDF7B5E),
                         shape: BoxShape.circle,
                       ),
                     ),
@@ -305,7 +305,7 @@ class _WebRecordScreenState extends State<WebRecordScreen> {
                           width: _isRecording ? 30 : 60,
                           height: _isRecording ? 30 : 60,
                           decoration: BoxDecoration(
-                            color: const Color(0xFFE87055),
+                            color: const Color(0xFFDF7B5E),
                             borderRadius: BorderRadius.circular(
                                 _isRecording ? 8 : 40),
                           ),

@@ -1,9 +1,11 @@
 import 'package:amplify_flutter/amplify_flutter.dart' show AuthProvider;
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:provider/provider.dart';
 
 import '../core/api_config.dart';
 import '../core/app_localizations.dart';
+import '../core/app_theme.dart';
 import '../viewmodels/auth_viewmodel.dart';
 import '../widgets/auth_text_field.dart';
 import '../widgets/babyhealth_logo_widget.dart';
@@ -222,12 +224,13 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
                         children: [
                           const BabyHealthLogoWidget(size: 64),
                           const SizedBox(height: 12),
-                          const Text(
+                          Text(
                             'BabyHealth',
                             style: TextStyle(
+                              fontFamily: AppTheme.serifFamily,
                               fontSize: 24,
                               fontWeight: FontWeight.bold,
-                              color: Color(0xFF2B2826),
+                              color: Theme.of(context).colorScheme.onSurface,
                             ),
                           ),
                         ],
@@ -284,18 +287,18 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
                   // Tab bar
                   Container(
                     decoration: BoxDecoration(
-                      color: const Color(0xFFE5E0DA).withOpacity(0.5),
+                      color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.3),
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: TabBar(
                       controller: _tabController,
                       indicator: BoxDecoration(
-                        color: const Color(0xFF389BB0),
+                        color: AppTheme.primary,
                         borderRadius: BorderRadius.circular(10),
                       ),
                       indicatorSize: TabBarIndicatorSize.tab,
                       labelColor: Colors.white,
-                      unselectedLabelColor: const Color(0xFF2B2826),
+                      unselectedLabelColor: Theme.of(context).colorScheme.onSurface,
                       labelStyle: const TextStyle(
                         fontWeight: FontWeight.w600,
                         fontSize: 14,
@@ -321,17 +324,17 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
                         padding: const EdgeInsets.all(12),
                         margin: const EdgeInsets.only(bottom: 16),
                         decoration: BoxDecoration(
-                          color: const Color(0xFFE87055).withOpacity(0.1),
+                          color: const Color(0xFFDF7B5E).withOpacity(0.1),
                           borderRadius: BorderRadius.circular(8),
                           border: Border.all(
-                            color: const Color(0xFFE87055).withOpacity(0.3),
+                            color: const Color(0xFFDF7B5E).withOpacity(0.3),
                           ),
                         ),
                         child: Row(
                           children: [
                             const Icon(
                               Icons.error_outline,
-                              color: Color(0xFFE87055),
+                              color: Color(0xFFDF7B5E),
                               size: 20,
                             ),
                             const SizedBox(width: 8),
@@ -339,7 +342,7 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
                               child: Text(
                                 errorMessage,
                                 style: const TextStyle(
-                                  color: Color(0xFFE87055),
+                                  color: Color(0xFFDF7B5E),
                                   fontSize: 14,
                                 ),
                               ),
@@ -362,7 +365,7 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
                     ),
                   ),
                 ],
-              ),
+              ).animate().fadeIn(duration: 400.ms).slideY(begin: 0.08, end: 0),
             ),
           ),
         ),
@@ -390,7 +393,7 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
             suffixIcon: IconButton(
               icon: Icon(
                 _obscureLoginPassword ? Icons.visibility_off : Icons.visibility,
-                color: const Color(0xFF2B2826).withOpacity(0.5),
+                color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5),
               ),
               onPressed: () {
                 setState(() => _obscureLoginPassword = !_obscureLoginPassword);
@@ -406,7 +409,7 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
                 child: FilledButton(
                   onPressed: vm.isLoading ? null : _handleLogin,
                   style: FilledButton.styleFrom(
-                    backgroundColor: const Color(0xFF389BB0),
+                    backgroundColor: const Color(0xFF4B9B9B),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
@@ -436,7 +439,7 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
             onPressed: () => _tabController.animateTo(1),
             child: Text(
               context.l10n.noAccountSignup,
-              style: const TextStyle(color: Color(0xFF389BB0)),
+              style: const TextStyle(color: Color(0xFF4B9B9B)),
             ),
           ),
         ],
@@ -464,7 +467,7 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
             suffixIcon: IconButton(
               icon: Icon(
                 _obscureSignupPassword ? Icons.visibility_off : Icons.visibility,
-                color: const Color(0xFF2B2826).withOpacity(0.5),
+                color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5),
               ),
               onPressed: () {
                 setState(() => _obscureSignupPassword = !_obscureSignupPassword);
@@ -486,7 +489,7 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
             suffixIcon: IconButton(
               icon: Icon(
                 _obscureConfirmPassword ? Icons.visibility_off : Icons.visibility,
-                color: const Color(0xFF2B2826).withOpacity(0.5),
+                color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5),
               ),
               onPressed: () {
                 setState(() => _obscureConfirmPassword = !_obscureConfirmPassword);
@@ -502,7 +505,7 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
                 child: FilledButton(
                   onPressed: vm.isLoading ? null : _handleSignup,
                   style: FilledButton.styleFrom(
-                    backgroundColor: const Color(0xFF389BB0),
+                    backgroundColor: const Color(0xFF4B9B9B),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),

@@ -92,6 +92,26 @@ Si no detectas llanto de bebé en el audio:
 """
 
 
+def _language_directive(language: str) -> str:
+    """Devuelve una instrucción para que el modelo responda en el idioma dado.
+
+    Solo afecta a los campos de texto libre (observations, recommendations,
+    cry_label, cry_recommendation). Los valores enum (status, cry_category)
+    permanecen en su forma canónica.
+    """
+    if (language or "es").lower().startswith("en"):
+        return (
+            "\n\nIMPORTANT: Write ALL free-text fields (observations, "
+            "recommendations, cry_label, cry_recommendation) in ENGLISH. "
+            "Keep the enum values for 'status' and 'cry_category' exactly as "
+            "specified (in Spanish)."
+        )
+    return (
+        "\n\nIMPORTANTE: Escribe TODOS los campos de texto (observations, "
+        "recommendations, cry_label, cry_recommendation) en ESPAÑOL."
+    )
+
+
 def _get_client() -> genai.Client:
     """Crea y retorna un cliente de Gemini."""
     if not settings.GEMINI_API_KEY:
@@ -101,21 +121,35 @@ def _get_client() -> genai.Client:
 
 def _parse_json_response(response_text: str) -> dict[str, Any]:
     """Parsea la respuesta JSON de Gemini, extrayendo JSON si está embebido en texto."""
+    import re
+
+    # Strip markdown code fences if present
+    text = response_text.strip()
+
+    # Remove ```json ... ``` or ``` ... ``` wrappers
+    code_fence_pattern = r'^```(?:json)?\s*\n?(.*?)\n?```$'
+    match = re.match(code_fence_pattern, text, re.DOTALL)
+    if match:
+        text = match.group(1).strip()
+
     # Intentar parsear directamente
     try:
-        return json.loads(response_text.strip())
+        return json.loads(text)
     except json.JSONDecodeError:
         pass
 
     # Buscar JSON en la respuesta
-    json_start = response_text.find("{")
-    json_end = response_text.rfind("}") + 1
+    json_start = text.find("{")
+    json_end = text.rfind("}") + 1
 
     if json_start == -1 or json_end == 0:
-        raise ValueError(f"No valid JSON found in response: {response_text[:200]}")
+        # Check if response was truncated (no closing brace)
+        if json_start != -1 and json_end == 0:
+            logger.error(f"Truncated JSON response (no closing brace). Length: {len(text)}")
+        raise ValueError(f"No valid JSON found in response: {text[:200]}")
 
     try:
-        json_str = response_text[json_start:json_end]
+        json_str = text[json_start:json_end]
         return json.loads(json_str)
     except json.JSONDecodeError as e:
         raise ValueError(f"Failed to parse JSON: {e}") from e
@@ -163,7 +197,12 @@ def _validate_video_response(data: dict[str, Any]) -> dict[str, Any]:
     return data
 
 
-def analyze_video(video_bytes: bytes, content_type: str, session_id: str) -> dict[str, Any]:
+def analyze_video(
+    video_bytes: bytes,
+    content_type: str,
+    session_id: str,
+    language: str = "es",
+) -> dict[str, Any]:
     """Analiza un video de bebé usando Gemini (multimodal nativo).
 
     Gemini procesa el video completo incluyendo visual y audio de forma nativa,
@@ -173,6 +212,7 @@ def analyze_video(video_bytes: bytes, content_type: str, session_id: str) -> dic
         video_bytes: Bytes del video.
         content_type: MIME type del video (video/mp4, video/webm, etc.).
         session_id: ID de sesión para logging.
+        language: Idioma del texto generado ("es" o "en").
 
     Returns:
         Dict con: status, observations, recommendations, confidence,
@@ -196,10 +236,14 @@ def analyze_video(video_bytes: bytes, content_type: str, session_id: str) -> dic
 
     if video_size_mb > 20:
         # Usar Files API para videos grandes
-        result = _analyze_video_with_upload(client, video_bytes, content_type, session_id)
+        result = _analyze_video_with_upload(
+            client, video_bytes, content_type, session_id, language
+        )
     else:
         # Usar inline data para videos pequeños
-        result = _analyze_video_inline(client, video_bytes, content_type, session_id)
+        result = _analyze_video_inline(
+            client, video_bytes, content_type, session_id, language
+        )
 
     validated = _validate_video_response(result)
 
@@ -220,44 +264,68 @@ def _analyze_video_inline(
     client: genai.Client,
     video_bytes: bytes,
     content_type: str,
-    session_id: str
+    session_id: str,
+    language: str = "es",
+    max_retries: int = 2,
 ) -> dict[str, Any]:
     """Analiza video usando datos inline (para videos < 20MB)."""
+    import time
+
     video_b64 = base64.b64encode(video_bytes).decode("utf-8")
+    last_error = None
 
-    response = client.models.generate_content(
-        model=settings.GEMINI_MODEL_ID,
-        contents=[
-            types.Content(
-                parts=[
-                    types.Part(
-                        inline_data=types.Blob(
-                            mime_type=content_type,
-                            data=video_b64,
-                        )
-                    ),
-                    types.Part(text=VIDEO_ANALYSIS_PROMPT),
-                ]
+    for attempt in range(max_retries + 1):
+        try:
+            response = client.models.generate_content(
+                model=settings.GEMINI_MODEL_ID,
+                contents=[
+                    types.Content(
+                        parts=[
+                            types.Part(
+                                inline_data=types.Blob(
+                                    mime_type=content_type,
+                                    data=video_b64,
+                                )
+                            ),
+                            types.Part(
+                                text=VIDEO_ANALYSIS_PROMPT + _language_directive(language)
+                            ),
+                        ]
+                    )
+                ],
+                config=types.GenerateContentConfig(
+                    temperature=0.1,
+                    max_output_tokens=4096,  # Increased to avoid truncation
+                ),
             )
-        ],
-        config=types.GenerateContentConfig(
-            temperature=0.1,
-            max_output_tokens=2048,
-        ),
-    )
 
-    response_text = response.text
-    if not response_text:
-        raise ValueError("Gemini returned empty response")
+            response_text = response.text
+            if not response_text:
+                raise ValueError("Gemini returned empty response")
 
-    return _parse_json_response(response_text)
+            return _parse_json_response(response_text)
+
+        except ValueError as e:
+            last_error = e
+            if "No valid JSON" in str(e) or "Truncated" in str(e):
+                if attempt < max_retries:
+                    logger.warning(
+                        f"Gemini returned truncated response, retrying ({attempt + 1}/{max_retries})",
+                        extra={"session_id": session_id},
+                    )
+                    time.sleep(1)  # Brief delay before retry
+                    continue
+            raise
+
+    raise last_error or ValueError("Analysis failed after retries")
 
 
 def _analyze_video_with_upload(
     client: genai.Client,
     video_bytes: bytes,
     content_type: str,
-    session_id: str
+    session_id: str,
+    language: str = "es",
 ) -> dict[str, Any]:
     """Analiza video usando Files API (para videos > 20MB)."""
     import tempfile
@@ -298,13 +366,16 @@ def _analyze_video_with_upload(
                                 mime_type=uploaded_file.mime_type,
                             )
                         ),
-                        types.Part(text=VIDEO_ANALYSIS_PROMPT),
+                        types.Part(
+                            text=VIDEO_ANALYSIS_PROMPT
+                            + _language_directive(language)
+                        ),
                     ]
                 )
             ],
             config=types.GenerateContentConfig(
                 temperature=0.1,
-                max_output_tokens=2048,
+                max_output_tokens=4096,  # Increased to avoid truncation
             ),
         )
 

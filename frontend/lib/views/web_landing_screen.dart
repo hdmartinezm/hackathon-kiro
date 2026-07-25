@@ -289,14 +289,14 @@ class _AnimatedCtaButtonCompactState extends State<_AnimatedCtaButtonCompact> {
           decoration: BoxDecoration(
             gradient: LinearGradient(
               colors: _isHovered
-                  ? [const Color(0xFF2D7E91), const Color(0xFF389BB0)]
-                  : [const Color(0xFF389BB0), const Color(0xFF389BB0)],
+                  ? [const Color(0xFF2B7A7A), const Color(0xFF4B9B9B)]
+                  : [const Color(0xFF4B9B9B), const Color(0xFF4B9B9B)],
             ),
             borderRadius: BorderRadius.circular(8),
             boxShadow: [
               BoxShadow(
                 color:
-                    const Color(0xFF389BB0).withValues(alpha: _isHovered ? 0.4 : 0.2),
+                    const Color(0xFF4B9B9B).withValues(alpha: _isHovered ? 0.4 : 0.2),
                 blurRadius: _isHovered ? 12 : 6,
                 offset: Offset(0, _isHovered ? 4 : 2),
               ),
@@ -342,7 +342,7 @@ class _HoverableNavLinkState extends State<_HoverableNavLink> {
           duration: const Duration(milliseconds: 200),
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
           decoration: BoxDecoration(
-            color: _isHovered ? const Color(0xFF389BB0).withValues(alpha: 0.1) : Colors.transparent,
+            color: _isHovered ? const Color(0xFF4B9B9B).withValues(alpha: 0.1) : Colors.transparent,
             borderRadius: BorderRadius.circular(8),
           ),
           child: Text(
@@ -350,7 +350,7 @@ class _HoverableNavLinkState extends State<_HoverableNavLink> {
             style: TextStyle(
               fontSize: 14,
               fontWeight: FontWeight.w500,
-              color: _isHovered ? const Color(0xFF389BB0) : context.textColor.withValues(alpha: 0.7),
+              color: _isHovered ? const Color(0xFF4B9B9B) : context.textColor.withValues(alpha: 0.7),
             ),
           ),
         ),
@@ -392,13 +392,13 @@ class _AnimatedCtaButtonState extends State<_AnimatedCtaButton> {
           decoration: BoxDecoration(
             gradient: LinearGradient(
               colors: _isHovered
-                  ? [const Color(0xFF2D7E91), const Color(0xFF389BB0)]
-                  : [const Color(0xFF389BB0), const Color(0xFF389BB0)],
+                  ? [const Color(0xFF2B7A7A), const Color(0xFF4B9B9B)]
+                  : [const Color(0xFF4B9B9B), const Color(0xFF4B9B9B)],
             ),
             borderRadius: BorderRadius.circular(10),
             boxShadow: [
               BoxShadow(
-                color: const Color(0xFF389BB0).withValues(alpha: _isHovered ? 0.4 : 0.2),
+                color: const Color(0xFF4B9B9B).withValues(alpha: _isHovered ? 0.4 : 0.2),
                 blurRadius: _isHovered ? 16 : 8,
                 offset: Offset(0, _isHovered ? 6 : 3),
               ),
@@ -510,10 +510,10 @@ class _HeroSection extends StatelessWidget {
           ),
           child: Text(
             context.l10n.heroChip,
-            style: const TextStyle(
+            style: AppTheme.accentText(
               fontSize: 12,
               fontWeight: FontWeight.w700,
-              color: Color(0xFF389BB0),
+              color: const Color(0xFF4B9B9B),
               letterSpacing: 1.2,
             ),
           ),
@@ -523,6 +523,7 @@ class _HeroSection extends StatelessWidget {
         Text(
           context.l10n.heroTitleLine1,
           style: TextStyle(
+            fontFamily: AppTheme.serifFamily,
             fontSize: isLarge ? 40 : 28,
             fontWeight: FontWeight.bold,
             color: context.textColor,
@@ -533,9 +534,10 @@ class _HeroSection extends StatelessWidget {
         Text(
           context.l10n.heroTitleLine2,
           style: TextStyle(
+            fontFamily: AppTheme.serifFamily,
             fontSize: isLarge ? 40 : 28,
             fontWeight: FontWeight.bold,
-            color: const Color(0xFF389BB0),
+            color: const Color(0xFF4B9B9B),
             height: 1.2,
           ),
         ),
@@ -588,10 +590,10 @@ class _HeroSection extends StatelessWidget {
       decoration: BoxDecoration(
         color: context.surface,
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: const Color(0xFF389BB0).withValues(alpha: 0.2)),
+        border: Border.all(color: const Color(0xFF4B9B9B).withValues(alpha: 0.2)),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF389BB0).withValues(alpha: 0.08),
+            color: const Color(0xFF4B9B9B).withValues(alpha: 0.08),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -602,7 +604,7 @@ class _HeroSection extends StatelessWidget {
         style: const TextStyle(
           fontSize: 12,
           fontWeight: FontWeight.w600,
-          color: Color(0xFF389BB0),
+          color: Color(0xFF4B9B9B),
         ),
       ),
     );
@@ -699,10 +701,10 @@ class _DesafioSection extends StatelessWidget {
           ),
           child: Text(
             context.l10n.challengeChip,
-            style: const TextStyle(
+            style: AppTheme.accentText(
               fontSize: 12,
               fontWeight: FontWeight.w700,
-              color: Color(0xFF389BB0),
+              color: const Color(0xFF4B9B9B),
               letterSpacing: 1.2,
             ),
           ),
@@ -711,6 +713,7 @@ class _DesafioSection extends StatelessWidget {
         Text(
           context.l10n.challengeTitle,
           style: TextStyle(
+            fontFamily: AppTheme.serifFamily,
             fontSize: 32,
             fontWeight: FontWeight.bold,
             color: context.textColor,
@@ -745,7 +748,7 @@ class _DesafioSection extends StatelessWidget {
           width: 20,
           height: 20,
           decoration: BoxDecoration(
-            color: const Color(0xFF389BB0),
+            color: const Color(0xFF4B9B9B),
             borderRadius: BorderRadius.circular(10),
           ),
           child: const Icon(Icons.check, size: 14, color: Colors.white),
@@ -855,10 +858,10 @@ class _ComoFuncionaSection extends StatelessWidget {
                   ),
                   child: Text(
                     context.l10n.chipHowItWorks,
-                    style: const TextStyle(
+                    style: AppTheme.accentText(
                       fontSize: 12,
                       fontWeight: FontWeight.w700,
-                      color: Color(0xFF389BB0),
+                      color: const Color(0xFF4B9B9B),
                       letterSpacing: 1.2,
                     ),
                   ),
@@ -869,6 +872,7 @@ class _ComoFuncionaSection extends StatelessWidget {
                   textAlign: TextAlign.center,
                   text: TextSpan(
                     style: TextStyle(
+                      fontFamily: AppTheme.serifFamily,
                       fontSize: 32,
                       fontWeight: FontWeight.bold,
                       color: context.textColor,
@@ -878,7 +882,7 @@ class _ComoFuncionaSection extends StatelessWidget {
                       TextSpan(text: context.l10n.howItWorksTitlePrefix),
                       TextSpan(
                         text: context.l10n.howItWorksTitleHighlight,
-                        style: const TextStyle(color: Color(0xFFE87055)),
+                        style: const TextStyle(color: Color(0xFFDF7B5E)),
                       ),
                     ],
                   ),
@@ -1004,12 +1008,12 @@ class _StepCardState extends State<_StepCard> {
           color: context.surface,
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
-            color: _isHovered ? const Color(0xFF389BB0).withValues(alpha: 0.3) : context.border,
+            color: _isHovered ? const Color(0xFF4B9B9B).withValues(alpha: 0.3) : context.border,
           ),
           boxShadow: [
             BoxShadow(
               color: _isHovered
-                  ? const Color(0xFF389BB0).withValues(alpha: 0.15)
+                  ? const Color(0xFF4B9B9B).withValues(alpha: 0.15)
                   : Colors.black.withValues(alpha: 0.04),
               blurRadius: _isHovered ? 20 : 8,
               offset: Offset(0, _isHovered ? 8 : 2),
@@ -1030,7 +1034,7 @@ class _StepCardState extends State<_StepCard> {
               decoration: BoxDecoration(
                 gradient: LinearGradient(
                   colors: _isHovered
-                      ? [const Color(0xFF389BB0), const Color(0xFF4BA8BC)]
+                      ? [const Color(0xFF4B9B9B), const Color(0xFF73D2D2)]
                       : [context.tealContainer, context.tealContainer],
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
@@ -1039,7 +1043,7 @@ class _StepCardState extends State<_StepCard> {
               ),
               child: Icon(
                 widget.icon,
-                color: _isHovered ? Colors.white : const Color(0xFF389BB0),
+                color: _isHovered ? Colors.white : const Color(0xFF4B9B9B),
                 size: 28,
               ),
             ),
@@ -1048,15 +1052,15 @@ class _StepCardState extends State<_StepCard> {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
               decoration: BoxDecoration(
-                color: const Color(0xFF389BB0).withValues(alpha: 0.1),
+                color: const Color(0xFF4B9B9B).withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Text(
                 'Paso ${widget.number}',
-                style: const TextStyle(
+                style: AppTheme.accentText(
                   fontSize: 12,
                   fontWeight: FontWeight.w700,
-                  color: Color(0xFF389BB0),
+                  color: const Color(0xFF4B9B9B),
                 ),
               ),
             ),
@@ -1120,10 +1124,10 @@ class _CaracteristicasSection extends StatelessWidget {
                   ),
                   child: Text(
                     context.l10n.chipFeatures,
-                    style: const TextStyle(
+                    style: AppTheme.accentText(
                       fontSize: 12,
                       fontWeight: FontWeight.w700,
-                      color: Color(0xFF389BB0),
+                      color: const Color(0xFF4B9B9B),
                       letterSpacing: 1.2,
                     ),
                   ),
@@ -1132,6 +1136,7 @@ class _CaracteristicasSection extends StatelessWidget {
                 Text(
                   context.l10n.featuresTitle,
                   style: TextStyle(
+                    fontFamily: AppTheme.serifFamily,
                     fontSize: 32,
                     fontWeight: FontWeight.bold,
                     color: context.textColor,
@@ -1244,14 +1249,14 @@ class _CaracteristicasSection extends StatelessWidget {
                 height: 44,
                 decoration: BoxDecoration(
                   gradient: const LinearGradient(
-                    colors: [Color(0xFF389BB0), Color(0xFF4BA8BC)],
+                    colors: [Color(0xFF4B9B9B), Color(0xFF73D2D2)],
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                   ),
                   borderRadius: BorderRadius.circular(12),
                   boxShadow: [
                     BoxShadow(
-                      color: const Color(0xFF389BB0).withValues(alpha: 0.25),
+                      color: const Color(0xFF4B9B9B).withValues(alpha: 0.25),
                       blurRadius: 8,
                       offset: const Offset(0, 3),
                     ),
@@ -1265,12 +1270,12 @@ class _CaracteristicasSection extends StatelessWidget {
                   padding:
                       const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                   decoration: BoxDecoration(
-                    color: const Color(0xFFE87055),
+                    color: const Color(0xFFDF7B5E),
                     borderRadius: BorderRadius.circular(10),
                   ),
                   child: Text(
                     badge,
-                    style: const TextStyle(
+                    style: AppTheme.accentText(
                       fontSize: 9,
                       fontWeight: FontWeight.w700,
                       color: Colors.white,
@@ -1284,10 +1289,10 @@ class _CaracteristicasSection extends StatelessWidget {
           // Uppercase label
           Text(
             label,
-            style: const TextStyle(
+            style: AppTheme.accentText(
               fontSize: 11,
               fontWeight: FontWeight.w700,
-              color: Color(0xFF389BB0),
+              color: const Color(0xFF4B9B9B),
               letterSpacing: 1.0,
             ),
           ),
@@ -1348,10 +1353,10 @@ class _ArquitecturaSection extends StatelessWidget {
                   ),
                   child: Text(
                     context.l10n.chipArchitecture,
-                    style: const TextStyle(
+                    style: AppTheme.accentText(
                       fontSize: 12,
                       fontWeight: FontWeight.w700,
-                      color: Color(0xFF389BB0),
+                      color: const Color(0xFF4B9B9B),
                       letterSpacing: 1.2,
                     ),
                   ),
@@ -1360,6 +1365,7 @@ class _ArquitecturaSection extends StatelessWidget {
                 Text(
                   context.l10n.architectureTitle,
                   style: TextStyle(
+                    fontFamily: AppTheme.serifFamily,
                     fontSize: 32,
                     fontWeight: FontWeight.bold,
                     color: context.textColor,
@@ -1493,14 +1499,14 @@ class _ArquitecturaSection extends StatelessWidget {
             color: context.surface,
             borderRadius: BorderRadius.circular(20),
             border:
-                Border.all(color: const Color(0xFF389BB0).withValues(alpha: 0.2)),
+                Border.all(color: const Color(0xFF4B9B9B).withValues(alpha: 0.2)),
           ),
           child: Text(
             pill,
             style: const TextStyle(
               fontSize: 12,
               fontWeight: FontWeight.w500,
-              color: Color(0xFF389BB0),
+              color: Color(0xFF4B9B9B),
             ),
           ),
         );
@@ -1557,7 +1563,7 @@ class _ArchNode extends StatelessWidget {
             alignment: Alignment.center,
             child: Icon(
               icon,
-              color: const Color(0xFF389BB0),
+              color: const Color(0xFF4B9B9B),
               size: 22,
             ),
           ),
@@ -1610,7 +1616,7 @@ class _ArchArrow extends StatelessWidget {
         vertical
             ? Icons.arrow_downward_rounded
             : Icons.arrow_forward_rounded,
-        color: const Color(0xFF389BB0),
+        color: const Color(0xFF4B9B9B),
         size: 20,
       ),
     );
@@ -1666,13 +1672,14 @@ class _SeguridadSection extends StatelessWidget {
                     child: const Icon(
                       Icons.shield_rounded,
                       size: 32,
-                      color: Color(0xFF389BB0),
+                      color: Color(0xFF4B9B9B),
                     ),
                   ),
                   const SizedBox(height: 20),
                   Text(
                     context.l10n.securityAndPrivacy,
                     style: TextStyle(
+                      fontFamily: AppTheme.serifFamily,
                       fontSize: 22,
                       fontWeight: FontWeight.bold,
                       color: context.textColor,
@@ -1712,7 +1719,7 @@ class _SeguridadSection extends StatelessWidget {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Icon(icon, size: 20, color: const Color(0xFF389BB0)),
+        Icon(icon, size: 20, color: const Color(0xFF4B9B9B)),
         const SizedBox(width: 12),
         Expanded(
           child: Text(
@@ -1754,14 +1761,14 @@ class _CtaBandSection extends StatelessWidget {
                 padding: const EdgeInsets.all(36),
                 decoration: BoxDecoration(
                   gradient: const LinearGradient(
-                    colors: [Color(0xFF389BB0), Color(0xFF2D7E91)],
+                    colors: [Color(0xFF4B9B9B), Color(0xFF2B7A7A)],
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                   ),
                   borderRadius: BorderRadius.circular(24),
                   boxShadow: [
                     BoxShadow(
-                      color: const Color(0xFF389BB0).withValues(alpha: 0.3),
+                      color: const Color(0xFF4B9B9B).withValues(alpha: 0.3),
                       blurRadius: 24,
                       offset: const Offset(0, 8),
                     ),
@@ -1773,6 +1780,7 @@ class _CtaBandSection extends StatelessWidget {
                       context.l10n.readyToTry,
                       textAlign: TextAlign.center,
                       style: const TextStyle(
+                        fontFamily: AppTheme.serifFamily,
                         fontSize: 26,
                         fontWeight: FontWeight.bold,
                         color: Colors.white,
@@ -1825,7 +1833,7 @@ class _FooterSection extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
-      color: const Color(0xFF2B2826),
+      color: const Color(0xFF2A2A28),
       child: Column(
         children: [
           // Main footer content
@@ -2088,15 +2096,15 @@ class _HeroPrimaryButtonState extends State<_HeroPrimaryButton> {
           decoration: BoxDecoration(
             gradient: LinearGradient(
               colors: _isHovered
-                  ? [const Color(0xFF2D7E91), const Color(0xFF389BB0)]
-                  : [const Color(0xFF389BB0), const Color(0xFF4BA8BC)],
+                  ? [const Color(0xFF2B7A7A), const Color(0xFF4B9B9B)]
+                  : [const Color(0xFF4B9B9B), const Color(0xFF73D2D2)],
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
             ),
             borderRadius: BorderRadius.circular(14),
             boxShadow: [
               BoxShadow(
-                color: const Color(0xFF389BB0).withValues(alpha: _isHovered ? 0.5 : 0.3),
+                color: const Color(0xFF4B9B9B).withValues(alpha: _isHovered ? 0.5 : 0.3),
                 blurRadius: _isHovered ? 24 : 12,
                 offset: Offset(0, _isHovered ? 8 : 4),
               ),
@@ -2251,10 +2259,10 @@ class _CtaWhiteButtonState extends State<_CtaWhiteButton> {
             children: [
               Text(
                 widget.label,
-                style: const TextStyle(
+                style: AppTheme.accentText(
                   fontSize: 16,
                   fontWeight: FontWeight.w700,
-                  color: Color(0xFF389BB0),
+                  color: const Color(0xFF4B9B9B),
                   letterSpacing: 0.3,
                 ),
               ),
@@ -2266,7 +2274,7 @@ class _CtaWhiteButtonState extends State<_CtaWhiteButton> {
                     : Matrix4.identity(),
                 child: const Icon(
                   Icons.arrow_forward_rounded,
-                  color: Color(0xFF389BB0),
+                  color: Color(0xFF4B9B9B),
                   size: 20,
                 ),
               ),

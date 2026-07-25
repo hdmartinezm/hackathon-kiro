@@ -17,6 +17,7 @@ from aws_cdk import (
     aws_apigatewayv2 as apigwv2,
     aws_apigatewayv2_integrations as apigwv2_integrations,
     aws_apigatewayv2_authorizers as apigwv2_authorizers,
+    aws_certificatemanager as acm,
     aws_cloudfront as cloudfront,
     aws_cloudfront_origins as origins,
     aws_cognito as cognito,
@@ -85,10 +86,50 @@ class BabyHealthStack(Stack):
         # Grant CloudFront read access to the bucket
         self.frontend_bucket.grant_read(self.origin_access_identity)
 
+        # ─── CloudFront Function: route the Flutter app under /app ─────────
+        # The marketing landing (Next.js static export) is served at "/".
+        # The Flutter app lives under "/app". Extensionless routes under /app
+        # (e.g. "/app", "/app/") are rewritten to "/app/index.html" so the SPA
+        # boots correctly. Real asset requests (with a file extension) pass
+        # through unchanged.
+        self.app_router_function = cloudfront.Function(
+            self,
+            "BabyHealthAppRouter",
+            code=cloudfront.FunctionCode.from_inline(
+                """
+function handler(event) {
+    var request = event.request;
+    var uri = request.uri;
+    if (uri === '/app' || uri === '/app/') {
+        request.uri = '/app/index.html';
+        return request;
+    }
+    if (uri.startsWith('/app/')) {
+        var last = uri.split('/').pop();
+        if (last.indexOf('.') === -1) {
+            request.uri = '/app/index.html';
+        }
+    }
+    return request;
+}
+"""
+            ),
+        )
+
+        # Custom domain (DNS ALIAS already points here; ACM cert issued).
+        self.frontend_certificate = acm.Certificate.from_certificate_arn(
+            self,
+            "BabyHealthFrontendCert",
+            "arn:aws:acm:us-east-1:970512219824:certificate/"
+            "9f456d50-0c47-4d66-8073-11edb123327e",
+        )
+
         # ─── CloudFront Distribution ───────────────────────────────────────
         self.distribution = cloudfront.Distribution(
             self,
             "BabyHealthFrontendDistribution",
+            domain_names=["babyhealth.hmartinez.info"],
+            certificate=self.frontend_certificate,
             default_behavior=cloudfront.BehaviorOptions(
                 origin=origins.S3Origin(
                     self.frontend_bucket,
@@ -96,6 +137,12 @@ class BabyHealthStack(Stack):
                 ),
                 viewer_protocol_policy=cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
                 cache_policy=cloudfront.CachePolicy.CACHING_OPTIMIZED,
+                function_associations=[
+                    cloudfront.FunctionAssociation(
+                        function=self.app_router_function,
+                        event_type=cloudfront.FunctionEventType.VIEWER_REQUEST,
+                    )
+                ],
             ),
             default_root_object="index.html",
             error_responses=[
@@ -192,8 +239,17 @@ class BabyHealthStack(Stack):
             ),
         )
 
-        # Frontend URL used as OAuth callback / logout target.
-        frontend_url = "https://d272sj5fujdytw.cloudfront.net/"
+        # OAuth callback / logout targets. The Flutter app now lives under
+        # /app (landing occupies the root), served on both the CloudFront
+        # domain and the custom domain. Include every valid origin so Amplify
+        # can match the current one.
+        oauth_urls = [
+            "https://babyhealth.hmartinez.info/app/",
+            "https://d272sj5fujdytw.cloudfront.net/app/",
+            "https://babyhealth.hmartinez.info/",
+            "https://d272sj5fujdytw.cloudfront.net/",
+            "http://localhost:8443/",
+        ]
 
         # User Pool Client for Flutter app
         self.user_pool_client = self.user_pool.add_client(
@@ -212,8 +268,8 @@ class BabyHealthStack(Stack):
                     cognito.OAuthScope.EMAIL,
                     cognito.OAuthScope.PROFILE,
                 ],
-                callback_urls=[frontend_url, "http://localhost:8443/"],
-                logout_urls=[frontend_url, "http://localhost:8443/"],
+                callback_urls=oauth_urls,
+                logout_urls=oauth_urls,
             ),
             supported_identity_providers=[
                 cognito.UserPoolClientIdentityProvider.GOOGLE,

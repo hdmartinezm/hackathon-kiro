@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import '../models/captured_media.dart';
 import '../models/mime_validator.dart';
 import '../models/upload_url_dto.dart';
@@ -73,5 +75,50 @@ class UploadRepository {
     await _storageService.uploadMedia(uploadUrlDto, media);
 
     return uploadUrlDto.videoKey;
+  }
+
+  /// Uploads a PDF report and returns the download URL.
+  ///
+  /// Steps:
+  /// 1. Requests a pre-signed URL for PDF upload.
+  /// 2. Uploads the PDF bytes to S3.
+  /// 3. Requests a download URL for sharing.
+  /// 4. Returns the download URL.
+  Future<String> uploadPdfReport(Uint8List pdfBytes) async {
+    // Get upload URL
+    final uploadResponse = await _httpClient.get('/upload-pdf-url');
+    if (uploadResponse.statusCode < 200 || uploadResponse.statusCode >= 300) {
+      throw HttpClientException(
+        message: 'Failed to get PDF upload URL',
+        statusCode: uploadResponse.statusCode,
+        body: uploadResponse.body,
+      );
+    }
+
+    final uploadData = uploadResponse.jsonBody;
+    final uploadUrl = uploadData['upload_url'] as String;
+    final pdfKey = uploadData['pdf_key'] as String;
+
+    // Upload PDF to S3
+    await _storageService.uploadBytes(
+      uploadUrl: uploadUrl,
+      bytes: pdfBytes,
+      contentType: 'application/pdf',
+    );
+
+    // Get download URL
+    final downloadResponse = await _httpClient.get(
+      '/pdf-download-url',
+      queryParams: {'pdf_key': pdfKey},
+    );
+    if (downloadResponse.statusCode < 200 || downloadResponse.statusCode >= 300) {
+      throw HttpClientException(
+        message: 'Failed to get PDF download URL',
+        statusCode: downloadResponse.statusCode,
+        body: downloadResponse.body,
+      );
+    }
+
+    return downloadResponse.jsonBody['download_url'] as String;
   }
 }

@@ -121,21 +121,35 @@ def _get_client() -> genai.Client:
 
 def _parse_json_response(response_text: str) -> dict[str, Any]:
     """Parsea la respuesta JSON de Gemini, extrayendo JSON si está embebido en texto."""
+    import re
+
+    # Strip markdown code fences if present
+    text = response_text.strip()
+
+    # Remove ```json ... ``` or ``` ... ``` wrappers
+    code_fence_pattern = r'^```(?:json)?\s*\n?(.*?)\n?```$'
+    match = re.match(code_fence_pattern, text, re.DOTALL)
+    if match:
+        text = match.group(1).strip()
+
     # Intentar parsear directamente
     try:
-        return json.loads(response_text.strip())
+        return json.loads(text)
     except json.JSONDecodeError:
         pass
 
     # Buscar JSON en la respuesta
-    json_start = response_text.find("{")
-    json_end = response_text.rfind("}") + 1
+    json_start = text.find("{")
+    json_end = text.rfind("}") + 1
 
     if json_start == -1 or json_end == 0:
-        raise ValueError(f"No valid JSON found in response: {response_text[:200]}")
+        # Check if response was truncated (no closing brace)
+        if json_start != -1 and json_end == 0:
+            logger.error(f"Truncated JSON response (no closing brace). Length: {len(text)}")
+        raise ValueError(f"No valid JSON found in response: {text[:200]}")
 
     try:
-        json_str = response_text[json_start:json_end]
+        json_str = text[json_start:json_end]
         return json.loads(json_str)
     except json.JSONDecodeError as e:
         raise ValueError(f"Failed to parse JSON: {e}") from e
@@ -252,38 +266,58 @@ def _analyze_video_inline(
     content_type: str,
     session_id: str,
     language: str = "es",
+    max_retries: int = 2,
 ) -> dict[str, Any]:
     """Analiza video usando datos inline (para videos < 20MB)."""
+    import time
+
     video_b64 = base64.b64encode(video_bytes).decode("utf-8")
+    last_error = None
 
-    response = client.models.generate_content(
-        model=settings.GEMINI_MODEL_ID,
-        contents=[
-            types.Content(
-                parts=[
-                    types.Part(
-                        inline_data=types.Blob(
-                            mime_type=content_type,
-                            data=video_b64,
-                        )
-                    ),
-                    types.Part(
-                        text=VIDEO_ANALYSIS_PROMPT + _language_directive(language)
-                    ),
-                ]
+    for attempt in range(max_retries + 1):
+        try:
+            response = client.models.generate_content(
+                model=settings.GEMINI_MODEL_ID,
+                contents=[
+                    types.Content(
+                        parts=[
+                            types.Part(
+                                inline_data=types.Blob(
+                                    mime_type=content_type,
+                                    data=video_b64,
+                                )
+                            ),
+                            types.Part(
+                                text=VIDEO_ANALYSIS_PROMPT + _language_directive(language)
+                            ),
+                        ]
+                    )
+                ],
+                config=types.GenerateContentConfig(
+                    temperature=0.1,
+                    max_output_tokens=4096,  # Increased to avoid truncation
+                ),
             )
-        ],
-        config=types.GenerateContentConfig(
-            temperature=0.1,
-            max_output_tokens=2048,
-        ),
-    )
 
-    response_text = response.text
-    if not response_text:
-        raise ValueError("Gemini returned empty response")
+            response_text = response.text
+            if not response_text:
+                raise ValueError("Gemini returned empty response")
 
-    return _parse_json_response(response_text)
+            return _parse_json_response(response_text)
+
+        except ValueError as e:
+            last_error = e
+            if "No valid JSON" in str(e) or "Truncated" in str(e):
+                if attempt < max_retries:
+                    logger.warning(
+                        f"Gemini returned truncated response, retrying ({attempt + 1}/{max_retries})",
+                        extra={"session_id": session_id},
+                    )
+                    time.sleep(1)  # Brief delay before retry
+                    continue
+            raise
+
+    raise last_error or ValueError("Analysis failed after retries")
 
 
 def _analyze_video_with_upload(
@@ -341,7 +375,7 @@ def _analyze_video_with_upload(
             ],
             config=types.GenerateContentConfig(
                 temperature=0.1,
-                max_output_tokens=2048,
+                max_output_tokens=4096,  # Increased to avoid truncation
             ),
         )
 

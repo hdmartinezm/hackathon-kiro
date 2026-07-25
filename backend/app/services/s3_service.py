@@ -87,6 +87,64 @@ def generate_presigned_url_for_image(
         raise
 
 
+def generate_presigned_url_for_pdf(
+    expiration: int = 300,
+) -> dict:
+    """Genera una URL prefirmada para subir PDF a S3."""
+    pdf_key = f"reports/{uuid.uuid4()}.pdf"
+
+    try:
+        upload_url = s3_client.generate_presigned_url(
+            "put_object",
+            Params={
+                "Bucket": settings.S3_BUCKET,
+                "Key": pdf_key,
+                "ContentType": "application/pdf",
+            },
+            ExpiresIn=expiration,
+        )
+        expires_at = (datetime.now(timezone.utc) + timedelta(seconds=expiration)).isoformat()
+
+        return {
+            "upload_url": upload_url,
+            "pdf_key": pdf_key,
+            "expires_at": expires_at,
+            "content_type": "application/pdf",
+        }
+    except ClientError as e:
+        logger.error(f"Error generando presigned URL para PDF: {e}")
+        raise
+
+
+def generate_presigned_download_url(
+    key: str,
+    expiration: int = 3600,  # 1 hour default for sharing
+) -> str:
+    """Genera una URL prefirmada para descargar un archivo de S3.
+
+    Args:
+        key: La key del objeto en S3.
+        expiration: Tiempo de expiración en segundos.
+
+    Returns:
+        URL prefirmada para descargar el archivo.
+    """
+    try:
+        download_url = s3_client.generate_presigned_url(
+            "get_object",
+            Params={
+                "Bucket": settings.S3_BUCKET,
+                "Key": key,
+            },
+            ExpiresIn=expiration,
+        )
+        logger.info(f"Download URL generada para {key}")
+        return download_url
+    except ClientError as e:
+        logger.error(f"Error generando download URL para {key}: {e}")
+        raise
+
+
 def download_object(key: str) -> tuple[bytes, str]:
     """Descarga un objeto de S3 y retorna sus bytes y content_type.
 

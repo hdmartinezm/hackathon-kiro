@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:typed_data';
 
 import 'package:http/http.dart' as http;
 
@@ -85,6 +86,55 @@ class StorageService {
   /// Returns `true` for status codes that should trigger a retry.
   bool _isRetryable(int statusCode) =>
       statusCode == 403 || statusCode == 404;
+
+  /// Uploads raw bytes to a pre-signed S3 URL.
+  ///
+  /// Used for PDF uploads where we don't have a CapturedMedia object.
+  Future<void> uploadBytes({
+    required String uploadUrl,
+    required Uint8List bytes,
+    required String contentType,
+  }) async {
+    final uri = Uri.parse(uploadUrl);
+    final headers = <String, String>{
+      'Content-Type': contentType,
+    };
+
+    for (var attempt = 1; attempt <= _maxRetries; attempt++) {
+      try {
+        final response = await _client.put(
+          uri,
+          headers: headers,
+          body: bytes,
+        );
+
+        if (_isSuccess(response.statusCode)) {
+          return;
+        }
+
+        if (_isRetryable(response.statusCode) && attempt < _maxRetries) {
+          await Future.delayed(Duration(seconds: attempt));
+          continue;
+        }
+
+        throw HttpClientException(
+          message: 'Upload failed with HTTP ${response.statusCode}',
+          statusCode: response.statusCode,
+          body: response.body,
+        );
+      } on HttpClientException {
+        rethrow;
+      } catch (e) {
+        if (attempt < _maxRetries) {
+          await Future.delayed(Duration(seconds: attempt));
+          continue;
+        }
+        throw HttpClientException(
+          message: 'Upload failed after $_maxRetries attempts: $e',
+        );
+      }
+    }
+  }
 
   /// Releases underlying HTTP client resources.
   void dispose() {

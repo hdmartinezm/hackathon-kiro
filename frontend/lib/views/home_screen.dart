@@ -1,8 +1,10 @@
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:provider/provider.dart';
 
 import '../core/app_localizations.dart';
+import '../core/app_theme.dart';
 import '../models/captured_media.dart';
 import '../viewmodels/auth_viewmodel.dart';
 import '../viewmodels/home_viewmodel.dart';
@@ -46,7 +48,7 @@ class HomeScreen extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               children: [
                 const Icon(Icons.home_rounded,
-                    size: 20, color: Color(0xFF389BB0)),
+                    size: 20, color: Color(0xFF4B9B9B)),
                 const SizedBox(width: 6),
                 Flexible(
                   child: Text(
@@ -163,22 +165,22 @@ class HomeScreen extends StatelessWidget {
                         loadingBuilder: (context, child, loadingProgress) {
                           if (loadingProgress == null) return child;
                           return Container(
-                            color: const Color(0xFFD6F2F7),
+                            color: const Color(0xFFC8E8E8),
                             child: const Center(
                               child: CircularProgressIndicator(
-                                color: Color(0xFF389BB0),
+                                color: Color(0xFF4B9B9B),
                               ),
                             ),
                           );
                         },
                         errorBuilder: (context, error, stackTrace) {
                           return Container(
-                            color: const Color(0xFFD6F2F7),
+                            color: const Color(0xFFC8E8E8),
                             child: const Center(
                               child: Icon(
                                 Icons.face_rounded,
                                 size: 48,
-                                color: Color(0xFF389BB0),
+                                color: Color(0xFF4B9B9B),
                               ),
                             ),
                           );
@@ -208,6 +210,7 @@ class HomeScreen extends StatelessWidget {
                               .textTheme
                               .titleLarge
                               ?.copyWith(
+                                fontFamily: AppTheme.serifFamily,
                                 color: Colors.white,
                                 fontWeight: FontWeight.bold,
                                 shadows: [
@@ -243,6 +246,7 @@ class HomeScreen extends StatelessWidget {
                 child: Text(
                   context.l10n.homeAnalyzeTitle,
                   style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                        fontFamily: AppTheme.serifFamily,
                         fontWeight: FontWeight.bold,
                         color: Theme.of(context).colorScheme.onSurface,
                       ),
@@ -343,7 +347,7 @@ class HomeScreen extends StatelessWidget {
                           style: const TextStyle(fontSize: 16),
                         ),
                         style: FilledButton.styleFrom(
-                          backgroundColor: const Color(0xFF389BB0),
+                          backgroundColor: const Color(0xFF4B9B9B),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12),
                           ),
@@ -365,7 +369,7 @@ class HomeScreen extends StatelessWidget {
                           style: const TextStyle(fontSize: 16),
                         ),
                         style: FilledButton.styleFrom(
-                          backgroundColor: const Color(0xFFE87055),
+                          backgroundColor: const Color(0xFFDF7B5E),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12),
                           ),
@@ -391,7 +395,7 @@ class HomeScreen extends StatelessWidget {
                 ),
               ),
             ],
-          ),
+          ).animate().fadeIn(duration: 400.ms).slideY(begin: 0.08, end: 0),
         ),
       ),
     );
@@ -422,7 +426,7 @@ class HomeScreen extends StatelessWidget {
     return Container(
       height: 180,
       decoration: BoxDecoration(
-        color: const Color(0xFFD6F2F7),
+        color: const Color(0xFFC8E8E8),
         borderRadius: BorderRadius.circular(12),
       ),
       child: Center(
@@ -430,12 +434,12 @@ class HomeScreen extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(Icons.video_file_rounded,
-                size: 48, color: const Color(0xFF389BB0)),
+                size: 48, color: const Color(0xFF4B9B9B)),
             const SizedBox(height: 8),
             Text(
               context.l10n.videoReady,
               style: const TextStyle(
-                color: Color(0xFF389BB0),
+                color: Color(0xFF4B9B9B),
                 fontWeight: FontWeight.bold,
               ),
             ),
@@ -443,7 +447,7 @@ class HomeScreen extends StatelessWidget {
             Text(
               fileName,
               style: const TextStyle(
-                  color: Color(0xFF2B2826), fontSize: 12),
+                  color: Color(0xFF2A2A28), fontSize: 12),
               textAlign: TextAlign.center,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,

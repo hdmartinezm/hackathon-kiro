@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 // ignore: avoid_web_libraries_in_flutter
@@ -10,6 +11,8 @@ import '../core/app_settings.dart';
 import '../models/analysis_config.dart';
 import '../models/analysis_result.dart';
 import '../models/analysis_status.dart';
+import '../repositories/upload_repository.dart';
+import '../services/pdf_report_service.dart';
 import '../services/profile_service.dart';
 import '../viewmodels/analysis_viewmodel.dart';
 import '../viewmodels/states/analysis_state.dart';
@@ -38,6 +41,7 @@ class AnalysisScreen extends StatefulWidget {
 class _AnalysisScreenState extends State<AnalysisScreen> {
   bool _analysisStarted = false;
   bool _errorDialogShown = false;
+  bool _isGeneratingPdf = false;
 
   @override
   Widget build(BuildContext context) {
@@ -138,7 +142,7 @@ class _AnalysisScreenState extends State<AnalysisScreen> {
   ) {
     final l10n = context.l10n;
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final textColor = isDark ? Colors.white : const Color(0xFF2B2826);
+    final textColor = isDark ? Colors.white : const Color(0xFF2A2A28);
 
     return SingleChildScrollView(
       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
@@ -150,7 +154,7 @@ class _AnalysisScreenState extends State<AnalysisScreen> {
           // WhatsApp contact button for urgent/attention statuses
           if (result.status == AnalysisStatus.requiereAtencion || result.status == AnalysisStatus.urgente) ...[
             const SizedBox(height: 16),
-            _buildWhatsAppButton(context),
+            _buildWhatsAppButton(context, result),
           ],
           const SizedBox(height: 24),
           // Observations
@@ -324,8 +328,8 @@ class _AnalysisScreenState extends State<AnalysisScreen> {
                 style: const TextStyle(fontSize: 16),
               ),
               style: OutlinedButton.styleFrom(
-                foregroundColor: const Color(0xFF389BB0),
-                side: const BorderSide(color: Color(0xFF389BB0)),
+                foregroundColor: const Color(0xFF4B9B9B),
+                side: const BorderSide(color: Color(0xFF4B9B9B)),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
                 ),
@@ -334,7 +338,7 @@ class _AnalysisScreenState extends State<AnalysisScreen> {
           ),
           const SizedBox(height: 16),
         ],
-      ),
+      ).animate().fadeIn(duration: 400.ms).slideY(begin: 0.08, end: 0),
     );
   }
 
@@ -352,7 +356,7 @@ class _AnalysisScreenState extends State<AnalysisScreen> {
         color: isDark ? const Color(0xFF2D2D2D) : Colors.white,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: isDark ? Colors.white.withValues(alpha: 0.1) : const Color(0xFFE5E0DA),
+          color: isDark ? Colors.white.withValues(alpha: 0.1) : const Color(0xFFE8E1D9),
         ),
         boxShadow: [
           BoxShadow(
@@ -385,19 +389,30 @@ class _AnalysisScreenState extends State<AnalysisScreen> {
     );
   }
 
-  Widget _buildWhatsAppButton(BuildContext context) {
+  Widget _buildWhatsAppButton(BuildContext context, AnalysisResult result) {
     final l10n = context.l10n;
     final profile = context.read<ProfileService>().profile;
-    final hasWhatsApp = profile.pediatricianWhatsApp != null &&
-        profile.pediatricianWhatsApp!.isNotEmpty;
 
     return SizedBox(
       height: 52,
       child: FilledButton.icon(
-        onPressed: () => _launchWhatsApp(context, profile.pediatricianWhatsApp),
-        icon: const Icon(Icons.chat_rounded, size: 22),
+        onPressed: _isGeneratingPdf
+            ? null
+            : () => _launchWhatsAppWithReport(context, profile.pediatricianWhatsApp, result),
+        icon: _isGeneratingPdf
+            ? const SizedBox(
+                width: 20,
+                height: 20,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  color: Colors.white,
+                ),
+              )
+            : const Icon(Icons.chat_rounded, size: 22),
         label: Text(
-          l10n.contactDoctorWhatsApp,
+          _isGeneratingPdf
+              ? (l10n.isEn ? 'Generating report...' : 'Generando reporte...')
+              : l10n.contactDoctorWhatsApp,
           style: const TextStyle(fontSize: 16),
         ),
         style: FilledButton.styleFrom(
@@ -411,7 +426,11 @@ class _AnalysisScreenState extends State<AnalysisScreen> {
     );
   }
 
-  Future<void> _launchWhatsApp(BuildContext context, String? phoneNumber) async {
+  Future<void> _launchWhatsAppWithReport(
+    BuildContext context,
+    String? phoneNumber,
+    AnalysisResult result,
+  ) async {
     final l10n = context.l10n;
 
     if (phoneNumber == null || phoneNumber.isEmpty) {
@@ -431,19 +450,61 @@ class _AnalysisScreenState extends State<AnalysisScreen> {
       return;
     }
 
+    // Start generating PDF
+    setState(() => _isGeneratingPdf = true);
+
+    String? pdfDownloadUrl;
+    try {
+      // Generate PDF
+      final profile = context.read<ProfileService>().profile;
+      final isEnglish = l10n.isEn;
+      final pdfBytes = await PdfReportService.generateReport(
+        result: result,
+        profile: profile,
+        isEnglish: isEnglish,
+      );
+
+      // Upload PDF and get download URL
+      final uploadRepository = context.read<UploadRepository>();
+      pdfDownloadUrl = await uploadRepository.uploadPdfReport(pdfBytes);
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              l10n.isEn
+                  ? 'Could not generate report. Opening WhatsApp without report.'
+                  : 'No se pudo generar el reporte. Abriendo WhatsApp sin reporte.',
+            ),
+            backgroundColor: Colors.orange,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isGeneratingPdf = false);
+      }
+    }
+
     // Clean the phone number (remove spaces, dashes, etc.) and remove leading +
     String cleanNumber = phoneNumber.replaceAll(RegExp(r'[^\d+]'), '');
     if (cleanNumber.startsWith('+')) {
       cleanNumber = cleanNumber.substring(1);
     }
 
-    // Create WhatsApp URL with pre-filled message
-    final message = Uri.encodeComponent(
-      l10n.isEn
+    // Create WhatsApp message with PDF link
+    String messageText;
+    if (pdfDownloadUrl != null) {
+      messageText = l10n.isEn
+          ? 'Hello, I need a consultation about my baby. The BabyHealth app indicated that attention is needed.\n\nHere is the analysis report: $pdfDownloadUrl\n\n(Link valid for 1 hour)'
+          : 'Hola, necesito una consulta sobre mi bebé. La app BabyHealth indicó que requiere atención.\n\nAquí está el reporte del análisis: $pdfDownloadUrl\n\n(Enlace válido por 1 hora)';
+    } else {
+      messageText = l10n.isEn
           ? 'Hello, I need a consultation about my baby. The BabyHealth app indicated that attention is needed.'
-          : 'Hola, necesito una consulta sobre mi bebé. La app BabyHealth indicó que requiere atención.',
-    );
+          : 'Hola, necesito una consulta sobre mi bebé. La app BabyHealth indicó que requiere atención.';
+    }
 
+    final message = Uri.encodeComponent(messageText);
     final whatsappUrlString = 'https://wa.me/$cleanNumber?text=$message';
 
     // On web, use window.open directly for better compatibility

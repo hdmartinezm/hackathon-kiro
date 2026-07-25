@@ -224,7 +224,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     style: const TextStyle(fontSize: 16),
                   ),
                   style: FilledButton.styleFrom(
-                    backgroundColor: const Color(0xFF389BB0),
+                    backgroundColor: const Color(0xFF4B9B9B),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
@@ -265,7 +265,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         children: [
           Row(
             children: [
-              Icon(icon, color: const Color(0xFF389BB0), size: 24),
+              Icon(icon, color: const Color(0xFF4B9B9B), size: 24),
               const SizedBox(width: 8),
               Text(
                 title,
@@ -436,7 +436,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(context.l10n.profileSaved),
-          backgroundColor: const Color(0xFF389BB0),
+          backgroundColor: const Color(0xFF4B9B9B),
         ),
       );
     }

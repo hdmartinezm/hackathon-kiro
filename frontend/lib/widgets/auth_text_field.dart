@@ -30,31 +30,31 @@ class AuthTextField extends StatelessWidget {
       validator: validator,
       style: const TextStyle(
         fontSize: 16,
-        color: Color(0xFF2B2826),
+        color: Color(0xFF2A2A28),
       ),
       decoration: InputDecoration(
         labelText: label,
         labelStyle: TextStyle(
           fontSize: 14,
-          color: const Color(0xFF2B2826).withOpacity(0.6),
+          color: const Color(0xFF2A2A28).withOpacity(0.6),
         ),
         filled: true,
         fillColor: Colors.white,
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: Color(0xFFE5E0DA)),
+          borderSide: const BorderSide(color: Color(0xFFE8E1D9)),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: Color(0xFFE5E0DA)),
+          borderSide: const BorderSide(color: Color(0xFFE8E1D9)),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: Color(0xFF389BB0), width: 2),
+          borderSide: const BorderSide(color: Color(0xFF4B9B9B), width: 2),
         ),
         errorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: Color(0xFFE87055)),
+          borderSide: const BorderSide(color: Color(0xFFDF7B5E)),
         ),
         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
         suffixIcon: suffixIcon,

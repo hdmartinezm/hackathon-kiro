@@ -45,6 +45,12 @@ dependencies:
   # Persist user preferences (theme + language) across sessions
   shared_preferences: ^2.3.2
 
+  # Brand typography (Inter body + Space Grotesk accent) to match landing
+  google_fonts: ^6.2.1
+
+  # Lightweight entrance animations
+  flutter_animate: ^4.5.0
+
   # HTTP client for REST API calls
   http: ^1.2.2
 
@@ -66,6 +72,9 @@ dependencies:
 
   # URL launcher for opening WhatsApp and external links
   url_launcher: ^6.2.5
+
+  # PDF generation for analysis reports
+  pdf: ^3.10.8
 
 dependency_overrides:
   # Pin flutter_plugin_android_lifecycle to a version compatible with compileSdk 34

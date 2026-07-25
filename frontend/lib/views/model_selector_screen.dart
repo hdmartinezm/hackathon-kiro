@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 
 import '../core/app_localizations.dart';
+import '../core/app_theme.dart';
 import '../models/analysis_config.dart';
 import '../models/analysis_provider.dart';
 import '../models/captured_media.dart';
@@ -40,8 +42,9 @@ class _ModelSelectorScreenState extends State<ModelSelectorScreen> {
               Text(
                 l10n.chooseAiModel,
                 style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                      fontFamily: AppTheme.serifFamily,
                       fontWeight: FontWeight.bold,
-                      color: const Color(0xFF2B2826),
+                      color: Theme.of(context).colorScheme.onSurface,
                     ),
                 textAlign: TextAlign.center,
               ),
@@ -49,7 +52,7 @@ class _ModelSelectorScreenState extends State<ModelSelectorScreen> {
               Text(
                 l10n.selectModelDescription,
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: const Color(0xFF2B2826).withValues(alpha: 0.6),
+                      color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
                       height: 1.4,
                     ),
                 textAlign: TextAlign.center,
@@ -101,7 +104,7 @@ class _ModelSelectorScreenState extends State<ModelSelectorScreen> {
                     style: const TextStyle(fontSize: 16),
                   ),
                   style: FilledButton.styleFrom(
-                    backgroundColor: const Color(0xFF389BB0),
+                    backgroundColor: const Color(0xFF4B9B9B),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
@@ -110,7 +113,7 @@ class _ModelSelectorScreenState extends State<ModelSelectorScreen> {
               ),
               const SizedBox(height: 16),
             ],
-          ),
+          ).animate().fadeIn(duration: 400.ms).slideY(begin: 0.08, end: 0),
         ),
       ),
     );
@@ -132,10 +135,10 @@ class _ModelSelectorScreenState extends State<ModelSelectorScreen> {
         duration: const Duration(milliseconds: 200),
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: Theme.of(context).colorScheme.surface,
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
-            color: isSelected ? color : const Color(0xFFE5E0DA),
+            color: isSelected ? color : Theme.of(context).colorScheme.outline,
             width: isSelected ? 2 : 1,
           ),
           boxShadow: [
@@ -210,8 +213,7 @@ class _ModelSelectorScreenState extends State<ModelSelectorScreen> {
                             ? context.l10n.geminiDescription
                             : context.l10n.bedrockDescription,
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                              color:
-                                  const Color(0xFF2B2826).withValues(alpha: 0.6),
+                              color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
                             ),
                       ),
                     ],
@@ -238,14 +240,14 @@ class _ModelSelectorScreenState extends State<ModelSelectorScreen> {
                       size: 16,
                       color: isSelected
                           ? color
-                          : const Color(0xFF2B2826).withValues(alpha: 0.3),
+                          : Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.3),
                     ),
                     const SizedBox(width: 8),
                     Expanded(
                       child: Text(
                         feature,
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                              color: const Color(0xFF2B2826)
+                              color: Theme.of(context).colorScheme.onSurface
                                   .withValues(alpha: isSelected ? 0.8 : 0.5),
                             ),
                       ),

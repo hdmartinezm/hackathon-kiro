@@ -162,20 +162,20 @@ class _StatusBar extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: const Row(
         children: [
-          Icon(Icons.signal_cellular_alt, size: 14, color: Color(0xFF2B2826)),
+          Icon(Icons.signal_cellular_alt, size: 14, color: Color(0xFF2A2A28)),
           SizedBox(width: 4),
-          Icon(Icons.wifi, size: 14, color: Color(0xFF2B2826)),
+          Icon(Icons.wifi, size: 14, color: Color(0xFF2A2A28)),
           Spacer(),
           Text(
             '9:41',
             style: TextStyle(
               fontSize: 12,
               fontWeight: FontWeight.w600,
-              color: Color(0xFF2B2826),
+              color: Color(0xFF2A2A28),
             ),
           ),
           Spacer(),
-          Icon(Icons.battery_full, size: 16, color: Color(0xFF2B2826)),
+          Icon(Icons.battery_full, size: 16, color: Color(0xFF2A2A28)),
         ],
       ),
     );
