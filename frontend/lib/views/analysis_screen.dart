@@ -6,6 +6,7 @@ import '../core/app_localizations.dart';
 import '../core/app_settings.dart';
 import '../models/analysis_config.dart';
 import '../models/analysis_result.dart';
+import '../models/analysis_status.dart';
 import '../services/profile_service.dart';
 import '../viewmodels/analysis_viewmodel.dart';
 import '../viewmodels/states/analysis_state.dart';
@@ -144,7 +145,7 @@ class _AnalysisScreenState extends State<AnalysisScreen> {
           // Traffic light indicator
           TrafficLightWidget(status: result.status),
           // WhatsApp contact button for urgent/attention statuses
-          if (result.status == 'requiere_atencion' || result.status == 'urgente') ...[
+          if (result.status == AnalysisStatus.requiereAtencion || result.status == AnalysisStatus.urgente) ...[
             const SizedBox(height: 16),
             _buildWhatsAppButton(context),
           ],
