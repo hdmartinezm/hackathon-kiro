@@ -23,7 +23,7 @@ class ModelSelectorScreen extends StatefulWidget {
 }
 
 class _ModelSelectorScreenState extends State<ModelSelectorScreen> {
-  AnalysisProvider _selectedProvider = AnalysisProvider.gemini;
+  AnalysisProvider _selectedProvider = AnalysisProvider.bedrock;
 
   @override
   Widget build(BuildContext context) {
@@ -65,19 +65,6 @@ class _ModelSelectorScreenState extends State<ModelSelectorScreen> {
                   children: [
                     _buildProviderCard(
                       context,
-                      provider: AnalysisProvider.gemini,
-                      icon: Icons.auto_awesome_rounded,
-                      color: const Color(0xFF4285F4),
-                      features: [
-                        l10n.nativeVideoAnalysis,
-                        l10n.cryClassification,
-                        l10n.integratedAudioDetection,
-                      ],
-                      recommended: true,
-                    ),
-                    const SizedBox(height: 16),
-                    _buildProviderCard(
-                      context,
                       provider: AnalysisProvider.bedrock,
                       icon: Icons.cloud_rounded,
                       color: const Color(0xFFFF9900),
@@ -85,6 +72,19 @@ class _ModelSelectorScreenState extends State<ModelSelectorScreen> {
                         l10n.visualFrameAnalysis,
                         l10n.claudeSonnetModel,
                         l10n.spectrogramExtraction,
+                      ],
+                      recommended: true,
+                    ),
+                    const SizedBox(height: 16),
+                    _buildProviderCard(
+                      context,
+                      provider: AnalysisProvider.gemini,
+                      icon: Icons.auto_awesome_rounded,
+                      color: const Color(0xFF4285F4),
+                      features: [
+                        l10n.nativeVideoAnalysis,
+                        l10n.cryClassification,
+                        l10n.integratedAudioDetection,
                       ],
                       recommended: false,
                     ),
