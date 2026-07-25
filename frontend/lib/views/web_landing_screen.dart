@@ -1138,60 +1138,26 @@ class _CaracteristicasSection extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 40),
-                GridView.count(
-                  crossAxisCount: isWide ? 3 : 1,
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  mainAxisSpacing: 16,
-                  crossAxisSpacing: 16,
-                  // More height for mobile cards to prevent text overflow
-                  childAspectRatio: isWide ? 1.1 : 2.2,
-                  children: [
-                    _featureCard(
-                      context,
-                      icon: Icons.visibility_outlined,
-                      label: context.l10n.featVisionLabel,
-                      title: context.l10n.featVisionTitle,
-                      description: context.l10n.featVisionDesc,
-                    ),
-                    _featureCard(
-                      context,
-                      icon: Icons.graphic_eq,
-                      label: context.l10n.featAudioLabel,
-                      title: context.l10n.featAudioTitle,
-                      description: context.l10n.featAudioDesc,
-                      badge: context.l10n.comingSoon,
-                    ),
-                    _featureCard(
-                      context,
-                      icon: Icons.cloud_outlined,
-                      label: context.l10n.featAwsLabel,
-                      title: context.l10n.featAwsTitle,
-                      description: context.l10n.featAwsDesc,
-                    ),
-                    _featureCard(
-                      context,
-                      icon: Icons.lock_outline,
-                      label: context.l10n.featPrivacyLabel,
-                      title: context.l10n.featPrivacyTitle,
-                      description: context.l10n.featPrivacyDesc,
-                    ),
-                    _featureCard(
-                      context,
-                      icon: Icons.memory,
-                      label: context.l10n.featEdgeLabel,
-                      title: context.l10n.featEdgeTitle,
-                      description: context.l10n.featEdgeDesc,
-                    ),
-                    _featureCard(
-                      context,
-                      icon: Icons.favorite_outline,
-                      label: context.l10n.featUxLabel,
-                      title: context.l10n.featUxTitle,
-                      description: context.l10n.featUxDesc,
-                    ),
-                  ],
-                ),
+                // Use GridView for desktop, Column for mobile (flexible height)
+                if (isWide)
+                  GridView.count(
+                    crossAxisCount: 3,
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    mainAxisSpacing: 16,
+                    crossAxisSpacing: 16,
+                    childAspectRatio: 1.1,
+                    children: _buildFeatureCards(context),
+                  )
+                else
+                  Column(
+                    children: _buildFeatureCards(context)
+                        .map((card) => Padding(
+                              padding: const EdgeInsets.only(bottom: 16),
+                              child: card,
+                            ))
+                        .toList(),
+                  ),
               ],
             ),
           );
@@ -1201,6 +1167,54 @@ class _CaracteristicasSection extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  List<Widget> _buildFeatureCards(BuildContext context) {
+    return [
+      _featureCard(
+        context,
+        icon: Icons.visibility_outlined,
+        label: context.l10n.featVisionLabel,
+        title: context.l10n.featVisionTitle,
+        description: context.l10n.featVisionDesc,
+      ),
+      _featureCard(
+        context,
+        icon: Icons.graphic_eq,
+        label: context.l10n.featAudioLabel,
+        title: context.l10n.featAudioTitle,
+        description: context.l10n.featAudioDesc,
+        badge: context.l10n.comingSoon,
+      ),
+      _featureCard(
+        context,
+        icon: Icons.cloud_outlined,
+        label: context.l10n.featAwsLabel,
+        title: context.l10n.featAwsTitle,
+        description: context.l10n.featAwsDesc,
+      ),
+      _featureCard(
+        context,
+        icon: Icons.lock_outline,
+        label: context.l10n.featPrivacyLabel,
+        title: context.l10n.featPrivacyTitle,
+        description: context.l10n.featPrivacyDesc,
+      ),
+      _featureCard(
+        context,
+        icon: Icons.memory,
+        label: context.l10n.featEdgeLabel,
+        title: context.l10n.featEdgeTitle,
+        description: context.l10n.featEdgeDesc,
+      ),
+      _featureCard(
+        context,
+        icon: Icons.favorite_outline,
+        label: context.l10n.featUxLabel,
+        title: context.l10n.featUxTitle,
+        description: context.l10n.featUxDesc,
+      ),
+    ];
   }
 
   Widget _featureCard(
@@ -1220,6 +1234,7 @@ class _CaracteristicasSection extends StatelessWidget {
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
         children: [
           Row(
             children: [
