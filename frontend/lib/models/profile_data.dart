@@ -22,6 +22,7 @@ class ProfileData {
   // Pediatrician
   final String? pediatricianName;
   final String? pediatricianPhone;
+  final String? pediatricianWhatsApp;
   final String? clinicName;
 
   const ProfileData({
@@ -36,6 +37,7 @@ class ProfileData {
     this.gestationalWeeks,
     this.pediatricianName,
     this.pediatricianPhone,
+    this.pediatricianWhatsApp,
     this.clinicName,
   });
 
@@ -75,6 +77,7 @@ class ProfileData {
         if (gestationalWeeks != null) 'gestational_weeks': gestationalWeeks,
         if (pediatricianName != null) 'pediatrician_name': pediatricianName,
         if (pediatricianPhone != null) 'pediatrician_phone': pediatricianPhone,
+        if (pediatricianWhatsApp != null) 'pediatrician_whatsapp': pediatricianWhatsApp,
         if (clinicName != null) 'clinic_name': clinicName,
       };
 
@@ -92,6 +95,7 @@ class ProfileData {
         gestationalWeeks: json['gestational_weeks'] as int?,
         pediatricianName: json['pediatrician_name'] as String?,
         pediatricianPhone: json['pediatrician_phone'] as String?,
+        pediatricianWhatsApp: json['pediatrician_whatsapp'] as String?,
         clinicName: json['clinic_name'] as String?,
       );
 
@@ -107,6 +111,7 @@ class ProfileData {
     int? gestationalWeeks,
     String? pediatricianName,
     String? pediatricianPhone,
+    String? pediatricianWhatsApp,
     String? clinicName,
   }) =>
       ProfileData(
@@ -121,6 +126,7 @@ class ProfileData {
         gestationalWeeks: gestationalWeeks ?? this.gestationalWeeks,
         pediatricianName: pediatricianName ?? this.pediatricianName,
         pediatricianPhone: pediatricianPhone ?? this.pediatricianPhone,
+        pediatricianWhatsApp: pediatricianWhatsApp ?? this.pediatricianWhatsApp,
         clinicName: clinicName ?? this.clinicName,
       );
 }

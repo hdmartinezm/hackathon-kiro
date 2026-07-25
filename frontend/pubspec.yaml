@@ -64,6 +64,9 @@ dependencies:
   amplify_flutter: ^2.0.0
   amplify_auth_cognito: ^2.0.0
 
+  # URL launcher for opening WhatsApp and external links
+  url_launcher: ^6.2.5
+
 dependency_overrides:
   # Pin flutter_plugin_android_lifecycle to a version compatible with compileSdk 34
   flutter_plugin_android_lifecycle: 2.0.22

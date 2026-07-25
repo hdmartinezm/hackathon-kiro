@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../core/app_localizations.dart';
 import '../core/app_settings.dart';
@@ -142,6 +143,11 @@ class _AnalysisScreenState extends State<AnalysisScreen> {
         children: [
           // Traffic light indicator
           TrafficLightWidget(status: result.status),
+          // WhatsApp contact button for urgent/attention statuses
+          if (result.status == 'requiere_atencion' || result.status == 'urgente') ...[
+            const SizedBox(height: 16),
+            _buildWhatsAppButton(context),
+          ],
           const SizedBox(height: 24),
           // Observations
           _buildSection(
@@ -373,6 +379,82 @@ class _AnalysisScreenState extends State<AnalysisScreen> {
         ],
       ),
     );
+  }
+
+  Widget _buildWhatsAppButton(BuildContext context) {
+    final l10n = context.l10n;
+    final profile = context.read<ProfileService>().profile;
+    final hasWhatsApp = profile.pediatricianWhatsApp != null &&
+        profile.pediatricianWhatsApp!.isNotEmpty;
+
+    return SizedBox(
+      height: 52,
+      child: FilledButton.icon(
+        onPressed: () => _launchWhatsApp(context, profile.pediatricianWhatsApp),
+        icon: const Icon(Icons.chat_rounded, size: 22),
+        label: Text(
+          l10n.contactDoctorWhatsApp,
+          style: const TextStyle(fontSize: 16),
+        ),
+        style: FilledButton.styleFrom(
+          backgroundColor: const Color(0xFF25D366), // WhatsApp green
+          foregroundColor: Colors.white,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _launchWhatsApp(BuildContext context, String? phoneNumber) async {
+    final l10n = context.l10n;
+
+    if (phoneNumber == null || phoneNumber.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(l10n.noDoctorWhatsApp),
+          backgroundColor: Colors.orange,
+          action: SnackBarAction(
+            label: l10n.profile,
+            textColor: Colors.white,
+            onPressed: () {
+              Navigator.of(context).pushNamed('/profile');
+            },
+          ),
+        ),
+      );
+      return;
+    }
+
+    // Clean the phone number (remove spaces, dashes, etc.)
+    final cleanNumber = phoneNumber.replaceAll(RegExp(r'[^\d+]'), '');
+
+    // Create WhatsApp URL with pre-filled message
+    final message = Uri.encodeComponent(
+      l10n.isEn
+          ? 'Hello, I need a consultation about my baby. The BabyHealth app indicated that attention is needed.'
+          : 'Hola, necesito una consulta sobre mi bebé. La app BabyHealth indicó que requiere atención.',
+    );
+
+    final whatsappUrl = Uri.parse('https://wa.me/$cleanNumber?text=$message');
+
+    if (await canLaunchUrl(whatsappUrl)) {
+      await launchUrl(whatsappUrl, mode: LaunchMode.externalApplication);
+    } else {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              l10n.isEn
+                  ? 'Could not open WhatsApp'
+                  : 'No se pudo abrir WhatsApp',
+            ),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
   }
 
   void _navigateHome(BuildContext context) {

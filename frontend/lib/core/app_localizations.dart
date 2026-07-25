@@ -485,7 +485,13 @@ class AppLocalizations {
   String get gestationalWeeks => _t('Semanas de gestación al nacer', 'Gestational weeks at birth');
   String get pediatricianName => _t('Nombre del pediatra', "Pediatrician's name");
   String get pediatricianPhone => _t('Teléfono', 'Phone');
+  String get pediatricianWhatsApp => _t('WhatsApp del pediatra', "Pediatrician's WhatsApp");
   String get clinicName => _t('Nombre de la clínica', 'Clinic name');
+  String get contactDoctorWhatsApp => _t('Contactar al pediatra', 'Contact pediatrician');
+  String get noDoctorWhatsApp => _t(
+        'No tienes configurado el WhatsApp de tu pediatra. Ve a tu perfil para agregarlo.',
+        "You haven't set up your pediatrician's WhatsApp. Go to your profile to add it.",
+      );
   String get saveProfile => _t('Guardar perfil', 'Save profile');
   String get profileSaved => _t('Perfil guardado', 'Profile saved');
   String get selectDate => _t('Seleccionar fecha', 'Select date');

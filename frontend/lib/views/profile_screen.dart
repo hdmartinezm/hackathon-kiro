@@ -32,6 +32,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   late TextEditingController _gestationalWeeksController;
   late TextEditingController _pediatricianNameController;
   late TextEditingController _pediatricianPhoneController;
+  late TextEditingController _pediatricianWhatsAppController;
   late TextEditingController _clinicNameController;
 
   DateTime? _birthDate;
@@ -66,6 +67,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
     _pediatricianPhoneController = TextEditingController(
       text: profile.pediatricianPhone,
     );
+    _pediatricianWhatsAppController = TextEditingController(
+      text: profile.pediatricianWhatsApp,
+    );
     _clinicNameController = TextEditingController(text: profile.clinicName);
     _birthDate = profile.birthDate;
   }
@@ -82,6 +86,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     _gestationalWeeksController.dispose();
     _pediatricianNameController.dispose();
     _pediatricianPhoneController.dispose();
+    _pediatricianWhatsAppController.dispose();
     _clinicNameController.dispose();
     super.dispose();
   }
@@ -185,6 +190,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   ),
                   const SizedBox(height: 12),
                   _buildTextField(
+                    controller: _pediatricianWhatsAppController,
+                    label: l10n.pediatricianWhatsApp,
+                    icon: Icons.chat_rounded,
+                    keyboardType: TextInputType.phone,
+                    hint: '+1234567890',
+                  ),
+                  const SizedBox(height: 12),
+                  _buildTextField(
                     controller: _clinicNameController,
                     label: l10n.clinicName,
                     icon: Icons.local_hospital_rounded,
@@ -274,12 +287,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
     required String label,
     required IconData icon,
     TextInputType keyboardType = TextInputType.text,
+    String? hint,
   }) {
     return TextFormField(
       controller: controller,
       keyboardType: keyboardType,
       decoration: InputDecoration(
         labelText: label,
+        hintText: hint,
         prefixIcon: Icon(icon),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
@@ -404,6 +419,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
           : null,
       pediatricianPhone: _pediatricianPhoneController.text.isNotEmpty
           ? _pediatricianPhoneController.text
+          : null,
+      pediatricianWhatsApp: _pediatricianWhatsAppController.text.isNotEmpty
+          ? _pediatricianWhatsAppController.text
           : null,
       clinicName: _clinicNameController.text.isNotEmpty
           ? _clinicNameController.text
