@@ -1,423 +1,394 @@
-# Documento de Diseño - BabyHealth
+# Documento de Diseno - BabyHealth
 
 ## Overview
 
-Este documento describe el diseño técnico de BabyHealth, una aplicación móvil que combina análisis visual (cloud) y análisis de audio (on-device) para orientar a padres primerizos sobre el estado de salud de su bebé. La arquitectura es serverless sobre AWS con procesamiento híbrido cloud/edge.
+BabyHealth es una aplicacion web progresiva (Flutter Web) que utiliza IA para analizar videos de bebes y proporcionar orientacion a padres primerizos sobre el estado de salud de su bebe. La arquitectura es serverless sobre AWS con soporte para multiples modelos de IA (Bedrock Claude y Google Gemini).
 
-## Architecture
+**URL de Produccion:** https://babyhealth.hmartinez.info
+
+## Arquitectura General
 
 ```
-┌─────────────────────────────────────────────────────────┐
-│                    Flutter App (iOS/Android)              │
-├─────────────────┬──────────────────┬────────────────────┤
-│  Módulo Cámara  │  Módulo Audio    │  Módulo Resultados │
-│  - Captura      │  - Grabación 7s  │  - Semáforo        │
-│  - Validación   │  - CoreML (iOS)  │  - Observaciones   │
-│  - Upload S3    │  - TFLite (And)  │  - Historial       │
-└────────┬────────┴────────┬─────────┴─────────┬──────────┘
-         │                 │                   │
-         ▼                 ▼                   ▼
-┌─────────────────────────────────────────────────────────┐
-│              Amazon API Gateway (HTTPS)                   │
-│              - Throttling por IP                          │
-│              - CORS configurado                           │
-└────────────────────────┬────────────────────────────────┘
-                         │
-                         ▼
-┌─────────────────────────────────────────────────────────┐
-│           AWS Lambda (FastAPI + Mangum)                   │
-│  ┌──────────┐  ┌───────────┐  ┌──────────────────────┐ │
-│  │ /health  │  │/upload-url│  │ /analyze             │ │
-│  │          │  │           │  │ /analyze-audio       │ │
-│  └──────────┘  └───────────┘  └──────────────────────┘ │
-└────────┬───────────────┬───────────────┬────────────────┘
-         │               │               │
-         ▼               ▼               ▼
-┌──────────────┐  ┌───────────┐  ┌───────────────┐
-│ Amazon S3    │  │  Bedrock  │  │  DynamoDB     │
-│ (imágenes)   │  │  Claude   │  │ (resultados)  │
-│ TTL: 24h     │  │  Sonnet   │  │               │
-└──────────────┘  └───────────┘  └───────────────┘
+┌─────────────────────────────────────────────────────────────────────────┐
+│                         Flutter Web App                                  │
+│  ┌────────────┐  ┌────────────┐  ┌────────────┐  ┌──────────────────┐  │
+│  │  Landing   │  │   Home     │  │  Profile   │  │    Analysis      │  │
+│  │   Page     │  │  Screen    │  │  Screen    │  │    Screen        │  │
+│  │            │  │            │  │            │  │  (Video Capture) │  │
+│  └────────────┘  └────────────┘  └────────────┘  └──────────────────┘  │
+│                                                                          │
+│  ┌─────────────────────────────────────────────────────────────────┐   │
+│  │                    Servicios y Estado                            │   │
+│  │  ┌──────────┐  ┌───────────┐  ┌──────────┐  ┌──────────────┐   │   │
+│  │  │AuthService│  │ProfileSvc │  │AppSettings│  │AnalysisRepo │   │   │
+│  │  │(Amplify) │  │(SharedPref)│  │(Theme/i18n)│  │ (API calls) │   │   │
+│  │  └──────────┘  └───────────┘  └──────────┘  └──────────────┘   │   │
+│  └─────────────────────────────────────────────────────────────────┘   │
+└────────────────────────────────┬────────────────────────────────────────┘
+                                 │ HTTPS
+                                 ▼
+┌────────────────────────────────────────────────────────────────────────┐
+│                         CloudFront CDN                                  │
+│                    babyhealth.hmartinez.info                           │
+│                    (SSL via ACM Certificate)                            │
+└────────────────────────────────┬───────────────────────────────────────┘
+                                 │
+               ┌─────────────────┼─────────────────┐
+               ▼                 │                 ▼
+┌──────────────────────┐         │    ┌──────────────────────────────────┐
+│      S3 Bucket       │         │    │         API Gateway              │
+│  (Static Frontend)   │         │    │  ┌────────────────────────────┐ │
+│  - index.html        │         │    │  │ POST /analyze              │ │
+│  - main.dart.js      │         │    │  │ POST /analyze-gemini       │ │
+│  - assets/           │         │    │  │ POST /upload-url           │ │
+└──────────────────────┘         │    │  │ GET  /health               │ │
+                                 │    │  └────────────────────────────┘ │
+                                 │    └──────────────┬───────────────────┘
+                                 │                   │
+                                 │                   ▼
+                                 │    ┌──────────────────────────────────┐
+                                 │    │         AWS Lambda               │
+                                 │    │     (FastAPI + Mangum)           │
+                                 │    │                                  │
+                                 │    │  - Video frame extraction        │
+                                 │    │  - AI model orchestration        │
+                                 │    │  - Response formatting           │
+                                 │    └──────────────┬───────────────────┘
+                                 │                   │
+                                 │     ┌─────────────┼─────────────┐
+                                 │     ▼             ▼             ▼
+                                 │  ┌────────┐  ┌────────┐  ┌────────────┐
+                                 │  │Bedrock │  │Gemini  │  │ DynamoDB   │
+                                 │  │(Claude)│  │  API   │  │ (Results)  │
+                                 │  └────────┘  └────────┘  └────────────┘
+                                 │
+                                 ▼
+                    ┌──────────────────────────────┐
+                    │      AWS Cognito             │
+                    │  - User Pool                 │
+                    │  - Google OAuth              │
+                    │  - Facebook OAuth            │
+                    └──────────────────────────────┘
 ```
 
-## Components and Interfaces
+## Componentes del Frontend
 
-### 1. Backend API (FastAPI + Lambda)
+### Estructura de Archivos
 
-**Tecnología:** Python 3.11, FastAPI, Mangum (adaptador Lambda)
-**Despliegue:** AWS Lambda detrás de API Gateway
+```
+frontend/lib/
+├── main.dart                    # Entry point, providers, rutas
+├── core/
+│   ├── amplify_config.dart      # Configuracion Cognito/Amplify
+│   ├── app_localizations.dart   # Strings i18n (ES/EN)
+│   ├── app_settings.dart        # Tema y preferencias
+│   └── app_theme.dart           # Definicion de temas
+├── models/
+│   ├── analysis_result.dart     # Resultado del analisis
+│   ├── analyze_request_dto.dart # Request con profileContext
+│   └── profile_data.dart        # Datos del perfil
+├── repositories/
+│   └── analysis_repository.dart # Llamadas a API (Bedrock/Gemini)
+├── services/
+│   ├── auth_service.dart        # Autenticacion con Amplify
+│   └── profile_service.dart     # Persistencia de perfil
+├── viewmodels/
+│   ├── analysis_viewmodel.dart  # Estado del analisis
+│   └── auth_viewmodel.dart      # Estado de autenticacion
+├── views/
+│   ├── analysis_screen.dart     # Captura video + resultados
+│   ├── auth_screen.dart         # Login social
+│   ├── home_screen.dart         # Pantalla principal
+│   ├── profile_screen.dart      # Formulario de perfil
+│   └── web_landing_screen.dart  # Landing page publica
+└── widgets/
+    ├── baby_health_logo.dart    # Logo animado
+    └── settings_controls.dart   # Toggle tema/idioma
+```
 
-#### Estructura de Módulos
+### Pantallas Principales
+
+#### 1. Landing Page (`web_landing_screen.dart`)
+- Hero section con CTA
+- Seccion de caracteristicas (6 cards)
+- Seccion de arquitectura tecnica
+- Responsivo (mobile/tablet/desktop)
+- Animaciones hover en botones
+
+#### 2. Home Screen (`home_screen.dart`)
+- Boton para iniciar analisis
+- Acceso a perfil
+- Controles de configuracion
+- Logout
+
+#### 3. Profile Screen (`profile_screen.dart`)
+- **Seccion Padres:** Nombre de mama y papa
+- **Seccion Bebe:** Nombre, fecha nacimiento, peso (nacimiento/actual), altura, semanas gestacionales
+- **Seccion Pediatra:** Nombre, telefono, clinica
+- Persistencia local con SharedPreferences
+- Datos enviados como contexto al analisis IA
+
+#### 4. Analysis Screen (`analysis_screen.dart`)
+- Captura de video (5 segundos)
+- Seleccion de modelo (Bedrock/Gemini)
+- Visualizacion de resultado tipo semaforo
+- Lista de observaciones y recomendaciones
+
+### Sistema de Localizacion
+
+```dart
+// Uso: context.l10n.nombreClave
+class AppLocalizations {
+  static const _strings = {
+    'es': {
+      'appTitle': 'BabyHealth',
+      'profile': 'Perfil',
+      'parents': 'Padres',
+      'baby': 'Bebe',
+      // ... 50+ strings
+    },
+    'en': {
+      'appTitle': 'BabyHealth',
+      'profile': 'Profile',
+      'parents': 'Parents',
+      'baby': 'Baby',
+      // ... 50+ strings
+    },
+  };
+}
+```
+
+## Componentes del Backend
+
+### Estructura de Archivos
 
 ```
 backend/
 ├── app/
 │   ├── __init__.py
-│   ├── main.py              # FastAPI app + Mangum handler
-│   ├── config.py            # Configuración y variables de entorno
+│   ├── main.py                  # FastAPI app + Mangum handler
+│   ├── config.py                # Variables de entorno
 │   ├── models/
-│   │   ├── __init__.py
-│   │   ├── requests.py      # Modelos Pydantic de request
-│   │   └── responses.py     # Modelos Pydantic de response
+│   │   ├── requests.py          # Pydantic request models
+│   │   └── responses.py         # Pydantic response models
 │   ├── routers/
-│   │   ├── __init__.py
-│   │   ├── health.py        # GET /health
-│   │   ├── upload.py        # POST /upload-url
-│   │   ├── analyze.py       # POST /analyze
-│   │   └── audio.py         # POST /analyze-audio
-│   ├── services/
-│   │   ├── __init__.py
-│   │   ├── s3_service.py    # Interacción con S3
-│   │   ├── bedrock_service.py  # Interacción con Bedrock
-│   │   └── dynamo_service.py   # Interacción con DynamoDB
-│   └── utils/
-│       ├── __init__.py
-│       ├── retry.py         # Lógica de reintentos
-│       └── validators.py    # Validaciones comunes
-├── tests/
-│   ├── __init__.py
-│   ├── test_health.py
-│   ├── test_upload.py
-│   ├── test_analyze.py
-│   └── test_audio.py
-├── requirements.txt
-└── lambda_handler.py        # Entry point para Lambda
+│   │   ├── health.py            # GET /health
+│   │   ├── upload.py            # POST /upload-url
+│   │   ├── analyze.py           # POST /analyze (Bedrock)
+│   │   └── analyze_gemini.py    # POST /analyze-gemini
+│   └── services/
+│       ├── s3_service.py        # Upload/download S3
+│       ├── bedrock_service.py   # Claude Sonnet
+│       └── gemini_service.py    # Google Gemini
+└── requirements.txt
 ```
 
-### 2. Servicio S3 (Almacén de Imágenes)
+### Endpoints API
 
-**Configuración:**
-- Bucket con políticas de acceso privado (sin acceso público)
-- Lifecycle rule: eliminar objetos después de 24 horas
-- Pre-signed URLs con expiración de 300 segundos
-- Carpeta por sesión: `sessions/{session_id}/{filename}`
-
-**Flujo de Upload:**
-1. App solicita URL pre-firmada → Backend genera con boto3
-2. App sube imagen directamente a S3 usando la URL
-3. App envía s3_key al endpoint /analyze
-
-### 3. Servicio Bedrock (Análisis Visual)
-
-**Modelo:** `us.anthropic.claude-sonnet-4-5-20250929-v1:0`
-**Región:** us-east-1
-**Alternativa rápida:** `us.anthropic.claude-haiku-4-5-20251001-v1:0`
-
-**Prompt del Sistema:**
-```
-Eres un asistente de orientación para padres. Analiza esta imagen de un bebé.
-
-Evalúa:
-- Coloración de piel (busca tonos amarillentos que podrían indicar ictericia)
-- Expresión facial (signos de malestar o tranquilidad)
-- Estado general visible
-
-Responde SOLO en JSON válido con este formato exacto:
-{
-  "estado_general": "normal | requiere_atencion | urgente",
-  "observaciones": ["observación 1", "observación 2"],
-  "recomendaciones": ["recomendación 1", "recomendación 2"],
-  "confianza": 0.87
-}
-
-Reglas:
-- Si la imagen no es clara o no muestra un bebé, indica error de calidad
-- Siempre incluye al menos una recomendación
-- El valor de confianza refleja tu certeza (0.0-1.0)
-- Si detectas posible ictericia, estado_general debe ser "requiere_atencion" o "urgente"
-```
-
-**Validación de Calidad:**
-Bedrock evalúa calidad de imagen como primer paso. Si detecta problemas:
-```json
-{
-  "error": "calidad_insuficiente",
-  "mensaje": "La imagen no es lo suficientemente clara para un análisis confiable",
-  "sugerencias": ["Mejore la iluminación", "Enfoque la cámara", "Centre el rostro del bebé"]
-}
-```
-
-### 4. Servicio DynamoDB (Almacén de Resultados)
-
-**Tabla:** `babyhealth-results`
-
-| Atributo | Tipo | Descripción |
-|----------|------|-------------|
-| session_id (PK) | String (UUID) | Identificador de sesión |
-| timestamp (SK) | String (ISO 8601) | Momento del análisis |
-| analysis_type | String | "visual" o "audio" |
-| result | Map | Resultado completo del análisis |
-| created_at | String (ISO 8601) | Timestamp de creación |
-
-### 5. Módulo Audio iOS (DeepInfant CoreML)
-
-**Modelo:** DeepInfant V2
-**Framework:** CoreML
-**Capacidad offline:** Completa
-
-**Flujo:**
-1. Grabar 7 segundos de audio (AVAudioRecorder)
-2. Convertir a espectrograma (vDSP/Accelerate framework)
-3. Ejecutar inferencia con CoreML
-4. Mapear salida a categoría de llanto
-5. Eliminar buffer de audio inmediatamente
-
-**Categorías de salida:**
-| ID | Category | Label (ES) | Recomendación |
-|----|----------|------------|---------------|
-| 0 | hungry | Hambre | Ofrecer alimentación |
-| 1 | pain | Dolor | Revisar, consultar si persiste |
-| 2 | fatigue | Cansancio | Ambiente tranquilo, dormir |
-| 3 | discomfort | Incomodidad | Revisar pañal, posición, ropa |
-| 4 | burp | Eructo | Sostener vertical, palmaditas |
-| 5 | temperature | Temperatura | Verificar si tiene frío/calor |
-| 6 | fear | Miedo | Contacto, voz suave, mecer |
-| 7 | loneliness | Soledad | Contacto físico, presencia |
-| 8 | unknown | Desconocido | Intentar de nuevo en ambiente silencioso |
-
-**Umbral de confianza:** Si confidence < 0.5 → categoría "unknown"
-
-### 6. Módulo Audio Android (YAMNet + Bedrock)
-
-**Detección local:** YAMNet TFLite
-**Clasificación cloud:** Bedrock Claude
-
-**Flujo:**
-1. Grabar 7 segundos de audio
-2. YAMNet detecta si es llanto de bebé (on-device)
-3. Si no es llanto → retornar "No se detecta llanto de bebé"
-4. Si es llanto → generar espectrograma
-5. Subir espectrograma a S3
-6. Llamar POST /analyze-audio con s3_key
-7. Retornar resultado de clasificación
-
-### 7. Flutter App (Frontend)
-
-**Estructura de pantallas:**
-
-```
-lib/
-├── main.dart
-├── config/
-│   └── app_config.dart       # URLs, constantes
-├── models/
-│   ├── analysis_result.dart  # Modelo de resultado visual
-│   └── audio_result.dart     # Modelo de resultado audio
-├── screens/
-│   ├── splash_screen.dart    # Disclaimer + animación
-│   ├── home_screen.dart      # Selección: foto o audio
-│   ├── camera_screen.dart    # Captura de imagen
-│   ├── audio_screen.dart     # Grabación de audio
-│   ├── result_screen.dart    # Resultado visual (semáforo)
-│   └── audio_result_screen.dart  # Resultado audio
-├── services/
-│   ├── api_service.dart      # Comunicación con backend
-│   ├── audio_service.dart    # Grabación y clasificación
-│   └── camera_service.dart   # Captura y upload
-└── widgets/
-    ├── disclaimer_widget.dart    # Widget reutilizable de disclaimer
-    ├── traffic_light_widget.dart # Indicador semáforo
-    └── confidence_bar.dart       # Barra de confianza
-```
-
-**Navegación:**
-```
-Splash (disclaimer) → Home → [Cámara | Audio] → Resultado
-                                                     ↓
-                                              [Nuevo Análisis]
-                                              [Contactar Pediatra]
-```
-
-## Data Models
-
-### Request: Upload URL
-```python
-class UploadUrlRequest(BaseModel):
-    file_type: Literal["image/jpeg", "image/png"]
-    session_id: UUID
-```
+| Metodo | Endpoint | Descripcion |
+|--------|----------|-------------|
+| GET | `/health` | Health check |
+| POST | `/upload-url` | Genera URL pre-firmada para S3 |
+| POST | `/analyze` | Analiza video con Bedrock Claude |
+| POST | `/analyze-gemini` | Analiza video con Google Gemini |
 
 ### Request: Analyze
+
 ```python
 class AnalyzeRequest(BaseModel):
-    s3_key: str
-    session_id: UUID
+    video_key: str              # S3 key del video
+    session_id: Optional[str]   # ID de sesion
+    profile_context: Optional[dict]  # Contexto del perfil
 ```
 
-### Request: Analyze Audio
-```python
-class AnalyzeAudioRequest(BaseModel):
-    s3_key: str
-```
+### Response: Analyze
 
-### Response: Upload URL
-```python
-class UploadUrlResponse(BaseModel):
-    upload_url: str
-    s3_key: str
-    expires_in: int = 300
-```
-
-### Response: Analyze (Visual)
 ```python
 class AnalyzeResponse(BaseModel):
-    session_id: UUID
+    session_id: str
     estado_general: Literal["normal", "requiere_atencion", "urgente"]
     observaciones: list[str]
     recomendaciones: list[str]
     confianza: float  # 0.0 - 1.0
-    disclaimer: str = "Consulte a su pediatra"
+    disclaimer: str
     timestamp: datetime
 ```
 
-### Response: Analyze Audio
-```python
-class AudioAnalysisResponse(BaseModel):
-    category: str
-    label: str
-    confidence: float
-    recommendation: str
-```
-
-### DynamoDB Schema
-
-**Tabla:** `babyhealth-results`
-
-| Atributo | Tipo | Descripción |
-|----------|------|-------------|
-| session_id (PK) | String (UUID) | Identificador de sesión |
-| timestamp (SK) | String (ISO 8601) | Momento del análisis |
-| analysis_type | String | "visual" o "audio" |
-| result | Map | Resultado completo del análisis |
-| created_at | String (ISO 8601) | Timestamp de creación |
-
-## Correctness Properties
-
-*A property is a characteristic or behavior that should hold true across all valid executions of a system-essentially, a formal statement about what the system should do. Properties serve as the bridge between human-readable specifications and machine-verifiable correctness guarantees.*
-
-### Property 1: Integridad de respuesta visual
-
-*For any* imagen válida analizada, la respuesta DEBE contener exactamente los campos: estado_general, observaciones, recomendaciones, confianza, disclaimer, timestamp. Además, estado_general DEBE ser uno de: "normal", "requiere_atencion", "urgente", y confianza DEBE estar en el rango [0.0, 1.0].
-
-**Validates: Requirements 1.1, 1.2**
-
-### Property 2: Consistencia de clasificación de audio
-
-*For any* audio clasificado, la categoría DEBE ser una de las 9 categorías de llanto definidas. Si confidence < umbral → categoría DEBE ser "unknown". El label DEBE corresponder exactamente a la categoría en la tabla de mapeo.
-
-**Validates: Requirements 2.1, 2.2**
-
-### Property 3: Idempotencia de URL pre-firmada
-
-*For any* sesión y tipo de archivo, generar múltiples URLs pre-firmadas DEBE producir URLs válidas independientes. Cada URL generada DEBE expirar exactamente después de 300 segundos.
-
-**Validates: Requirements 3.1**
-
-### Property 4: Persistencia de resultados (round-trip)
-
-*For any* resultado almacenado en DynamoDB, DEBE ser recuperable por session_id. El orden de resultados por timestamp DEBE ser determinista y descendente.
-
-**Validates: Requirements 4.1**
-
-### Property 5: Aislamiento de audio iOS
-
-*For any* inferencia de audio en iOS, el buffer de audio DEBE ser eliminado inmediatamente después de la inferencia CoreML. Ningún dato de audio DEBE persistir en disco o transmitirse por red.
-
-**Validates: Requirements 5.1**
-
-### Property 6: Presencia obligatoria de disclaimer
-
-*For any* respuesta de análisis visual, DEBE contener el campo disclaimer no vacío. La UI DEBE renderizar el disclaimer en splash, home footer, y cada pantalla de resultado.
-
-**Validates: Requirements 6.1**
-
-### Property 7: Round-trip de modelos de datos
-
-*For any* AnalyzeResponse válido, serializar y deserializar DEBE producir un objeto equivalente al original. Lo mismo aplica para AudioAnalysisResponse.
-
-**Validates: Requirements 1.1, 2.1**
-
-## Error Handling
-
-### Lógica de Reintentos (Bedrock)
+### Prompt del Sistema (Bedrock/Gemini)
 
 ```
-Intento 1 → timeout 10s → espera 1s
-Intento 2 → timeout 10s → espera 2s
-Intento 3 → timeout 10s → error amigable
-```
+Eres un asistente de orientacion para padres. Analiza este video/imagen de un bebe.
 
-### Validación de Calidad de Imagen
+Contexto del bebe (si disponible):
+{profile_context}
 
-Bedrock evalúa calidad de imagen como primer paso. Si detecta problemas:
-```json
+Evalua:
+- Coloracion de piel (tonos amarillentos pueden indicar ictericia)
+- Expresion facial (signos de malestar o tranquilidad)
+- Movimientos y postura
+- Estado general visible
+
+Responde SOLO en JSON con este formato:
 {
-  "error": "calidad_insuficiente",
-  "mensaje": "La imagen no es lo suficientemente clara para un análisis confiable",
-  "sugerencias": ["Mejore la iluminación", "Enfoque la cámara", "Centre el rostro del bebé"]
+  "estado_general": "normal | requiere_atencion | urgente",
+  "observaciones": ["observacion 1", "observacion 2"],
+  "recomendaciones": ["recomendacion 1", "recomendacion 2"],
+  "confianza": 0.87
 }
 ```
 
-### Umbral de Confianza Audio
+## Infraestructura AWS (CDK)
 
-Si confidence < 0.5 → categoría "unknown" con mensaje: "Intentar de nuevo en ambiente silencioso"
+### Recursos Desplegados
 
-### Errores de Red y Timeout
+| Servicio | Recurso | Proposito |
+|----------|---------|-----------|
+| S3 | `babyhealthstack-*-bucket` | Frontend estatico |
+| S3 | `babyhealthstack-*-videos` | Videos temporales (TTL 24h) |
+| CloudFront | Distribution | CDN con SSL |
+| Route 53 | A Record | DNS `babyhealth.hmartinez.info` |
+| ACM | Certificate | SSL para dominio custom |
+| Cognito | User Pool | Autenticacion |
+| Cognito | Identity Providers | Google, Facebook |
+| API Gateway | REST API | Endpoints backend |
+| Lambda | Function | FastAPI runtime |
+| Lambda Layer | Dependencies | numpy, opencv, etc. |
+| DynamoDB | Table | Resultados de analisis |
 
-- Si la conexión falla, la app muestra un mensaje amigable y permite reintentar
-- Los uploads a S3 con URL pre-firmada expirada retornan error 403 → la app solicita nueva URL
-- Timeout en Bedrock se maneja con la lógica de reintentos descrita arriba
+### Configuracion de Cognito
 
-## Testing Strategy
+```typescript
+// OAuth Callback URLs
+const callbackUrls = [
+  'https://babyhealth.hmartinez.info/',
+  'https://d272sj5fujdytw.cloudfront.net/',
+  'http://localhost:8443/'
+];
 
-### Enfoque Dual de Testing
+// Identity Providers
+const identityProviders = ['Google', 'Facebook', 'COGNITO'];
 
-**Unit Tests:** Verifican ejemplos específicos, edge cases y condiciones de error.
-**Property Tests:** Verifican propiedades universales a través de todos los inputs.
+// OAuth Scopes
+const scopes = ['openid', 'email', 'profile'];
+```
 
-### Property-Based Testing
+## Modelo de Datos
 
-**Librería:** Hypothesis (Python)
-**Configuración:** Mínimo 100 iteraciones por property test.
-**Tag format:** `Feature: babyhealth-app, Property {number}: {property_text}`
+### ProfileData (Frontend)
 
-Los property tests cubren:
-- Serialización round-trip de modelos (Property 7)
-- Validación de respuestas (Property 1, Property 2)
-- Generación de URLs pre-firmadas (Property 3)
-- Consistencia de clasificación de audio (Property 2)
+```dart
+class ProfileData {
+  final String? motherName;
+  final String? fatherName;
+  final String? babyName;
+  final DateTime? birthDate;
+  final double? birthWeightKg;
+  final double? currentWeightKg;
+  final double? birthHeightCm;
+  final double? currentHeightCm;
+  final int? gestationalWeeks;
+  final String? pediatricianName;
+  final String? pediatricianPhone;
+  final String? clinicName;
 
-### Unit Tests
+  // Calcula edad en meses
+  int? get ageInMonths { ... }
 
-- Test de endpoints con mocks de servicios AWS
-- Test de validación de requests con payloads inválidos
-- Test de flujo de audio con señales simuladas
-- Test de integración con LocalStack para S3 y DynamoDB
+  // Genera contexto para IA
+  Map<String, dynamic> toAnalysisContext() { ... }
+}
+```
 
-### Integration Tests
+### AnalysisResult (Frontend)
 
-- Test end-to-end del flujo de upload → análisis → resultado
-- Test de expiración de URLs pre-firmadas
-- Test de lifecycle rules en S3
+```dart
+class AnalysisResult {
+  final String sessionId;
+  final String estadoGeneral;  // normal, requiere_atencion, urgente
+  final List<String> observaciones;
+  final List<String> recomendaciones;
+  final double confianza;
+  final String disclaimer;
+  final DateTime timestamp;
+}
+```
 
-## Decisiones de Diseño
+## Diseno Responsivo
 
-### D1: Procesamiento híbrido (cloud/edge)
-- **Decisión:** Audio en dispositivo, imagen en la nube
-- **Justificación:** Audio requiere baja latencia y máxima privacidad. Imagen requiere Claude Vision que solo está en la nube.
+### Breakpoints
 
-### D2: URLs pre-firmadas para upload
-- **Decisión:** La app sube directamente a S3 sin pasar por Lambda
-- **Justificación:** Evita timeout de Lambda por uploads grandes, reduce carga del backend.
+| Dispositivo | Ancho | Layout |
+|-------------|-------|--------|
+| Mobile | < 360px | Compacto, iconos reducidos |
+| Mobile | 360-600px | Normal mobile |
+| Tablet | 600-900px | Hibrido |
+| Desktop | > 900px | Full, 3 columnas |
 
-### D3: Mangum como adaptador
-- **Decisión:** Usar Mangum para ejecutar FastAPI en Lambda
-- **Justificación:** Permite desarrollo local con uvicorn y despliegue en Lambda sin cambios de código.
+### Adaptaciones Mobile
 
-### D4: Retry con backoff exponencial
-- **Decisión:** 3 intentos con espera 1s, 2s para Bedrock
-- **Justificación:** Bedrock puede tener latencia variable; reintentos mejoran resiliencia sin saturar el servicio.
+- **HomeScreen AppBar:** Profile/logout en popup menu en < 400px
+- **ProfileScreen:** Campos apilados verticalmente en < 350px
+- **Landing Features:** Column en lugar de Grid para altura flexible
+- **SettingsControls:** Oculta texto de idioma en < 360px
 
-### D5: TTL de 24 horas en S3
-- **Decisión:** Las imágenes se eliminan automáticamente después de 24 horas
-- **Justificación:** Minimiza almacenamiento de datos sensibles (fotos de bebés) mientras permite re-análisis inmediato.
+## Seguridad
+
+### Autenticacion
+- OAuth 2.0 via AWS Cognito
+- Tokens JWT validados en cada request
+- Session storage para tokens (no localStorage)
+
+### Datos
+- Videos eliminados automaticamente (TTL 24h)
+- Datos de perfil solo en dispositivo (SharedPreferences)
+- HTTPS obligatorio (CloudFront redirect)
+- CORS configurado solo para dominios permitidos
+
+### Privacidad
+- Disclaimer obligatorio en cada analisis
+- No se almacenan imagenes/videos permanentemente
+- Perfil nunca enviado a terceros (solo como contexto a IA)
+
+## Testing
+
+### Frontend (Flutter)
+
+```bash
+cd frontend
+flutter test
+```
+
+- Unit tests para ViewModels
+- Widget tests para componentes criticos
+- Mock de servicios AWS
+
+### Backend (Python)
+
+```bash
+cd backend
+pytest
+```
+
+- Unit tests con mocks de AWS
+- Integration tests con LocalStack
+- Property-based tests con Hypothesis
+
+## Decisiones de Diseno
+
+| Decision | Justificacion |
+|----------|---------------|
+| Flutter Web (no nativo) | Desarrollo rapido, una sola codebase, demo web accesible |
+| Dual AI (Bedrock + Gemini) | Redundancia, comparacion de resultados, fallback |
+| Profile local (SharedPreferences) | Privacidad, no requiere backend para datos personales |
+| Video 5s (no imagen) | Captura movimiento, expresiones, mejor analisis |
+| Sistema semaforo | Comunicacion clara y universal del estado |
+| i18n desde dia 1 | Mercado LATAM + US, escalabilidad |
+
+## Mejoras Futuras
+
+- [ ] Analisis de audio (llanto) con modelo on-device
+- [ ] Historial de analisis persistente
+- [ ] Notificaciones push para recordatorios
+- [ ] Modo offline con cache de resultados
+- [ ] Exportar reportes PDF para pediatra
+- [ ] Integracion con Apple Health / Google Fit
