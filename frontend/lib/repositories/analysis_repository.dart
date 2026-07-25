@@ -23,9 +23,10 @@ class AnalysisRepository {
     String videoKey, {
     String? sessionId,
     Map<String, dynamic>? profileContext,
+    String? language,
   }) async {
     return _analyzeWithEndpoint('/analyze', videoKey,
-        sessionId: sessionId, profileContext: profileContext);
+        sessionId: sessionId, profileContext: profileContext, language: language);
   }
 
   /// Sends a video key for analysis using Google Gemini (native multimodal).
@@ -38,9 +39,10 @@ class AnalysisRepository {
     String videoKey, {
     String? sessionId,
     Map<String, dynamic>? profileContext,
+    String? language,
   }) async {
     return _analyzeWithEndpoint('/analyze-gemini', videoKey,
-        sessionId: sessionId, profileContext: profileContext);
+        sessionId: sessionId, profileContext: profileContext, language: language);
   }
 
   /// Internal method that handles the actual API call.
@@ -49,11 +51,13 @@ class AnalysisRepository {
     String videoKey, {
     String? sessionId,
     Map<String, dynamic>? profileContext,
+    String? language,
   }) async {
     final requestDto = AnalyzeRequestDto(
       videoKey: videoKey,
       sessionId: sessionId,
       profileContext: profileContext,
+      language: language,
     );
 
     final response = await _httpClient.post(

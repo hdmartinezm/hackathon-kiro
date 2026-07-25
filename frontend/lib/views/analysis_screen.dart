@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../core/app_localizations.dart';
+import '../core/app_settings.dart';
 import '../models/analysis_config.dart';
 import '../models/analysis_result.dart';
 import '../services/profile_service.dart';
@@ -44,10 +45,12 @@ class _AnalysisScreenState extends State<AnalysisScreen> {
       _errorDialogShown = false;
       WidgetsBinding.instance.addPostFrameCallback((_) {
         final profile = context.read<ProfileService>().profile;
+        final language = context.read<AppSettings>().languageCode;
         viewModel.startAnalysis(
           widget.config.media,
           provider: widget.config.provider,
           profile: profile,
+          language: language,
         );
       });
     }

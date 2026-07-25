@@ -1,7 +1,8 @@
 /// DTO for the `POST /analyze` request body.
 ///
 /// Sends the [videoKey] (obtained from `GET /upload-url`), an optional
-/// [sessionId] for traceability, and optional [profileContext] for AI context.
+/// [sessionId] for traceability, optional [profileContext] for AI context,
+/// and [language] for response localization.
 class AnalyzeRequestDto {
   /// S3 key of the previously uploaded video.
   final String videoKey;
@@ -12,10 +13,14 @@ class AnalyzeRequestDto {
   /// Optional profile context for AI analysis (baby age, weight, etc.).
   final Map<String, dynamic>? profileContext;
 
+  /// Language code for response localization ('es' or 'en').
+  final String? language;
+
   const AnalyzeRequestDto({
     required this.videoKey,
     this.sessionId,
     this.profileContext,
+    this.language,
   });
 
   /// Converts this DTO to a JSON-compatible map for the request body.
@@ -24,6 +29,7 @@ class AnalyzeRequestDto {
       'video_key': videoKey,
       if (sessionId != null) 'session_id': sessionId,
       if (profileContext != null) 'profile_context': profileContext,
+      if (language != null) 'language': language,
     };
   }
 }

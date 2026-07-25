@@ -41,12 +41,16 @@ class AnalysisViewModel extends ChangeNotifier {
   /// - [AnalysisProvider.bedrock]: Uses `/analyze` (default)
   /// - [AnalysisProvider.gemini]: Uses `/analyze-gemini` with native multimodal
   ///
+  /// The [language] parameter ('es' or 'en') determines the language of the
+  /// analysis response.
+  ///
   /// On failure at any step, sets status to `'error'` with a descriptive
   /// [AnalysisState.errorMessage].
   Future<void> startAnalysis(
     CapturedMedia media, {
     AnalysisProvider provider = AnalysisProvider.bedrock,
     ProfileData? profile,
+    String? language,
   }) async {
     _state = _state.copyWith(status: 'uploading', errorMessage: null);
     notifyListeners();
@@ -63,10 +67,12 @@ class AnalysisViewModel extends ChangeNotifier {
         AnalysisProvider.bedrock => await _analysisRepository.analyze(
             videoKey,
             profileContext: profileContext,
+            language: language,
           ),
         AnalysisProvider.gemini => await _analysisRepository.analyzeWithGemini(
             videoKey,
             profileContext: profileContext,
+            language: language,
           ),
       };
 
