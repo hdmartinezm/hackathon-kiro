@@ -7,7 +7,7 @@ from app.models.responses import UploadUrlResponse
 logger = logging.getLogger(__name__)
 router = APIRouter(tags=["upload"])
 
-ALLOWED_VIDEO_TYPES = ["video/mp4", "video/webm"]
+ALLOWED_VIDEO_TYPES = ["video/mp4", "video/webm", "video/quicktime"]
 ALLOWED_IMAGE_TYPES = ["image/jpeg", "image/png"]
 
 
