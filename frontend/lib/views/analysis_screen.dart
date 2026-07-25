@@ -440,9 +440,10 @@ class _AnalysisScreenState extends State<AnalysisScreen> {
 
     final whatsappUrl = Uri.parse('https://wa.me/$cleanNumber?text=$message');
 
-    if (await canLaunchUrl(whatsappUrl)) {
-      await launchUrl(whatsappUrl, mode: LaunchMode.externalApplication);
-    } else {
+    try {
+      // On web, use platformDefault mode and skip canLaunchUrl check
+      await launchUrl(whatsappUrl, mode: LaunchMode.platformDefault);
+    } catch (e) {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
