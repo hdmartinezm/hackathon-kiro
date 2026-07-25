@@ -6,6 +6,7 @@
   "scripts": {
     "check": "npx hyperframes check",
     "test": "node test-composition.js",
-    "render": "npx hyperframes render . --output ../../video/BabyHealth-demo-001.mp4 --fps 30 --quality standard"
+    "render": "npx hyperframes render . --output ../../video/BabyHealth-demo-001.mp4 --fps 30 --quality standard",
+    "render:investors": "npx hyperframes render . --composition babyhealth-pitch-investors --output ../../video/BabyHealth-pitch-inversionistas.mp4 --fps 30 --quality standard"
   }
 }

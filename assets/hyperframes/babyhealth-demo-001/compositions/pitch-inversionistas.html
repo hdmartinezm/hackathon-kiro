@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=1920, height=1080" />
+  <title>BabyHealth — Pitch Inversionistas</title>
+  <style>
+    @font-face {
+      font-family: 'Inter';
+      src: local('Inter'), local('Inter-Regular');
+      font-weight: 100 900;
+      font-display: swap;
+    }
+    @font-face {
+      font-family: 'Playfair Display';
+      src: local('Playfair Display'), local('PlayfairDisplay-Regular');
+      font-weight: 400 700;
+      font-display: swap;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --teal: #4B9B9B;
+      --teal-light: #C8E8E8;
+      --coral: #DF7B5E;
+      --dark: #1A1A2E;
+      --dark-surface: #252540;
+      --white: #FFFFFF;
+      --text: #F0F0F0;
+      --gray: #A0A0B0;
+      --gold: #F5A623;
+    }
+
+    body {
+      width: 1920px;
+      height: 1080px;
+      overflow: hidden;
+      background: var(--dark);
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      color: var(--text);
+    }
+
+    .scene {
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+    }
+
+    /* === SCENE 1: Hook Emocional (0s – 18s) === */
+    #scene-hook {
+      background: linear-gradient(135deg, var(--dark) 0%, #0F0F23 100%);
+      flex-direction: column;
+      gap: 36px;
+    }
+    #scene-hook .hook-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 76px;
+      font-weight: 700;
+      text-align: center;
+      color: var(--white);
+      line-height: 1.2;
+      max-width: 1200px;
+    }
+    #scene-hook .hook-subtitle {
+      font-size: 38px;
+      color: var(--coral);
+      font-weight: 500;
+      text-align: center;
+    }
+    #scene-hook .hook-stat-row {
+      display: flex;
+      gap: 40px;
+      margin-top: 20px;
+    }
+    #scene-hook .hook-stat {
+      padding: 20px 36px;
+      background: rgba(75, 155, 155, 0.12);
+      border: 1px solid rgba(75, 155, 155, 0.3);
+      border-radius: 12px;
+      font-size: 26px;
+      color: var(--teal);
+      font-weight: 600;
+      text-align: center;
+    }
+    #scene-hook .hook-stat .big {
+      display: block;
+      font-size: 48px;
+      font-weight: 800;
+      margin-bottom: 4px;
+      color: var(--white);
+    }
+
+    /* === SCENE 2: Problema de Mercado (18s – 36s) === */
+    #scene-problem {
+      background: linear-gradient(160deg, #1A0F0F 0%, var(--dark) 100%);
+      flex-direction: column;
+      gap: 40px;
+      padding: 80px;
+    }
+    #scene-problem .prob-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 52px;
+      font-weight: 700;
+      color: var(--white);
+      text-align: center;
+    }
+    #scene-problem .prob-metrics {
+      display: flex;
+      gap: 48px;
+    }
+    #scene-problem .prob-metric {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+      width: 320px;
+      padding: 36px 24px;
+      background: rgba(223, 123, 94, 0.08);
+      border: 1px solid rgba(223, 123, 94, 0.25);
+      border-radius: 16px;
+    }
+    #scene-problem .prob-metric .metric-value {
+      font-size: 56px;
+      font-weight: 800;
+      color: var(--coral);
+    }
+    #scene-problem .prob-metric .metric-label {
+      font-size: 20px;
+      color: var(--text);
+      text-align: center;
+      line-height: 1.4;
+    }
+    #scene-problem .prob-insight {
+      font-size: 24px;
+      color: var(--gray);
+      text-align: center;
+      max-width: 900px;
+      line-height: 1.5;
+    }
+
+    /* === SCENE 3: La Solución (36s – 54s) === */
+    #scene-solution {
+      background: linear-gradient(160deg, #0D2626 0%, var(--dark) 100%);
+      flex-direction: column;
+      gap: 44px;
+    }
+    #scene-solution .sol-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 56px;
+      font-weight: 700;
+      color: var(--white);
+      text-align: center;
+    }
+    #scene-solution .sol-title span {
+      color: var(--teal);
+    }
+    #scene-solution .sol-how {
+      display: flex;
+      gap: 60px;
+      align-items: flex-start;
+    }
+    #scene-solution .sol-step {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 16px;
+      width: 300px;
+    }
+    #scene-solution .sol-step-num {
+      width: 64px;
+      height: 64px;
+      border-radius: 50%;
+      background: var(--teal);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 28px;
+      font-weight: 800;
+      color: var(--dark);
+    }
+    #scene-solution .sol-step-text {
+      font-size: 22px;
+      text-align: center;
+      color: var(--text);
+      font-weight: 500;
+      line-height: 1.4;
+    }
+    #scene-solution .sol-badge-row {
+      display: flex;
+      gap: 24px;
+    }
+    #scene-solution .sol-badge {
+      padding: 14px 28px;
+      background: rgba(75, 155, 155, 0.15);
+      border: 1px solid rgba(75, 155, 155, 0.4);
+      border-radius: 24px;
+      font-size: 20px;
+      font-weight: 600;
+      color: var(--teal);
+    }
+
+    /* === SCENE 4: Modelo de Negocio + Métricas (54s – 74s) === */
+    #scene-business {
+      background: linear-gradient(135deg, var(--dark) 0%, #1A2040 100%);
+      flex-direction: column;
+      gap: 40px;
+      padding: 80px;
+    }
+    #scene-business .biz-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 48px;
+      font-weight: 700;
+      color: var(--white);
+    }
+    #scene-business .biz-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 32px;
+      max-width: 1200px;
+    }
+    #scene-business .biz-card {
+      padding: 32px;
+      background: var(--dark-surface);
+      border-radius: 16px;
+      border: 1px solid rgba(255,255,255,0.08);
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    #scene-business .biz-card-icon {
+      font-size: 32px;
+    }
+    #scene-business .biz-card h3 {
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--white);
+    }
+    #scene-business .biz-card p {
+      font-size: 18px;
+      color: var(--gray);
+      line-height: 1.5;
+    }
+    #scene-business .biz-card .highlight {
+      color: var(--gold);
+      font-weight: 700;
+    }
+    #scene-business .biz-tam {
+      display: flex;
+      gap: 32px;
+      margin-top: 8px;
+    }
+    #scene-business .biz-tam-item {
+      padding: 16px 28px;
+      border-radius: 12px;
+      text-align: center;
+      background: rgba(245, 166, 35, 0.1);
+      border: 1px solid rgba(245, 166, 35, 0.3);
+    }
+    #scene-business .biz-tam-item .tam-value {
+      font-size: 36px;
+      font-weight: 800;
+      color: var(--gold);
+    }
+    #scene-business .biz-tam-item .tam-label {
+      font-size: 15px;
+      color: var(--gray);
+      margin-top: 4px;
+    }
+
+    /* === SCENE 5: Cierre + CTA (74s – 90s) === */
+    #scene-closing {
+      background: linear-gradient(135deg, #0F0F23 0%, var(--dark) 50%, #0D2626 100%);
+      flex-direction: column;
+      gap: 28px;
+    }
+    #scene-closing .close-logo {
+      font-family: 'Playfair Display', serif;
+      font-size: 84px;
+      font-weight: 700;
+      color: var(--teal);
+    }
+    #scene-closing .close-tagline {
+      font-size: 30px;
+      color: var(--white);
+      font-weight: 400;
+      font-style: italic;
+      margin-top: 4px;
+    }
+    #scene-closing .close-ask {
+      margin-top: 16px;
+      padding: 18px 40px;
+      background: var(--coral);
+      border-radius: 32px;
+      font-size: 24px;
+      font-weight: 700;
+      color: var(--white);
+    }
+    #scene-closing .close-url {
+      font-size: 22px;
+      color: var(--gray);
+      font-weight: 500;
+      margin-top: 8px;
+    }
+    #scene-closing .close-team {
+      font-size: 18px;
+      color: var(--gray);
+      margin-top: 12px;
+    }
+    #scene-closing .close-badge {
+      padding: 10px 24px;
+      background: rgba(223, 123, 94, 0.15);
+      border: 1px solid rgba(223, 123, 94, 0.4);
+      border-radius: 24px;
+      font-size: 14px;
+      color: var(--coral);
+      font-weight: 600;
+      margin-top: 4px;
+    }
+  </style>
+</head>
+<body>
+
+<div id="root" data-composition-id="babyhealth-pitch-investors" data-duration="90" data-width="1920" data-height="1080" data-start="0">
+
+  <!-- AUDIO -->
+  <audio src="../../../sounds/drifting-home-dan-phillipson.mp3"
+         data-start="0" data-duration="90" data-volume="0.18"
+         data-fade-in="3" data-fade-out="5"></audio>
+
+  <!-- SCENE 1: Hook Emocional (0s – 18s) -->
+  <div id="scene-hook" class="scene" data-enter="0" data-exit="18">
+    <h1 class="hook-title">Cada noche, millones de padres<br/>no saben si correr a urgencias.</h1>
+    <p class="hook-subtitle">La ansiedad de un padre primerizo no tiene horario.</p>
+    <div class="hook-stat-row">
+      <div class="hook-stat">
+        <span class="big">60%</span>
+        Visitas a urgencias pediátricas<br/>son innecesarias
+      </div>
+      <div class="hook-stat">
+        <span class="big">$1,500</span>
+        Costo promedio por visita<br/>de emergencia pediátrica
+      </div>
+      <div class="hook-stat">
+        <span class="big">3 AM</span>
+        Hora pico de ansiedad<br/>de padres primerizos
+      </div>
+    </div>
+  </div>
+
+  <!-- SCENE 2: Problema de Mercado (18s – 36s) -->
+  <div id="scene-problem" class="scene" data-enter="18" data-exit="36">
+    <h2 class="prob-title">Un mercado enorme, desatendido</h2>
+    <div class="prob-metrics">
+      <div class="prob-metric">
+        <span class="metric-value">140M</span>
+        <span class="metric-label">Bebés nacen cada año<br/>en el mundo</span>
+      </div>
+      <div class="prob-metric">
+        <span class="metric-value">$48B</span>
+        <span class="metric-label">Mercado global de<br/>salud digital pediátrica</span>
+      </div>
+      <div class="prob-metric">
+        <span class="metric-value">76%</span>
+        <span class="metric-label">Padres buscan en Google<br/>antes de llamar al doctor</span>
+      </div>
+    </div>
+    <p class="prob-insight">
+      No existe una herramienta confiable que combine IA visual + análisis de audio
+      para dar orientación inmediata a padres fuera de horario médico.
+    </p>
+  </div>
+
+  <!-- SCENE 3: La Solución (36s – 54s) -->
+  <div id="scene-solution" class="scene" data-enter="36" data-exit="54">
+    <h1 class="sol-title">BabyHealth: <span>Orientación Instantánea</span></h1>
+    <div class="sol-how">
+      <div class="sol-step">
+        <div class="sol-step-num">1</div>
+        <p class="sol-step-text">Graba 10 segundos<br/>de video del bebé</p>
+      </div>
+      <div class="sol-step">
+        <div class="sol-step-num">2</div>
+        <p class="sol-step-text">Nuestra IA analiza<br/>imagen y llanto</p>
+      </div>
+      <div class="sol-step">
+        <div class="sol-step-num">3</div>
+        <p class="sol-step-text">Resultado inmediato:<br/>🟢 Normal · 🟡 Atención · 🔴 Urgente</p>
+      </div>
+    </div>
+    <div class="sol-badge-row">
+      <div class="sol-badge">⚡ Respuesta en 15 segundos</div>
+      <div class="sol-badge">🌐 Bilingüe ES / EN</div>
+      <div class="sol-badge">📄 Reporte directo al pediatra</div>
+    </div>
+  </div>
+
+  <!-- SCENE 4: Modelo de Negocio + Métricas (54s – 74s) -->
+  <div id="scene-business" class="scene" data-enter="54" data-exit="74">
+    <h2 class="biz-title">Modelo de Negocio</h2>
+    <div class="biz-grid">
+      <div class="biz-card">
+        <span class="biz-card-icon">💰</span>
+        <h3>Freemium + Suscripción</h3>
+        <p>3 análisis gratis/mes. Plan Premium a <span class="highlight">$9.99/mes</span> con análisis ilimitados y acceso a pediatra.</p>
+      </div>
+      <div class="biz-card">
+        <span class="biz-card-icon">🏥</span>
+        <h3>B2B: Aseguradoras & Clínicas</h3>
+        <p>Reducen costos de urgencias innecesarias. Licencia white-label para sistemas de salud.</p>
+      </div>
+      <div class="biz-card">
+        <span class="biz-card-icon">📈</span>
+        <h3>Unit Economics</h3>
+        <p>Costo por análisis: <span class="highlight">$0.03</span>. Margen bruto proyectado: <span class="highlight">92%</span>. CAC estimado: $12.</p>
+      </div>
+      <div class="biz-card">
+        <span class="biz-card-icon">🎯</span>
+        <h3>Tracción Actual</h3>
+        <p>MVP funcional en producción. Análisis de IA con <span class="highlight">&lt; 15s latencia</span>. Validación con usuarios reales.</p>
+      </div>
+    </div>
+    <div class="biz-tam">
+      <div class="biz-tam-item">
+        <div class="tam-value">$48B</div>
+        <div class="tam-label">TAM — Salud Digital Pediátrica</div>
+      </div>
+      <div class="biz-tam-item">
+        <div class="tam-value">$8.2B</div>
+        <div class="tam-label">SAM — Apps Parentales + Telemedicina</div>
+      </div>
+      <div class="biz-tam-item">
+        <div class="tam-value">$420M</div>
+        <div class="tam-label">SOM — LATAM + US Hispanic (Año 3)</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SCENE 5: Cierre + CTA (74s – 90s) -->
+  <div id="scene-closing" class="scene" data-enter="74" data-exit="90">
+    <div class="close-logo">BabyHealth</div>
+    <p class="close-tagline">"Orientación inteligente. Tranquilidad instantánea."</p>
+    <div class="close-ask">Buscamos $500K — Ronda Pre-Seed</div>
+    <p class="close-url">babyhealth.hmartinez.info</p>
+    <p class="close-team">Hector Martínez · Álvaro Hernández · William Izquierdo · Francisco Thielen</p>
+    <div class="close-badge">Hackathon Kiro 2026 · MVP en Producción</div>
+  </div>
+
+</div>
+
+<script>
+(function() {
+  // HyperFrames Timeline Controller
+  var root = document.getElementById('root');
+  var scenes = root.querySelectorAll('.scene');
+  var duration = parseInt(root.getAttribute('data-duration'));
+
+  var timeline = {
+    duration: duration,
+    seek: function(t) {
+      scenes.forEach(function(scene) {
+        var enter = parseInt(scene.getAttribute('data-enter'));
+        var exit = parseInt(scene.getAttribute('data-exit'));
+        if (t >= enter && t < exit) {
+          scene.style.opacity = '1';
+          scene.style.pointerEvents = 'auto';
+        } else {
+          scene.style.opacity = '0';
+          scene.style.pointerEvents = 'none';
+        }
+      });
+    }
+  };
+
+  // Register timeline for HyperFrames runtime
+  window.__timelines = window.__timelines || {};
+  window.__timelines['babyhealth-pitch-investors'] = timeline;
+
+  // Show first scene on load
+  timeline.seek(0);
+})();
+</script>
+
+</body>
+</html>
