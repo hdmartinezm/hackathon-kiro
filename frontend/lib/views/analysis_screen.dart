@@ -1,6 +1,9 @@
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
+// ignore: avoid_web_libraries_in_flutter
+import 'dart:html' as html;
 
 import '../core/app_localizations.dart';
 import '../core/app_settings.dart';
@@ -428,8 +431,11 @@ class _AnalysisScreenState extends State<AnalysisScreen> {
       return;
     }
 
-    // Clean the phone number (remove spaces, dashes, etc.)
-    final cleanNumber = phoneNumber.replaceAll(RegExp(r'[^\d+]'), '');
+    // Clean the phone number (remove spaces, dashes, etc.) and remove leading +
+    String cleanNumber = phoneNumber.replaceAll(RegExp(r'[^\d+]'), '');
+    if (cleanNumber.startsWith('+')) {
+      cleanNumber = cleanNumber.substring(1);
+    }
 
     // Create WhatsApp URL with pre-filled message
     final message = Uri.encodeComponent(
@@ -438,23 +444,28 @@ class _AnalysisScreenState extends State<AnalysisScreen> {
           : 'Hola, necesito una consulta sobre mi bebé. La app BabyHealth indicó que requiere atención.',
     );
 
-    final whatsappUrl = Uri.parse('https://wa.me/$cleanNumber?text=$message');
+    final whatsappUrlString = 'https://wa.me/$cleanNumber?text=$message';
 
-    try {
-      // On web, use platformDefault mode and skip canLaunchUrl check
-      await launchUrl(whatsappUrl, mode: LaunchMode.platformDefault);
-    } catch (e) {
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              l10n.isEn
-                  ? 'Could not open WhatsApp'
-                  : 'No se pudo abrir WhatsApp',
+    // On web, use window.open directly for better compatibility
+    if (kIsWeb) {
+      html.window.open(whatsappUrlString, '_blank');
+    } else {
+      final whatsappUrl = Uri.parse(whatsappUrlString);
+      try {
+        await launchUrl(whatsappUrl, mode: LaunchMode.externalApplication);
+      } catch (e) {
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                l10n.isEn
+                    ? 'Could not open WhatsApp'
+                    : 'No se pudo abrir WhatsApp',
+              ),
+              backgroundColor: Colors.red,
             ),
-            backgroundColor: Colors.red,
-          ),
-        );
+          );
+        }
       }
     }
   }
