@@ -20,7 +20,7 @@
 | Coordinador + Backend | Hector | hdmartinezm | |
 | Diseño + Frontend | Alvaro | ajha63 | hernandez.alvaro@gmail.com |
 | Fullstack | William | izquierdowaws | izquierdowo@gmail.com |
-| Frontend | Francisco | FranciscoJTHG | franthielengaravito@gmail.com |
+| Frontend - Móvil | Francisco | FranciscoJTHG | franthielengaravito@gmail.com |
 
 ### Responsabilidades
 
