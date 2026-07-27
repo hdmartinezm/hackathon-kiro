@@ -118,6 +118,7 @@ class _WebLandingScreenState extends State<WebLandingScreen> {
             _ArquitecturaSection(key: _arquitecturaKey),
             _SeguridadSection(key: _seguridadKey),
             _CtaBandSection(onCrearCuenta: () => _navigateToAuth(signup: true)),
+            const _NextStepsSection(),
             _FooterSection(
               onComoFunciona: () => _scrollToSection(_comoFuncionaKey),
               onCaracteristicas: () => _scrollToSection(_caracteristicasKey),
@@ -1189,7 +1190,6 @@ class _CaracteristicasSection extends StatelessWidget {
         label: context.l10n.featAudioLabel,
         title: context.l10n.featAudioTitle,
         description: context.l10n.featAudioDesc,
-        badge: context.l10n.comingSoon,
       ),
       _featureCard(
         context,
@@ -1807,6 +1807,270 @@ class _CtaBandSection extends StatelessWidget {
             ),
           ),
         ),
+      ),
+    );
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Próximos Pasos Section
+// ---------------------------------------------------------------------------
+
+class _NextStepsSection extends StatelessWidget {
+  const _NextStepsSection();
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    final steps = <({String number, String title, String desc, IconData icon})>[
+      (
+        number: '01',
+        title: l10n.nextStep1Title,
+        desc: l10n.nextStep1Desc,
+        icon: Icons.verified_user_rounded,
+      ),
+      (
+        number: '02',
+        title: l10n.nextStep2Title,
+        desc: l10n.nextStep2Desc,
+        icon: Icons.tune_rounded,
+      ),
+      (
+        number: '03',
+        title: l10n.nextStep3Title,
+        desc: l10n.nextStep3Desc,
+        icon: Icons.insights_rounded,
+      ),
+      (
+        number: '04',
+        title: l10n.nextStep4Title,
+        desc: l10n.nextStep4Desc,
+        icon: Icons.summarize_rounded,
+      ),
+    ];
+
+    return Container(
+      width: double.infinity,
+      color: context.bg,
+      child: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 1200),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 64),
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                final isWide = constraints.maxWidth >= 768;
+                return ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 1000),
+                  child: Column(
+                    children: [
+                      // Chip
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 12, vertical: 6),
+                        decoration: BoxDecoration(
+                          color: context.tealContainer,
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: Text(
+                          l10n.nextStepsChip,
+                          style: AppTheme.accentText(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w700,
+                            color: const Color(0xFF4B9B9B),
+                            letterSpacing: 1.2,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      Text(
+                        l10n.nextStepsTitle,
+                        textAlign: TextAlign.center,
+                        style: AppTheme.serif(
+                          fontSize: 32,
+                          fontWeight: FontWeight.bold,
+                          color: context.textColor,
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      Text(
+                        l10n.nextStepsIntro,
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontSize: 16,
+                          color: context.textColor.withValues(alpha: 0.7),
+                          height: 1.5,
+                        ),
+                      ),
+                      const SizedBox(height: 40),
+                      if (isWide)
+                        // Two columns of self-sizing cards.
+                        Column(
+                          children: [
+                            for (var i = 0; i < steps.length; i += 2)
+                              Padding(
+                                padding: EdgeInsets.only(
+                                    bottom:
+                                        i + 2 < steps.length ? 16 : 0),
+                                child: IntrinsicHeight(
+                                  child: Row(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.stretch,
+                                    children: [
+                                      Expanded(
+                                        child: _stepCard(
+                                            context,
+                                            steps[i].number,
+                                            steps[i].title,
+                                            steps[i].desc,
+                                            steps[i].icon),
+                                      ),
+                                      const SizedBox(width: 16),
+                                      Expanded(
+                                        child: i + 1 < steps.length
+                                            ? _stepCard(
+                                                context,
+                                                steps[i + 1].number,
+                                                steps[i + 1].title,
+                                                steps[i + 1].desc,
+                                                steps[i + 1].icon)
+                                            : const SizedBox(),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                          ],
+                        )
+                      else
+                        Column(
+                          children: [
+                            for (var i = 0; i < steps.length; i++)
+                              Padding(
+                                padding: EdgeInsets.only(
+                                    bottom:
+                                        i < steps.length - 1 ? 16 : 0),
+                                child: _stepCard(context, steps[i].number,
+                                    steps[i].title, steps[i].desc,
+                                    steps[i].icon),
+                              ),
+                          ],
+                        ),
+                      const SizedBox(height: 32),
+                      // Extra exploration note
+                      Container(
+                        padding: const EdgeInsets.all(20),
+                        decoration: BoxDecoration(
+                          color: context.tealContainer.withValues(alpha: 0.5),
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(
+                            color: const Color(0xFF4B9B9B).withValues(alpha: 0.2),
+                          ),
+                        ),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Icon(Icons.explore_rounded,
+                                color: Color(0xFF4B9B9B), size: 22),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Text(
+                                l10n.nextStepsExtra,
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  color:
+                                      context.textColor.withValues(alpha: 0.75),
+                                  height: 1.5,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              },
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _stepCard(
+    BuildContext context,
+    String number,
+    String title,
+    String desc,
+    IconData icon,
+  ) {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: context.surface,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: context.border),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Icon in gradient badge
+          Container(
+            width: 44,
+            height: 44,
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                colors: [Color(0xFF4B9B9B), Color(0xFF73D2D2)],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Icon(icon, color: Colors.white, size: 22),
+          ),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Text(
+                      number,
+                      style: AppTheme.accentText(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w700,
+                        color: const Color(0xFFDF7B5E),
+                        letterSpacing: 1.0,
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        title,
+                        style: AppTheme.serif(
+                          fontSize: 17,
+                          fontWeight: FontWeight.bold,
+                          color: context.textColor,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  desc,
+                  style: TextStyle(
+                    fontSize: 13,
+                    color: context.textColor.withValues(alpha: 0.65),
+                    height: 1.45,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }

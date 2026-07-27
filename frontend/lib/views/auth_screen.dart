@@ -247,14 +247,6 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
                   ),
                   const SizedBox(height: 12),
                   _buildSocialButton(
-                    label: context.l10n.continueWithApple,
-                    icon: Icon(Icons.apple,
-                        size: 22,
-                        color: Theme.of(context).colorScheme.onSurface),
-                    onTap: () => _handleSocialLogin(AuthProvider.apple),
-                  ),
-                  const SizedBox(height: 12),
-                  _buildSocialButton(
                     label: context.l10n.continueWithFacebook,
                     icon: const Icon(Icons.facebook,
                         size: 22, color: Color(0xFF1877F2)),

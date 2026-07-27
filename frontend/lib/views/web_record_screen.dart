@@ -31,8 +31,12 @@ class _WebRecordScreenState extends State<WebRecordScreen> {
   Future<void>? _initFuture;
   bool _isRecording = false;
   bool _isProcessing = false;
+  bool _isSwitching = false;
   _RecordError? _errorType;
   String? _errorDetail;
+
+  /// All cameras available on the device (front + back on phones).
+  List<CameraDescription> _cameras = [];
 
   // Elapsed recording time.
   Timer? _timer;
@@ -49,25 +53,37 @@ class _WebRecordScreenState extends State<WebRecordScreen> {
 
   Future<void> _setupCamera() async {
     try {
-      final cameras = await availableCameras();
-      if (cameras.isEmpty) {
+      _cameras = await availableCameras();
+      if (_cameras.isEmpty) {
         setState(() => _errorType = _RecordError.noCameraFound);
         return;
       }
 
-      // Prefer the front camera (better for showing the baby to the parent),
+      // Prefer the back camera (usually higher quality for capturing the baby),
       // otherwise fall back to the first available camera.
-      final camera = cameras.firstWhere(
-        (c) => c.lensDirection == CameraLensDirection.front,
-        orElse: () => cameras.first,
+      final camera = _cameras.firstWhere(
+        (c) => c.lensDirection == CameraLensDirection.back,
+        orElse: () => _cameras.first,
       );
 
-      final controller = CameraController(
-        camera,
-        ResolutionPreset.medium,
-        enableAudio: true,
-      );
+      await _initController(camera);
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _errorType = _RecordError.cameraAccessDenied;
+        _errorDetail = e.toString();
+      });
+    }
+  }
 
+  /// Creates and initializes a controller for the given [camera].
+  Future<void> _initController(CameraDescription camera) async {
+    final controller = CameraController(
+      camera,
+      ResolutionPreset.medium,
+      enableAudio: true,
+    );
+    try {
       await controller.initialize();
       if (!mounted) return;
       setState(() => _controller = controller);
@@ -78,6 +94,29 @@ class _WebRecordScreenState extends State<WebRecordScreen> {
         _errorDetail = e.toString();
       });
     }
+  }
+
+  /// Flips between front and back cameras. Disabled while recording.
+  Future<void> _switchCamera() async {
+    if (_cameras.length < 2 || _isRecording || _isProcessing || _isSwitching) {
+      return;
+    }
+
+    final current = _controller?.description;
+    // Pick the first camera with a different lens direction; otherwise cycle.
+    final next = _cameras.firstWhere(
+      (c) => c.lensDirection != current?.lensDirection,
+      orElse: () {
+        final idx = current == null ? -1 : _cameras.indexOf(current);
+        return _cameras[(idx + 1) % _cameras.length];
+      },
+    );
+
+    setState(() => _isSwitching = true);
+    await _controller?.dispose();
+    _controller = null;
+    await _initController(next);
+    if (mounted) setState(() => _isSwitching = false);
   }
 
   Future<void> _startRecording() async {
@@ -186,6 +225,26 @@ class _WebRecordScreenState extends State<WebRecordScreen> {
           icon: const Icon(Icons.close),
           onPressed: () => Navigator.of(context).pop(),
         ),
+        actions: [
+          if (_errorType == null &&
+              _cameras.length >= 2 &&
+              !_isRecording &&
+              !_isProcessing)
+            IconButton(
+              icon: _isSwitching
+                  ? const SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(
+                        color: Colors.white,
+                        strokeWidth: 2,
+                      ),
+                    )
+                  : const Icon(Icons.cameraswitch_rounded),
+              tooltip: l10n.switchCamera,
+              onPressed: _isSwitching ? null : _switchCamera,
+            ),
+        ],
       ),
       body: _errorType != null
           ? _buildError(context)

@@ -144,6 +144,55 @@ class AppLocalizations {
         'Serverless infrastructure on AWS',
       );
 
+  // ── Próximos pasos / Next steps ──
+  String get nextStepsChip => _t('PRÓXIMOS PASOS', 'NEXT STEPS');
+  String get nextStepsTitle =>
+      _t('Hacia dónde vamos', 'Where we are headed');
+  String get nextStepsIntro => _t(
+        'Nuestros siguientes pasos se concentran en cuatro áreas.',
+        'Our next steps focus on four areas.',
+      );
+  String get nextStep1Title =>
+      _t('Validación clínica', 'Clinical validation');
+  String get nextStep1Desc => _t(
+        'Validar los criterios de análisis y las recomendaciones junto con '
+            'pediatras y profesionales de salud.',
+        'Validate the analysis criteria and recommendations together with '
+            'pediatricians and health professionals.',
+      );
+  String get nextStep2Title =>
+      _t('Calidad de captura', 'Capture quality');
+  String get nextStep2Desc => _t(
+        'Mejorar los controles de calidad del video, el audio, la iluminación '
+            'y el ruido antes de ejecutar el análisis.',
+        'Improve quality checks for video, audio, lighting and noise before '
+            'running the analysis.',
+      );
+  String get nextStep3Title =>
+      _t('Orientación personalizada', 'Personalized guidance');
+  String get nextStep3Desc => _t(
+        'Personalizar las orientaciones según la edad del bebé, su historial y '
+            'la evolución de observaciones anteriores.',
+        "Personalize guidance based on the baby's age, history and the "
+            'evolution of previous observations.',
+      );
+  String get nextStep4Title =>
+      _t('Seguimiento con el pediatra', 'Follow-up with the pediatrician');
+  String get nextStep4Desc => _t(
+        'Desarrollar una experiencia de seguimiento que permita compartir un '
+            'reporte estructurado con el pediatra, siempre con autorización de '
+            'los padres.',
+        'Build a follow-up experience that lets you share a structured report '
+            'with the pediatrician, always with the parents\' authorization.',
+      );
+  String get nextStepsExtra => _t(
+        'También buscamos explorar procesamiento parcial en el dispositivo, '
+            'notificaciones responsables y soporte para diferentes idiomas y '
+            'regiones.',
+        'We also aim to explore partial on-device processing, responsible '
+            'notifications and support for different languages and regions.',
+      );
+
   // ── Home ──
   String get homeGreeting =>
       _t('¿Cómo está tu bebé hoy?', 'How is your baby today?');
@@ -313,6 +362,7 @@ class AppLocalizations {
       );
   String recordingError(String error) => _t('Error al iniciar la grabación: $error', 'Error starting recording: $error');
   String get tapToRecord => _t('Toca para grabar (máx. 30s)', 'Tap to record (max. 30s)');
+  String get switchCamera => _t('Cambiar cámara', 'Switch camera');
   String get unexpectedErrorOccurred => _t('Ocurrió un error inesperado.', 'An unexpected error occurred.');
 
   // ── Analysis Screen ──

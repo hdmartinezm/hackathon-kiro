@@ -340,6 +340,7 @@ function handler(event) {
                 # artifacts and files not needed at runtime.
                 exclude=[
                     "lambda_package",
+                    "lambda_package_backup",
                     "**/__pycache__",
                     "**/*.pyc",
                     "**/*.dist-info",
