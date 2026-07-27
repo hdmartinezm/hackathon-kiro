@@ -1,0 +1,949 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BabyHealth - Hackathon Kiro 2025</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #4F46E5;
+            --primary-light: #818CF8;
+            --secondary: #EC4899;
+            --success: #10B981;
+            --warning: #F59E0B;
+            --danger: #EF4444;
+            --dark: #1F2937;
+            --light: #F9FAFB;
+            --gradient: linear-gradient(135deg, #4F46E5 0%, #EC4899 100%);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--light);
+            color: var(--dark);
+            line-height: 1.6;
+        }
+
+        /* Slide Container */
+        .slides-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .slide {
+            background: white;
+            border-radius: 24px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.1);
+            margin-bottom: 40px;
+            overflow: hidden;
+            min-height: 600px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Hero Slide */
+        .slide-hero {
+            background: var(--gradient);
+            color: white;
+            text-align: center;
+            padding: 80px 60px;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .slide-hero h1 {
+            font-size: 4rem;
+            font-weight: 800;
+            margin-bottom: 20px;
+            text-shadow: 0 4px 20px rgba(0,0,0,0.2);
+        }
+
+        .slide-hero .emoji-large {
+            font-size: 5rem;
+            margin-bottom: 20px;
+        }
+
+        .slide-hero .tagline {
+            font-size: 1.8rem;
+            font-weight: 300;
+            opacity: 0.95;
+            margin-bottom: 40px;
+        }
+
+        .slide-hero .badges {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-bottom: 40px;
+        }
+
+        .badge {
+            background: rgba(255,255,255,0.2);
+            padding: 10px 20px;
+            border-radius: 50px;
+            font-weight: 500;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.3);
+        }
+
+        .demo-btn {
+            display: inline-block;
+            background: white;
+            color: var(--primary);
+            padding: 18px 40px;
+            border-radius: 50px;
+            font-weight: 700;
+            font-size: 1.2rem;
+            text-decoration: none;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .demo-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 30px rgba(0,0,0,0.2);
+        }
+
+        /* Content Slides */
+        .slide-header {
+            background: var(--gradient);
+            color: white;
+            padding: 40px 60px;
+        }
+
+        .slide-header h2 {
+            font-size: 2.5rem;
+            font-weight: 700;
+        }
+
+        .slide-header .subtitle {
+            opacity: 0.9;
+            font-size: 1.2rem;
+            margin-top: 10px;
+        }
+
+        .slide-content {
+            padding: 50px 60px;
+            flex: 1;
+        }
+
+        /* Problem Cards */
+        .problem-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 25px;
+        }
+
+        .problem-card {
+            background: linear-gradient(135deg, #FEF3C7 0%, #FDE68A 100%);
+            padding: 30px;
+            border-radius: 16px;
+            border-left: 5px solid var(--warning);
+        }
+
+        .problem-card.danger {
+            background: linear-gradient(135deg, #FEE2E2 0%, #FECACA 100%);
+            border-left-color: var(--danger);
+        }
+
+        .problem-card .icon {
+            font-size: 2.5rem;
+            margin-bottom: 15px;
+        }
+
+        .problem-card h3 {
+            font-size: 1.3rem;
+            margin-bottom: 10px;
+            color: var(--dark);
+        }
+
+        .problem-card p {
+            color: #6B7280;
+            font-size: 1rem;
+        }
+
+        .stat-highlight {
+            font-size: 3rem;
+            font-weight: 800;
+            color: var(--danger);
+            text-align: center;
+            margin: 30px 0;
+        }
+
+        .stat-highlight span {
+            font-size: 1.2rem;
+            font-weight: 400;
+            color: #6B7280;
+            display: block;
+        }
+
+        /* Solution Flow */
+        .solution-flow {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 40px 0;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .flow-step {
+            text-align: center;
+            flex: 1;
+            min-width: 150px;
+        }
+
+        .flow-step .icon {
+            font-size: 3rem;
+            margin-bottom: 15px;
+        }
+
+        .flow-step h4 {
+            font-size: 1.1rem;
+            color: var(--dark);
+        }
+
+        .flow-arrow {
+            font-size: 2rem;
+            color: var(--primary-light);
+        }
+
+        /* Traffic Light */
+        .traffic-light {
+            display: flex;
+            gap: 30px;
+            justify-content: center;
+            margin: 40px 0;
+        }
+
+        .light {
+            padding: 30px 40px;
+            border-radius: 20px;
+            text-align: center;
+            flex: 1;
+            max-width: 280px;
+        }
+
+        .light.green {
+            background: linear-gradient(135deg, #D1FAE5 0%, #A7F3D0 100%);
+            border: 3px solid var(--success);
+        }
+
+        .light.yellow {
+            background: linear-gradient(135deg, #FEF3C7 0%, #FDE68A 100%);
+            border: 3px solid var(--warning);
+        }
+
+        .light.red {
+            background: linear-gradient(135deg, #FEE2E2 0%, #FECACA 100%);
+            border: 3px solid var(--danger);
+        }
+
+        .light .circle {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            margin: 0 auto 15px;
+        }
+
+        .light.green .circle { background: var(--success); }
+        .light.yellow .circle { background: var(--warning); }
+        .light.red .circle { background: var(--danger); }
+
+        .light h4 {
+            font-size: 1.3rem;
+            margin-bottom: 10px;
+        }
+
+        /* Tech Stack */
+        .tech-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+        }
+
+        .tech-category {
+            background: var(--light);
+            padding: 25px;
+            border-radius: 16px;
+            text-align: center;
+        }
+
+        .tech-category h4 {
+            color: var(--primary);
+            margin-bottom: 15px;
+            font-size: 1rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .tech-category ul {
+            list-style: none;
+        }
+
+        .tech-category li {
+            padding: 8px 0;
+            border-bottom: 1px solid #E5E7EB;
+            font-weight: 500;
+        }
+
+        .tech-category li:last-child {
+            border-bottom: none;
+        }
+
+        /* Architecture */
+        .architecture-diagram {
+            background: var(--dark);
+            color: white;
+            padding: 40px;
+            border-radius: 16px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.85rem;
+            overflow-x: auto;
+            white-space: pre;
+            line-height: 1.4;
+        }
+
+        /* Features Grid */
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 25px;
+        }
+
+        .feature-card {
+            background: var(--light);
+            padding: 30px;
+            border-radius: 16px;
+            text-align: center;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+        }
+
+        .feature-card .icon {
+            font-size: 2.5rem;
+            margin-bottom: 15px;
+        }
+
+        .feature-card h4 {
+            color: var(--primary);
+            margin-bottom: 10px;
+        }
+
+        /* Differentiators */
+        .diff-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 30px 0;
+        }
+
+        .diff-table th {
+            background: var(--gradient);
+            color: white;
+            padding: 20px;
+            text-align: left;
+            font-size: 1.1rem;
+        }
+
+        .diff-table td {
+            padding: 20px;
+            border-bottom: 1px solid #E5E7EB;
+            font-size: 1rem;
+        }
+
+        .diff-table tr:nth-child(even) {
+            background: var(--light);
+        }
+
+        .diff-table .check {
+            color: var(--success);
+            font-weight: bold;
+        }
+
+        .diff-table .cross {
+            color: var(--danger);
+        }
+
+        /* Team Grid */
+        .team-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 30px;
+            margin: 40px 0;
+        }
+
+        .team-member {
+            text-align: center;
+            padding: 30px;
+            background: var(--light);
+            border-radius: 20px;
+        }
+
+        .team-member .avatar {
+            width: 100px;
+            height: 100px;
+            background: var(--gradient);
+            border-radius: 50%;
+            margin: 0 auto 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.5rem;
+            color: white;
+        }
+
+        .team-member h4 {
+            font-size: 1.2rem;
+            margin-bottom: 5px;
+        }
+
+        .team-member .role {
+            color: var(--primary);
+            font-weight: 500;
+            margin-bottom: 10px;
+        }
+
+        .team-member .github {
+            color: #6B7280;
+            font-size: 0.9rem;
+        }
+
+        /* CTA Slide */
+        .slide-cta {
+            background: var(--gradient);
+            color: white;
+            text-align: center;
+            padding: 80px 60px;
+            justify-content: center;
+        }
+
+        .slide-cta h2 {
+            font-size: 3rem;
+            margin-bottom: 20px;
+        }
+
+        .slide-cta p {
+            font-size: 1.4rem;
+            opacity: 0.9;
+            margin-bottom: 40px;
+        }
+
+        .cta-links {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .cta-link {
+            background: white;
+            color: var(--primary);
+            padding: 18px 35px;
+            border-radius: 50px;
+            font-weight: 700;
+            text-decoration: none;
+            transition: transform 0.3s;
+        }
+
+        .cta-link:hover {
+            transform: translateY(-3px);
+        }
+
+        .cta-link.secondary {
+            background: rgba(255,255,255,0.2);
+            color: white;
+            border: 2px solid white;
+        }
+
+        /* Disclaimer */
+        .disclaimer {
+            background: #FEF3C7;
+            border: 2px solid var(--warning);
+            padding: 25px;
+            border-radius: 12px;
+            margin-top: 30px;
+            text-align: center;
+        }
+
+        .disclaimer strong {
+            color: var(--warning);
+        }
+
+        /* Language Toggle */
+        .lang-toggle {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            display: flex;
+            gap: 10px;
+            z-index: 1000;
+        }
+
+        .lang-btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .lang-btn.active {
+            background: var(--primary);
+            color: white;
+        }
+
+        .lang-btn:not(.active) {
+            background: white;
+            color: var(--dark);
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .en { display: none; }
+        body.english .es { display: none; }
+        body.english .en { display: block; }
+
+        /* Print Styles */
+        @media print {
+            .slide {
+                break-inside: avoid;
+                page-break-inside: avoid;
+            }
+            .lang-toggle {
+                display: none;
+            }
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .slide-hero h1 { font-size: 2.5rem; }
+            .problem-grid, .tech-grid, .features-grid, .team-grid {
+                grid-template-columns: 1fr;
+            }
+            .traffic-light {
+                flex-direction: column;
+                align-items: center;
+            }
+            .solution-flow {
+                flex-direction: column;
+            }
+            .flow-arrow {
+                transform: rotate(90deg);
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Language Toggle -->
+    <div class="lang-toggle">
+        <button class="lang-btn active" onclick="setLang('es')">ES</button>
+        <button class="lang-btn" onclick="setLang('en')">EN</button>
+    </div>
+
+    <div class="slides-container">
+
+        <!-- SLIDE 1: Hero -->
+        <section class="slide slide-hero">
+            <div class="emoji-large">👶</div>
+            <h1>BabyHealth</h1>
+            <p class="tagline es">Orientación inteligente para padres primerizos</p>
+            <p class="tagline en">Smart guidance for first-time parents</p>
+            <div class="badges">
+                <span class="badge">Flutter</span>
+                <span class="badge">AWS Bedrock</span>
+                <span class="badge">Claude AI</span>
+                <span class="badge">Serverless</span>
+            </div>
+            <a href="https://babyhealth.hmartinez.info" target="_blank" class="demo-btn">
+                <span class="es">🚀 Ver Demo en Vivo</span>
+                <span class="en">🚀 View Live Demo</span>
+            </a>
+        </section>
+
+        <!-- SLIDE 2: The Problem -->
+        <section class="slide">
+            <div class="slide-header">
+                <h2 class="es">🎯 El Problema</h2>
+                <h2 class="en">🎯 The Problem</h2>
+                <p class="subtitle es">Los padres primerizos viven en constante incertidumbre</p>
+                <p class="subtitle en">First-time parents live in constant uncertainty</p>
+            </div>
+            <div class="slide-content">
+                <div class="stat-highlight">
+                    60%
+                    <span class="es">de las consultas pediátricas de emergencia NO son urgentes</span>
+                    <span class="en">of pediatric emergency consultations are NOT urgent</span>
+                </div>
+                <div class="problem-grid">
+                    <div class="problem-card">
+                        <div class="icon">😰</div>
+                        <h3 class="es">Ansiedad Nocturna</h3>
+                        <h3 class="en">Nighttime Anxiety</h3>
+                        <p class="es">"¿Está respirando bien?" "¿Por qué llora así?" - Preguntas que quitan el sueño a millones de padres</p>
+                        <p class="en">"Is the baby breathing okay?" "Why is she crying?" - Questions that keep millions of parents awake</p>
+                    </div>
+                    <div class="problem-card danger">
+                        <div class="icon">🏥</div>
+                        <h3 class="es">Urgencias Saturadas</h3>
+                        <h3 class="en">Overcrowded ERs</h3>
+                        <p class="es">Visitas innecesarias que saturan sistemas de salud y generan costos evitables</p>
+                        <p class="en">Unnecessary visits that overwhelm healthcare systems and generate avoidable costs</p>
+                    </div>
+                    <div class="problem-card">
+                        <div class="icon">🌍</div>
+                        <h3 class="es">Acceso Limitado</h3>
+                        <h3 class="en">Limited Access</h3>
+                        <p class="es">Familias en zonas rurales sin acceso rápido a pediatras para consultas simples</p>
+                        <p class="en">Families in rural areas without quick access to pediatricians for simple questions</p>
+                    </div>
+                    <div class="problem-card">
+                        <div class="icon">🗣️</div>
+                        <h3 class="es">Barrera del Idioma</h3>
+                        <h3 class="en">Language Barrier</h3>
+                        <p class="es">Padres inmigrantes con dificultades para comunicar sus preocupaciones</p>
+                        <p class="en">Immigrant parents struggling to communicate their concerns</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SLIDE 3: The Solution -->
+        <section class="slide">
+            <div class="slide-header">
+                <h2 class="es">💡 Nuestra Solución</h2>
+                <h2 class="en">💡 Our Solution</h2>
+                <p class="subtitle es">Un primer filtro inteligente potenciado por IA multimodal</p>
+                <p class="subtitle en">A smart first filter powered by multimodal AI</p>
+            </div>
+            <div class="slide-content">
+                <div class="solution-flow">
+                    <div class="flow-step">
+                        <div class="icon">📱</div>
+                        <h4 class="es">Graba un video</h4>
+                        <h4 class="en">Record a video</h4>
+                    </div>
+                    <div class="flow-arrow">→</div>
+                    <div class="flow-step">
+                        <div class="icon">🤖</div>
+                        <h4 class="es">IA analiza</h4>
+                        <h4 class="en">AI analyzes</h4>
+                    </div>
+                    <div class="flow-arrow">→</div>
+                    <div class="flow-step">
+                        <div class="icon">🚦</div>
+                        <h4 class="es">Resultado claro</h4>
+                        <h4 class="en">Clear result</h4>
+                    </div>
+                    <div class="flow-arrow">→</div>
+                    <div class="flow-step">
+                        <div class="icon">📋</div>
+                        <h4 class="es">Recomendaciones</h4>
+                        <h4 class="en">Recommendations</h4>
+                    </div>
+                </div>
+
+                <div class="traffic-light">
+                    <div class="light green">
+                        <div class="circle"></div>
+                        <h4 class="es">Verde - Normal</h4>
+                        <h4 class="en">Green - Normal</h4>
+                        <p class="es">Tu bebé parece estar bien</p>
+                        <p class="en">Your baby seems fine</p>
+                    </div>
+                    <div class="light yellow">
+                        <div class="circle"></div>
+                        <h4 class="es">Amarillo - Atención</h4>
+                        <h4 class="en">Yellow - Attention</h4>
+                        <p class="es">Observa y consulta si persiste</p>
+                        <p class="en">Monitor and consult if persists</p>
+                    </div>
+                    <div class="light red">
+                        <div class="circle"></div>
+                        <h4 class="es">Rojo - Urgente</h4>
+                        <h4 class="en">Red - Urgent</h4>
+                        <p class="es">Busca atención médica</p>
+                        <p class="en">Seek medical attention</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SLIDE 4: Tech Stack -->
+        <section class="slide">
+            <div class="slide-header">
+                <h2 class="es">🛠️ Stack Tecnológico</h2>
+                <h2 class="en">🛠️ Tech Stack</h2>
+                <p class="subtitle es">Arquitectura moderna, escalable y segura</p>
+                <p class="subtitle en">Modern, scalable, and secure architecture</p>
+            </div>
+            <div class="slide-content">
+                <div class="tech-grid">
+                    <div class="tech-category">
+                        <h4>Frontend</h4>
+                        <ul>
+                            <li>Flutter 3.x</li>
+                            <li>Provider</li>
+                            <li>AWS Amplify</li>
+                            <li>SharedPreferences</li>
+                        </ul>
+                    </div>
+                    <div class="tech-category">
+                        <h4>Backend</h4>
+                        <ul>
+                            <li>Python 3.11</li>
+                            <li>FastAPI</li>
+                            <li>Mangum</li>
+                            <li>Pydantic</li>
+                        </ul>
+                    </div>
+                    <div class="tech-category">
+                        <h4 class="es">Inteligencia Artificial</h4>
+                        <h4 class="en">Artificial Intelligence</h4>
+                        <ul>
+                            <li>AWS Bedrock</li>
+                            <li>Claude Sonnet 4</li>
+                            <li>Google Gemini</li>
+                            <li>Multimodal</li>
+                        </ul>
+                    </div>
+                    <div class="tech-category">
+                        <h4 class="es">Infraestructura</h4>
+                        <h4 class="en">Infrastructure</h4>
+                        <ul>
+                            <li>CloudFront CDN</li>
+                            <li>S3 + Lambda</li>
+                            <li>API Gateway</li>
+                            <li>AWS CDK</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="architecture-diagram">
+┌─────────────────────────────────────────────────────────────────────────┐
+│                         FLUTTER WEB APP                                  │
+│    Landing  │  Home  │  Profile  │  Analysis (Video + Results)          │
+└───────────────────────────────────┬─────────────────────────────────────┘
+                                    │ HTTPS
+                                    ▼
+┌───────────────────────────────────────────────────────────────────────────┐
+│                      AWS CLOUDFRONT CDN                                   │
+│                   babyhealth.hmartinez.info                               │
+└───────────────────────────────────┬───────────────────────────────────────┘
+                  ┌─────────────────┴─────────────────┐
+                  ▼                                   ▼
+        ┌─────────────────┐               ┌─────────────────────────┐
+        │   S3 (Static)   │               │      API GATEWAY        │
+        └─────────────────┘               └───────────┬─────────────┘
+                                                      ▼
+                                          ┌─────────────────────────┐
+                                          │   AWS LAMBDA + FastAPI  │
+                                          └───────────┬─────────────┘
+                    ┌─────────────┬───────────────────┼───────────────┐
+                    ▼             ▼                   ▼               ▼
+            ┌───────────┐  ┌───────────┐      ┌───────────┐   ┌───────────┐
+            │  BEDROCK  │  │  GEMINI   │      │    S3     │   │ DYNAMODB  │
+            │ Claude AI │  │ (Backup)  │      │ (Videos)  │   │ (Results) │
+            └───────────┘  └───────────┘      └───────────┘   └───────────┘
+                </div>
+            </div>
+        </section>
+
+        <!-- SLIDE 5: Key Features -->
+        <section class="slide">
+            <div class="slide-header">
+                <h2 class="es">✨ Características Clave</h2>
+                <h2 class="en">✨ Key Features</h2>
+            </div>
+            <div class="slide-content">
+                <div class="features-grid">
+                    <div class="feature-card">
+                        <div class="icon">🎥</div>
+                        <h4 class="es">Análisis de Video Real</h4>
+                        <h4 class="en">Real Video Analysis</h4>
+                        <p class="es">No solo imágenes estáticas, analizamos video completo</p>
+                        <p class="en">Not just static images, we analyze complete video</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="icon">🔄</div>
+                        <h4>Multi-IA</h4>
+                        <p class="es">Bedrock + Gemini para redundancia real</p>
+                        <p class="en">Bedrock + Gemini for real redundancy</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="icon">☁️</div>
+                        <h4>100% Serverless</h4>
+                        <p class="es">Escalabilidad infinita, pago por uso</p>
+                        <p class="en">Infinite scalability, pay-per-use</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="icon">🌍</div>
+                        <h4 class="es">Bilingüe Nativo</h4>
+                        <h4 class="en">Native Bilingual</h4>
+                        <p class="es">Español e inglés desde el diseño</p>
+                        <p class="en">Spanish and English from design</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="icon">🔒</div>
+                        <h4 class="es">Seguridad Primero</h4>
+                        <h4 class="en">Security First</h4>
+                        <p class="es">OAuth 2.0, HTTPS, TTL 24h</p>
+                        <p class="en">OAuth 2.0, HTTPS, 24h TTL</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="icon">📱</div>
+                        <h4 class="es">Multiplataforma</h4>
+                        <h4 class="en">Cross-Platform</h4>
+                        <p class="es">Web live, iOS/Android ready</p>
+                        <p class="en">Web live, iOS/Android ready</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SLIDE 6: Why We Should Win -->
+        <section class="slide">
+            <div class="slide-header">
+                <h2 class="es">🏆 ¿Por Qué Deberíamos Ganar?</h2>
+                <h2 class="en">🏆 Why Should We Win?</h2>
+            </div>
+            <div class="slide-content">
+                <table class="diff-table">
+                    <thead>
+                        <tr>
+                            <th class="es">Aspecto</th>
+                            <th class="en">Aspect</th>
+                            <th class="es">Otros Proyectos</th>
+                            <th class="en">Other Projects</th>
+                            <th>BabyHealth</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td class="es">Análisis</td>
+                            <td class="en">Analysis</td>
+                            <td class="cross es">❌ Solo imágenes</td>
+                            <td class="cross en">❌ Images only</td>
+                            <td class="check es">✅ Video real</td>
+                            <td class="check en">✅ Real video</td>
+                        </tr>
+                        <tr>
+                            <td class="es">Proveedores IA</td>
+                            <td class="en">AI Providers</td>
+                            <td class="cross es">❌ Un solo modelo</td>
+                            <td class="cross en">❌ Single model</td>
+                            <td class="check">✅ Bedrock + Gemini</td>
+                        </tr>
+                        <tr>
+                            <td class="es">Despliegue</td>
+                            <td class="en">Deployment</td>
+                            <td class="cross es">❌ Prototipo local</td>
+                            <td class="cross en">❌ Local prototype</td>
+                            <td class="check es">✅ Producción LIVE</td>
+                            <td class="check en">✅ LIVE production</td>
+                        </tr>
+                        <tr>
+                            <td class="es">Idiomas</td>
+                            <td class="en">Languages</td>
+                            <td class="cross es">❌ Traducción tardía</td>
+                            <td class="cross en">❌ Late translation</td>
+                            <td class="check es">✅ Bilingüe nativo</td>
+                            <td class="check en">✅ Native bilingual</td>
+                        </tr>
+                        <tr>
+                            <td class="es">Infraestructura</td>
+                            <td class="en">Infrastructure</td>
+                            <td class="cross es">❌ Manual</td>
+                            <td class="cross en">❌ Manual</td>
+                            <td class="check">✅ IaC con AWS CDK</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- SLIDE 7: Team -->
+        <section class="slide">
+            <div class="slide-header">
+                <h2 class="es">👥 Nuestro Equipo</h2>
+                <h2 class="en">👥 Our Team</h2>
+            </div>
+            <div class="slide-content">
+                <div class="team-grid">
+                    <div class="team-member">
+                        <div class="avatar">H</div>
+                        <h4>Héctor Martínez</h4>
+                        <p class="role es">Coordinador + Backend</p>
+                        <p class="role en">Coordinator + Backend</p>
+                        <p class="github">@hdmartinezm</p>
+                    </div>
+                    <div class="team-member">
+                        <div class="avatar">A</div>
+                        <h4>Álvaro Hernández</h4>
+                        <p class="role es">Diseño + Frontend</p>
+                        <p class="role en">Design + Frontend</p>
+                        <p class="github">@ajha63</p>
+                    </div>
+                    <div class="team-member">
+                        <div class="avatar">W</div>
+                        <h4>William Izquierdo</h4>
+                        <p class="role">Fullstack</p>
+                        <p class="github">@izquierdowaws</p>
+                    </div>
+                    <div class="team-member">
+                        <div class="avatar">F</div>
+                        <h4>Francisco Thielen</h4>
+                        <p class="role es">Frontend + Móvil</p>
+                        <p class="role en">Frontend + Mobile</p>
+                        <p class="github">@FranciscoJTHG</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SLIDE 8: CTA -->
+        <section class="slide slide-cta">
+            <h2 class="es">🚀 ¡Pruébalo Ahora!</h2>
+            <h2 class="en">🚀 Try It Now!</h2>
+            <p class="es">Una solución real para un problema universal</p>
+            <p class="en">A real solution for a universal problem</p>
+            <div class="cta-links">
+                <a href="https://babyhealth.hmartinez.info" target="_blank" class="cta-link">
+                    <span class="es">🌐 Demo en Vivo</span>
+                    <span class="en">🌐 Live Demo</span>
+                </a>
+                <a href="https://github.com/hdmartinezm/hackathon-kiro" target="_blank" class="cta-link secondary">
+                    <span class="es">📂 Ver Código</span>
+                    <span class="en">📂 View Code</span>
+                </a>
+            </div>
+            <div class="disclaimer">
+                <strong>⚠️</strong>
+                <span class="es">BabyHealth es una herramienta de ORIENTACIÓN, no de diagnóstico médico.</span>
+                <span class="en">BabyHealth is a GUIDANCE tool, not a medical diagnosis.</span>
+            </div>
+        </section>
+
+    </div>
+
+    <script>
+        function setLang(lang) {
+            document.body.classList.toggle('english', lang === 'en');
+            document.querySelectorAll('.lang-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.textContent === lang.toUpperCase());
+            });
+        }
+    </script>
+</body>
+</html>
