@@ -157,7 +157,7 @@ Los **padres primerizos** enfrentan una constante incertidumbre sobre la salud d
 | Tecnología | Uso |
 |------------|-----|
 | **Flutter 3.x** | Framework multiplataforma (Web, iOS, Android) |
-| **Provider** | Gestión de estado reactiva |
+| **Provider** | AWS |
 | **AWS Amplify** | SDK de autenticación y servicios AWS |
 | **SharedPreferences** | Persistencia local de configuración |
 
