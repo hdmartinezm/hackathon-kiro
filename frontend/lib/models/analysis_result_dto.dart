@@ -5,6 +5,8 @@ import 'analysis_result.dart';
 ///
 /// Maps snake_case JSON fields to camelCase Dart fields. Use [fromJson] to
 /// parse a JSON map and [toDomain] to convert to the immutable domain model.
+///
+/// Supports both Bedrock (/analyze) and Gemini (/analyze-gemini) endpoints.
 class AnalysisResultDto {
   /// Severity status string from backend (`"normal"`, `"requiere_atencion"`, `"urgente"`).
   final String status;
@@ -18,8 +20,17 @@ class AnalysisResultDto {
   /// Confidence level (0.0 — 1.0), may be null.
   final double? confidence;
 
-  /// Detected cry category, may be null.
+  /// Detected cry category (e.g. "hambre", "dolor", "sueño"), may be null.
   final String? cryCategory;
+
+  /// Human-readable label for the cry category (e.g. "Hambre", "Dolor").
+  final String? cryLabel;
+
+  /// Confidence level for cry classification (0.0 — 1.0), may be null.
+  final double? cryConfidence;
+
+  /// Specific recommendation based on the detected cry type.
+  final String? cryRecommendation;
 
   /// Partial degradation message.
   ///
@@ -38,6 +49,9 @@ class AnalysisResultDto {
     required this.recommendations,
     this.confidence,
     this.cryCategory,
+    this.cryLabel,
+    this.cryConfidence,
+    this.cryRecommendation,
     this.error,
     required this.sessionId,
     required this.disclaimer,
@@ -45,8 +59,8 @@ class AnalysisResultDto {
 
   /// Parses an [AnalysisResultDto] from the backend JSON response.
   ///
-  /// All fields are expected to be present in [json] except [confidence],
-  /// [cryCategory], and [error], which default to `null` when absent.
+  /// All fields are expected to be present in [json] except nullable fields
+  /// which default to `null` when absent.
   factory AnalysisResultDto.fromJson(Map<String, dynamic> json) {
     return AnalysisResultDto(
       status: json['status'] as String,
@@ -54,6 +68,9 @@ class AnalysisResultDto {
       recommendations: json['recommendations'] as String,
       confidence: (json['confidence'] as num?)?.toDouble(),
       cryCategory: json['cry_category'] as String?,
+      cryLabel: json['cry_label'] as String?,
+      cryConfidence: (json['cry_confidence'] as num?)?.toDouble(),
+      cryRecommendation: json['cry_recommendation'] as String?,
       error: json['error'] as String?,
       sessionId: json['session_id'] as String,
       disclaimer: json['disclaimer'] as String,
@@ -68,6 +85,9 @@ class AnalysisResultDto {
       recommendations: recommendations,
       confidence: confidence,
       cryCategory: cryCategory,
+      cryLabel: cryLabel,
+      cryConfidence: cryConfidence,
+      cryRecommendation: cryRecommendation,
       error: error,
       sessionId: sessionId,
       disclaimer: disclaimer,

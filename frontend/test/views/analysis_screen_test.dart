@@ -7,6 +7,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:provider/provider.dart';
 
+import 'package:babyhealth/models/analysis_config.dart';
+import 'package:babyhealth/models/analysis_provider.dart';
 import 'package:babyhealth/models/analysis_result.dart';
 import 'package:babyhealth/models/analysis_status.dart';
 import 'package:babyhealth/models/captured_media.dart';
@@ -125,6 +127,10 @@ void main() {
       fileName: 'test_video.mp4',
       mimeType: 'video/mp4',
     );
+    final testConfig = AnalysisConfig(
+      media: testMedia,
+      provider: AnalysisProvider.bedrock,
+    );
 
     final normalResult = AnalysisResult(
       status: AnalysisStatus.normal,
@@ -159,7 +165,7 @@ void main() {
       return MaterialApp(
         home: ChangeNotifierProvider<AnalysisViewModel>.value(
           value: viewModel,
-          child: AnalysisScreen(media: testMedia),
+          child: AnalysisScreen(config: testConfig),
         ),
         routes: {
           '/home': (_) => const HomeScreen(),
@@ -238,7 +244,7 @@ void main() {
         await tester.pump(const Duration(milliseconds: 500));
 
         expect(find.text('Requiere Atención'), findsOneWidget);
-        expect(find.text('Categoría de Llanto'), findsOneWidget);
+        expect(find.text('Análisis de Llanto'), findsOneWidget);
         expect(find.text('dolor'), findsOneWidget);
       });
 

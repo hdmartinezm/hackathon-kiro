@@ -17,12 +17,16 @@ from aws_cdk import (
     aws_apigatewayv2 as apigwv2,
     aws_apigatewayv2_integrations as apigwv2_integrations,
     aws_apigatewayv2_authorizers as apigwv2_authorizers,
+    aws_certificatemanager as acm,
+    aws_cloudfront as cloudfront,
+    aws_cloudfront_origins as origins,
     aws_cognito as cognito,
     aws_dynamodb as dynamodb,
     aws_iam as iam,
     aws_lambda as lambda_,
     aws_logs as logs,
     aws_s3 as s3,
+    aws_secretsmanager as secretsmanager,
     CfnOutput,
 )
 from constructs import Construct
@@ -63,6 +67,100 @@ class BabyHealthStack(Stack):
             ],
         )
 
+        # ─── Frontend S3 Bucket ────────────────────────────────────────────
+        self.frontend_bucket = s3.Bucket(
+            self,
+            "BabyHealthFrontendBucket",
+            block_public_access=s3.BlockPublicAccess.BLOCK_ALL,
+            removal_policy=RemovalPolicy.DESTROY,
+            auto_delete_objects=True,
+        )
+
+        # ─── Origin Access Identity for CloudFront (Legacy but compatible) ─
+        self.origin_access_identity = cloudfront.OriginAccessIdentity(
+            self,
+            "BabyHealthFrontendOAI",
+            comment="OAI for BabyHealth frontend bucket",
+        )
+
+        # Grant CloudFront read access to the bucket
+        self.frontend_bucket.grant_read(self.origin_access_identity)
+
+        # ─── CloudFront Function: route the Flutter app under /app ─────────
+        # The marketing landing (Next.js static export) is served at "/".
+        # The Flutter app lives under "/app". Extensionless routes under /app
+        # (e.g. "/app", "/app/") are rewritten to "/app/index.html" so the SPA
+        # boots correctly. Real asset requests (with a file extension) pass
+        # through unchanged.
+        self.app_router_function = cloudfront.Function(
+            self,
+            "BabyHealthAppRouter",
+            code=cloudfront.FunctionCode.from_inline(
+                """
+function handler(event) {
+    var request = event.request;
+    var uri = request.uri;
+    if (uri === '/app' || uri === '/app/') {
+        request.uri = '/app/index.html';
+        return request;
+    }
+    if (uri.startsWith('/app/')) {
+        var last = uri.split('/').pop();
+        if (last.indexOf('.') === -1) {
+            request.uri = '/app/index.html';
+        }
+    }
+    return request;
+}
+"""
+            ),
+        )
+
+        # Custom domain (DNS ALIAS already points here; ACM cert issued).
+        self.frontend_certificate = acm.Certificate.from_certificate_arn(
+            self,
+            "BabyHealthFrontendCert",
+            "arn:aws:acm:us-east-1:970512219824:certificate/"
+            "9f456d50-0c47-4d66-8073-11edb123327e",
+        )
+
+        # ─── CloudFront Distribution ───────────────────────────────────────
+        self.distribution = cloudfront.Distribution(
+            self,
+            "BabyHealthFrontendDistribution",
+            domain_names=["babyhealth.hmartinez.info"],
+            certificate=self.frontend_certificate,
+            default_behavior=cloudfront.BehaviorOptions(
+                origin=origins.S3Origin(
+                    self.frontend_bucket,
+                    origin_access_identity=self.origin_access_identity,
+                ),
+                viewer_protocol_policy=cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
+                cache_policy=cloudfront.CachePolicy.CACHING_OPTIMIZED,
+                function_associations=[
+                    cloudfront.FunctionAssociation(
+                        function=self.app_router_function,
+                        event_type=cloudfront.FunctionEventType.VIEWER_REQUEST,
+                    )
+                ],
+            ),
+            default_root_object="index.html",
+            error_responses=[
+                cloudfront.ErrorResponse(
+                    http_status=404,
+                    response_http_status=200,
+                    response_page_path="/index.html",
+                    ttl=Duration.seconds(0),
+                ),
+                cloudfront.ErrorResponse(
+                    http_status=403,
+                    response_http_status=200,
+                    response_page_path="/index.html",
+                    ttl=Duration.seconds(0),
+                ),
+            ],
+        )
+
         # ─── Cognito User Pool ────────────────────────────────────────────
         self.user_pool = cognito.UserPool(
             self,
@@ -82,6 +180,77 @@ class BabyHealthStack(Stack):
             removal_policy=RemovalPolicy.DESTROY,
         )
 
+        # ─── Cognito Hosted UI domain (needed for federated social login) ──
+        self.user_pool_domain = self.user_pool.add_domain(
+            "BabyHealthAuthDomain",
+            cognito_domain=cognito.CognitoDomainOptions(
+                domain_prefix="babyhealth-auth",
+            ),
+        )
+
+        # ─── Google Identity Provider (federated login) ────────────────────
+        # The client secret is stored in AWS Secrets Manager (secret
+        # "babyhealth/google-oauth", JSON field "client_secret") and resolved
+        # at deploy time via a CloudFormation dynamic reference, so it never
+        # lives in source control.
+        self.google_oauth_secret = secretsmanager.Secret.from_secret_name_v2(
+            self,
+            "GoogleOAuthSecret",
+            "babyhealth/google-oauth",
+        )
+        self.google_idp = cognito.UserPoolIdentityProviderGoogle(
+            self,
+            "GoogleIdP",
+            user_pool=self.user_pool,
+            client_id=(
+                "304993661427-5s4jp489n2spiec5m0jop0s08kjvtfum"
+                ".apps.googleusercontent.com"
+            ),
+            client_secret_value=self.google_oauth_secret.secret_value_from_json(
+                "client_secret"
+            ),
+            scopes=["openid", "email", "profile"],
+            attribute_mapping=cognito.AttributeMapping(
+                email=cognito.ProviderAttribute.GOOGLE_EMAIL,
+            ),
+        )
+
+        # ─── Facebook Identity Provider (federated login) ──────────────────
+        # App id + secret stored in AWS Secrets Manager ("babyhealth/facebook-
+        # oauth"), resolved at deploy time via a dynamic reference.
+        self.facebook_oauth_secret = secretsmanager.Secret.from_secret_name_v2(
+            self,
+            "FacebookOAuthSecret",
+            "babyhealth/facebook-oauth",
+        )
+        self.facebook_idp = cognito.UserPoolIdentityProviderFacebook(
+            self,
+            "FacebookIdP",
+            user_pool=self.user_pool,
+            client_id=self.facebook_oauth_secret.secret_value_from_json(
+                "app_id"
+            ).unsafe_unwrap(),
+            client_secret=self.facebook_oauth_secret.secret_value_from_json(
+                "app_secret"
+            ).unsafe_unwrap(),
+            scopes=["public_profile", "email"],
+            attribute_mapping=cognito.AttributeMapping(
+                email=cognito.ProviderAttribute.FACEBOOK_EMAIL,
+            ),
+        )
+
+        # OAuth callback / logout targets. The Flutter app now lives under
+        # /app (landing occupies the root), served on both the CloudFront
+        # domain and the custom domain. Include every valid origin so Amplify
+        # can match the current one.
+        oauth_urls = [
+            "https://babyhealth.hmartinez.info/app/",
+            "https://d272sj5fujdytw.cloudfront.net/app/",
+            "https://babyhealth.hmartinez.info/",
+            "https://d272sj5fujdytw.cloudfront.net/",
+            "http://localhost:8443/",
+        ]
+
         # User Pool Client for Flutter app
         self.user_pool_client = self.user_pool.add_client(
             "BabyHealthAppClient",
@@ -91,13 +260,40 @@ class BabyHealthStack(Stack):
                 user_srp=True,
             ),
             generate_secret=False,  # Mobile apps don't use secrets
+            # OAuth / Hosted UI settings for federated social login.
+            o_auth=cognito.OAuthSettings(
+                flows=cognito.OAuthFlows(authorization_code_grant=True),
+                scopes=[
+                    cognito.OAuthScope.OPENID,
+                    cognito.OAuthScope.EMAIL,
+                    cognito.OAuthScope.PROFILE,
+                ],
+                callback_urls=oauth_urls,
+                logout_urls=oauth_urls,
+            ),
+            supported_identity_providers=[
+                cognito.UserPoolClientIdentityProvider.GOOGLE,
+                cognito.UserPoolClientIdentityProvider.FACEBOOK,
+                cognito.UserPoolClientIdentityProvider.COGNITO,
+            ],
+            # Session lifetime: access/id tokens valid 1h, refresh token 30 days.
+            # Amplify auto-refreshes the access token using the refresh token,
+            # so the session stays alive well beyond an hour without re-login.
+            access_token_validity=Duration.hours(1),
+            id_token_validity=Duration.hours(1),
+            refresh_token_validity=Duration.days(30),
+            enable_token_revocation=True,
         )
+
+        # Ensure the federated providers exist before the client references them.
+        self.user_pool_client.node.add_dependency(self.google_idp)
+        self.user_pool_client.node.add_dependency(self.facebook_idp)
 
         # ─── Task 13.2: DynamoDB Table ──────────────────────────────────────
         self.table = dynamodb.Table(
             self,
             "BabyHealthResultsTable",
-            table_name="babyhealth-results",
+            # table_name omitted - let CDK generate unique name
             partition_key=dynamodb.Attribute(
                 name="session_id", type=dynamodb.AttributeType.STRING
             ),
@@ -112,26 +308,62 @@ class BabyHealthStack(Stack):
         self.log_group = logs.LogGroup(
             self,
             "BabyHealthLambdaLogGroup",
-            log_group_name="/aws/lambda/babyhealth-api",
+            # log_group_name omitted - let CDK generate unique name
             retention=logs.RetentionDays.TWO_WEEKS,
             removal_policy=RemovalPolicy.DESTROY,
         )
 
+        # ─── Lambda Layer for Video Processing ─────────────────────────────
+        # Contains: numpy, imageio, matplotlib, pillow, av (pyav)
+        # Required for Bedrock endpoint to extract frames and generate spectrograms
+        self.video_processing_layer = lambda_.LayerVersion(
+            self,
+            "VideoProcessingLayer",
+            code=lambda_.Code.from_asset("layers/video-processing"),
+            compatible_runtimes=[lambda_.Runtime.PYTHON_3_11],
+            description="Video processing dependencies: numpy, imageio, matplotlib, pillow, av",
+        )
+
         # ─── Task 13.3: Lambda Function ─────────────────────────────────────
+        # Note: Dependencies must be pre-installed in backend folder
+        # Run: pip install -r requirements.txt -t . --upgrade
         self.lambda_function = lambda_.Function(
             self,
             "BabyHealthApiFunction",
-            function_name="babyhealth-api",
+            # function_name omitted - let CDK generate unique name
             runtime=lambda_.Runtime.PYTHON_3_11,
             handler="lambda_handler.handler",
-            code=lambda_.Code.from_asset("../backend"),
-            timeout=Duration.seconds(30),
-            memory_size=512,
+            code=lambda_.Code.from_asset(
+                "../backend",
+                # Keep the deployment package small (code + layers must stay
+                # under the 250MB unzipped Lambda limit). Exclude build
+                # artifacts and files not needed at runtime.
+                exclude=[
+                    "lambda_package",
+                    "lambda_package_backup",
+                    "**/__pycache__",
+                    "**/*.pyc",
+                    "**/*.dist-info",
+                    "**/*.egg-info",
+                    "tests",
+                    "**/tests",
+                    ".venv",
+                    "venv",
+                    "*.md",
+                ],
+            ),
+            timeout=Duration.seconds(60),  # Increased for video processing
+            memory_size=1024,  # Increased for video/image processing
+            layers=[self.video_processing_layer],
             environment={
                 "S3_BUCKET": self.bucket.bucket_name,
                 "BEDROCK_MODEL_ID": "us.anthropic.claude-sonnet-4-5-20250929-v1:0",
+                "GEMINI_MODEL_ID": "gemini-2.5-flash",
                 "DYNAMODB_TABLE": self.table.table_name,
                 "AWS_REGION_NAME": self.region,
+                # GEMINI_API_KEY should be set manually after deploy:
+                # aws lambda update-function-configuration --function-name babyhealth-api \
+                #   --environment "Variables={...,GEMINI_API_KEY=your-key}"
             },
             log_group=self.log_group,
         )
@@ -147,13 +379,20 @@ class BabyHealthStack(Stack):
             "dynamodb:Query",
         )
 
-        # Bedrock: InvokeModel permission
+        # Bedrock: InvokeModel and Converse permissions
         self.lambda_function.add_to_role_policy(
             iam.PolicyStatement(
                 effect=iam.Effect.ALLOW,
-                actions=["bedrock:InvokeModel"],
+                actions=[
+                    "bedrock:InvokeModel",
+                    "bedrock:InvokeModelWithResponseStream",
+                    "bedrock:Converse",
+                    "bedrock:ConverseStream",
+                ],
                 resources=[
                     f"arn:aws:bedrock:{self.region}::foundation-model/*",
+                    f"arn:aws:bedrock:{self.region}:{self.account}:inference-profile/*",
+                    f"arn:aws:bedrock:*::foundation-model/*",  # Cross-region models
                 ],
             )
         )
@@ -164,7 +403,7 @@ class BabyHealthStack(Stack):
             "BabyHealthHttpApi",
             api_name="babyhealth-api",
             cors_preflight=apigwv2.CorsPreflightOptions(
-                allow_origins=[],  # Empty = reject browser requests
+                allow_origins=["*"],  # Allow all origins for mobile app
                 allow_methods=[
                     apigwv2.CorsHttpMethod.GET,
                     apigwv2.CorsHttpMethod.POST,
@@ -207,6 +446,20 @@ class BabyHealthStack(Stack):
 
         self.api.add_routes(
             path="/analyze",
+            methods=[apigwv2.HttpMethod.POST],
+            integration=lambda_integration,
+            authorizer=self.authorizer,
+        )
+
+        self.api.add_routes(
+            path="/analyze-gemini",
+            methods=[apigwv2.HttpMethod.POST],
+            integration=lambda_integration,
+            authorizer=self.authorizer,
+        )
+
+        self.api.add_routes(
+            path="/analyze-image",
             methods=[apigwv2.HttpMethod.POST],
             integration=lambda_integration,
             authorizer=self.authorizer,
@@ -271,4 +524,35 @@ class BabyHealthStack(Stack):
             "CognitoRegion",
             value=self.region,
             description="AWS Region for Cognito",
+        )
+
+        CfnOutput(
+            self,
+            "CognitoDomain",
+            value=(
+                f"https://{self.user_pool_domain.domain_name}"
+                f".auth.{self.region}.amazoncognito.com"
+            ),
+            description="Cognito Hosted UI domain for federated login",
+        )
+
+        CfnOutput(
+            self,
+            "FrontendUrl",
+            value=f"https://{self.distribution.domain_name}",
+            description="CloudFront URL for the frontend",
+        )
+
+        CfnOutput(
+            self,
+            "FrontendBucketName",
+            value=self.frontend_bucket.bucket_name,
+            description="S3 bucket for frontend static files",
+        )
+
+        CfnOutput(
+            self,
+            "CloudFrontDistributionId",
+            value=self.distribution.distribution_id,
+            description="CloudFront distribution ID for cache invalidation",
         )

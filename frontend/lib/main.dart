@@ -1,32 +1,98 @@
+import 'package:amplify_flutter/amplify_flutter.dart'
+    show Amplify, HubChannel, AuthHubEvent, AuthHubEventType;
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:provider/provider.dart';
 
 import 'core/api_config.dart';
+import 'core/app_localizations.dart';
+import 'core/app_settings.dart';
+import 'core/app_theme.dart';
+import 'models/analysis_config.dart';
 import 'models/captured_media.dart';
 import 'repositories/analysis_repository.dart';
 import 'repositories/capture_repository.dart';
 import 'repositories/upload_repository.dart';
+import 'services/auth_service.dart';
 import 'services/http_client.dart';
 import 'services/platform_service.dart';
+import 'services/profile_service.dart';
 import 'services/storage_service.dart';
 import 'services/video_capture_service.dart';
 import 'viewmodels/analysis_viewmodel.dart';
+import 'viewmodels/auth_viewmodel.dart';
 import 'viewmodels/home_viewmodel.dart';
 import 'viewmodels/splash_viewmodel.dart';
 import 'views/analysis_screen.dart';
+import 'views/auth_screen.dart';
 import 'views/home_screen.dart';
+import 'views/model_selector_screen.dart';
+import 'views/profile_screen.dart';
 import 'views/splash_screen.dart';
+import 'views/verify_email_screen.dart';
 import 'views/web_landing_screen.dart';
 
-void main() {
+/// Global navigator key so we can navigate from outside the widget tree
+/// (e.g. when the Amplify Hub reports a completed Hosted UI social login).
+final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
+
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  // Load persisted user preferences (theme + language).
+  final appSettings = AppSettings();
+  await appSettings.load();
+
+  // Load profile data
+  final profileService = ProfileService();
+  await profileService.load();
+
+  // Initialize AuthService and configure Amplify
+  final authService = AuthService();
+  try {
+    await authService.configure();
+  } catch (e) {
+    debugPrint('Amplify configuration error: $e');
+  }
+
+  // After a federated (Google/Facebook) Hosted UI login, the browser is
+  // redirected back to the app with `?code=...`. Amplify exchanges it for
+  // tokens and emits a `signedIn` Hub event; navigate to /home when it fires.
+  try {
+    Amplify.Hub.listen(HubChannel.Auth, (AuthHubEvent event) {
+      if (event.type == AuthHubEventType.signedIn) {
+        navigatorKey.currentState?.pushNamedAndRemoveUntil(
+          '/home',
+          (route) => false,
+        );
+      }
+    });
+  } catch (e) {
+    debugPrint('Amplify Hub listen error: $e');
+  }
+
   runApp(
     MultiProvider(
       providers: [
+        // -- User preferences (theme + language) --
+        ChangeNotifierProvider<AppSettings>.value(value: appSettings),
+
+        // -- Auth service (singleton) --
+        Provider<AuthService>.value(value: authService),
+
+        // -- Profile service (singleton) --
+        ChangeNotifierProvider<ProfileService>.value(value: profileService),
+
         // -- Core services --
         Provider<PlatformService>(create: (_) => PlatformService()),
-        Provider<HttpClient>(
-          create: (_) => HttpClient(baseUrl: ApiConfig.baseUrl),
+        ProxyProvider<AuthService, HttpClient>(
+          update: (_, authService, previous) =>
+              previous ??
+              HttpClient(
+                baseUrl: ApiConfig.baseUrl,
+                authService: authService,
+              ),
         ),
         Provider<StorageService>(create: (_) => StorageService()),
 
@@ -35,46 +101,48 @@ void main() {
           update: (_, platformService, previous) =>
               previous ??
               ImagePickerVideoCaptureService(
-            platformService: platformService,
-          ),
+                platformService: platformService,
+              ),
         ),
 
         // -- Repositories --
         ProxyProvider<VideoCaptureService, CaptureRepository>(
           update: (_, service, previous) =>
-              previous ??
-              CaptureRepository(videoCaptureService: service),
+              previous ?? CaptureRepository(videoCaptureService: service),
         ),
         ProxyProvider2<HttpClient, StorageService, UploadRepository>(
           update: (_, httpClient, storageService, previous) =>
               previous ??
               UploadRepository(
-            httpClient: httpClient,
-            storageService: storageService,
-          ),
+                httpClient: httpClient,
+                storageService: storageService,
+              ),
         ),
         ProxyProvider<HttpClient, AnalysisRepository>(
           update: (_, httpClient, previous) =>
-              previous ??
-              AnalysisRepository(httpClient: httpClient),
+              previous ?? AnalysisRepository(httpClient: httpClient),
         ),
 
         // -- ViewModels --
         ChangeNotifierProvider<SplashViewModel>(
           create: (_) => SplashViewModel(),
         ),
+        ChangeNotifierProxyProvider<AuthService, AuthViewModel>(
+          create: (context) => AuthViewModel(
+            authService: context.read<AuthService>(),
+          ),
+          update: (_, authService, previous) =>
+              previous ?? AuthViewModel(authService: authService),
+        ),
         ChangeNotifierProvider<HomeViewModel>(
           create: (context) => HomeViewModel(
-            captureRepository:
-                context.read<CaptureRepository>(),
+            captureRepository: context.read<CaptureRepository>(),
           ),
         ),
         ChangeNotifierProvider<AnalysisViewModel>(
           create: (context) => AnalysisViewModel(
-            uploadRepository:
-                context.read<UploadRepository>(),
-            analysisRepository:
-                context.read<AnalysisRepository>(),
+            uploadRepository: context.read<UploadRepository>(),
+            analysisRepository: context.read<AnalysisRepository>(),
           ),
         ),
       ],
@@ -88,36 +156,45 @@ class BabyHealthApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final settings = context.watch<AppSettings>();
+
     return MaterialApp(
       title: 'BabyHealth',
       debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        scaffoldBackgroundColor: const Color(0xFFFAF7F4),
-        colorScheme: const ColorScheme.light(
-          primary: Color(0xFF389BB0),
-          primaryContainer: Color(0xFFD6F2F7),
-          secondary: Color(0xFFE87055),
-          surface: Color(0xFFFFFFFF),
-          onSurface: Color(0xFF2B2826),
-        ),
-        useMaterial3: true,
-        appBarTheme: const AppBarTheme(
-          backgroundColor: Colors.transparent,
-          elevation: 0,
-          foregroundColor: Color(0xFF2B2826),
-          centerTitle: true,
-        ),
-      ),
-      // Adaptive routing: Web shows landing page, native shows splash flow.
+      navigatorKey: navigatorKey,
+      theme: AppTheme.light,
+      darkTheme: AppTheme.dark,
+      themeMode: settings.themeMode,
+      // null → follow the browser/system language.
+      locale: settings.locale,
+      supportedLocales: AppSettings.supportedLocales,
+      localizationsDelegates: const [
+        AppLocalizations.delegate,
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
       initialRoute: kIsWeb ? '/web-landing' : '/splash',
       routes: {
         if (kIsWeb) '/web-landing': (_) => const WebLandingScreen(),
         '/splash': (_) => const SplashScreen(),
         '/home': (_) => const HomeScreen(),
-        '/analysis': (ctx) => AnalysisScreen(
+        '/auth': (_) => const AuthScreen(),
+        '/verify-email': (_) => const VerifyEmailScreen(),
+        '/profile': (_) => const ProfileScreen(),
+        '/model-selector': (ctx) => ModelSelectorScreen(
               media: ModalRoute.of(ctx)!.settings.arguments as CapturedMedia,
             ),
+        '/analysis': (ctx) => AnalysisScreen(
+              config: ModalRoute.of(ctx)!.settings.arguments as AnalysisConfig,
+            ),
       },
+      // OAuth redirects (e.g. Facebook adds `#_=_`) can produce an unknown
+      // initial route. Fall back to the landing/splash instead of a blank page.
+      onUnknownRoute: (settings) => MaterialPageRoute(
+        builder: (_) =>
+            kIsWeb ? const WebLandingScreen() : const SplashScreen(),
+      ),
     );
   }
 }

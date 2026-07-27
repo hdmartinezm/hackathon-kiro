@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 
+import '../models/analysis_config.dart';
 import '../models/captured_media.dart';
 import '../views/analysis_screen.dart';
+import '../views/model_selector_screen.dart';
 
 /// A visual phone mockup frame that wraps a child widget in an isolated
 /// [Navigator].
@@ -75,11 +77,17 @@ class PhoneMockupWidget extends StatelessWidget {
                       key: navigatorKey,
                       onGenerateRoute: (settings) {
                         switch (settings.name) {
-                          case '/analysis':
+                          case '/model-selector':
                             final media =
                                 settings.arguments as CapturedMedia;
                             return MaterialPageRoute(
-                              builder: (_) => AnalysisScreen(media: media),
+                              builder: (_) => ModelSelectorScreen(media: media),
+                            );
+                          case '/analysis':
+                            final config =
+                                settings.arguments as AnalysisConfig;
+                            return MaterialPageRoute(
+                              builder: (_) => AnalysisScreen(config: config),
                             );
                           case '/home':
                             return MaterialPageRoute(
@@ -154,20 +162,20 @@ class _StatusBar extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: const Row(
         children: [
-          Icon(Icons.signal_cellular_alt, size: 14, color: Color(0xFF2B2826)),
+          Icon(Icons.signal_cellular_alt, size: 14, color: Color(0xFF2A2A28)),
           SizedBox(width: 4),
-          Icon(Icons.wifi, size: 14, color: Color(0xFF2B2826)),
+          Icon(Icons.wifi, size: 14, color: Color(0xFF2A2A28)),
           Spacer(),
           Text(
             '9:41',
             style: TextStyle(
               fontSize: 12,
               fontWeight: FontWeight.w600,
-              color: Color(0xFF2B2826),
+              color: Color(0xFF2A2A28),
             ),
           ),
           Spacer(),
-          Icon(Icons.battery_full, size: 16, color: Color(0xFF2B2826)),
+          Icon(Icons.battery_full, size: 16, color: Color(0xFF2A2A28)),
         ],
       ),
     );

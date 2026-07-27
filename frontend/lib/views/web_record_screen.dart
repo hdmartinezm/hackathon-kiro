@@ -1,0 +1,400 @@
+import 'dart:async';
+
+import 'package:camera/camera.dart';
+import 'package:flutter/material.dart';
+
+import '../core/app_localizations.dart';
+import '../models/captured_media.dart';
+
+/// Error types for the web record screen.
+enum _RecordError {
+  noCameraFound,
+  cameraAccessDenied,
+  recordingStartFailed,
+  recordingStopFailed,
+}
+
+/// Full-screen camera recorder for the web version.
+///
+/// Uses the `camera` plugin (backed by the browser MediaRecorder API on web)
+/// to record a short video with audio. On completion it returns a
+/// [CapturedMedia] via `Navigator.pop`, or `null` if the user cancels.
+class WebRecordScreen extends StatefulWidget {
+  const WebRecordScreen({super.key});
+
+  @override
+  State<WebRecordScreen> createState() => _WebRecordScreenState();
+}
+
+class _WebRecordScreenState extends State<WebRecordScreen> {
+  CameraController? _controller;
+  Future<void>? _initFuture;
+  bool _isRecording = false;
+  bool _isProcessing = false;
+  bool _isSwitching = false;
+  _RecordError? _errorType;
+  String? _errorDetail;
+
+  /// All cameras available on the device (front + back on phones).
+  List<CameraDescription> _cameras = [];
+
+  // Elapsed recording time.
+  Timer? _timer;
+  int _seconds = 0;
+
+  // Safety cap so recordings don't grow unbounded.
+  static const int _maxSeconds = 30;
+
+  @override
+  void initState() {
+    super.initState();
+    _initFuture = _setupCamera();
+  }
+
+  Future<void> _setupCamera() async {
+    try {
+      _cameras = await availableCameras();
+      if (_cameras.isEmpty) {
+        setState(() => _errorType = _RecordError.noCameraFound);
+        return;
+      }
+
+      // Prefer the back camera (usually higher quality for capturing the baby),
+      // otherwise fall back to the first available camera.
+      final camera = _cameras.firstWhere(
+        (c) => c.lensDirection == CameraLensDirection.back,
+        orElse: () => _cameras.first,
+      );
+
+      await _initController(camera);
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _errorType = _RecordError.cameraAccessDenied;
+        _errorDetail = e.toString();
+      });
+    }
+  }
+
+  /// Creates and initializes a controller for the given [camera].
+  Future<void> _initController(CameraDescription camera) async {
+    final controller = CameraController(
+      camera,
+      ResolutionPreset.medium,
+      enableAudio: true,
+    );
+    try {
+      await controller.initialize();
+      if (!mounted) return;
+      setState(() => _controller = controller);
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _errorType = _RecordError.cameraAccessDenied;
+        _errorDetail = e.toString();
+      });
+    }
+  }
+
+  /// Flips between front and back cameras. Disabled while recording.
+  Future<void> _switchCamera() async {
+    if (_cameras.length < 2 || _isRecording || _isProcessing || _isSwitching) {
+      return;
+    }
+
+    final current = _controller?.description;
+    // Pick the first camera with a different lens direction; otherwise cycle.
+    final next = _cameras.firstWhere(
+      (c) => c.lensDirection != current?.lensDirection,
+      orElse: () {
+        final idx = current == null ? -1 : _cameras.indexOf(current);
+        return _cameras[(idx + 1) % _cameras.length];
+      },
+    );
+
+    setState(() => _isSwitching = true);
+    await _controller?.dispose();
+    _controller = null;
+    await _initController(next);
+    if (mounted) setState(() => _isSwitching = false);
+  }
+
+  Future<void> _startRecording() async {
+    final controller = _controller;
+    if (controller == null || !controller.value.isInitialized) return;
+
+    try {
+      await controller.startVideoRecording();
+      if (!mounted) return;
+      setState(() {
+        _isRecording = true;
+        _seconds = 0;
+      });
+      _timer = Timer.periodic(const Duration(seconds: 1), (_) {
+        if (!mounted) return;
+        setState(() => _seconds++);
+        if (_seconds >= _maxSeconds) {
+          _stopRecording();
+        }
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _errorType = _RecordError.recordingStartFailed;
+        _errorDetail = e.toString();
+      });
+    }
+  }
+
+  Future<void> _stopRecording() async {
+    final controller = _controller;
+    if (controller == null || !_isRecording) return;
+
+    _timer?.cancel();
+    setState(() {
+      _isRecording = false;
+      _isProcessing = true;
+    });
+
+    try {
+      final xFile = await controller.stopVideoRecording();
+      final bytes = await xFile.readAsBytes();
+
+      // On web the container is typically WebM. MediaRecorder reports a MIME
+      // type with codec parameters (e.g. 'video/webm;codecs="vp9,opus"'), but
+      // the backend only accepts base types, so strip everything after ';'.
+      final rawMime = xFile.mimeType ?? 'video/webm';
+      final baseMime = rawMime.split(';').first.trim().toLowerCase();
+      final mimeType =
+          baseMime.startsWith('video/') ? baseMime : 'video/webm';
+      final ext = mimeType.contains('mp4') ? 'mp4' : 'webm';
+      final fileName =
+          'grabacion_${DateTime.now().millisecondsSinceEpoch}.$ext';
+
+      if (!mounted) return;
+      Navigator.of(context).pop(
+        CapturedMedia(
+          bytes: bytes,
+          fileName: fileName,
+          mimeType: mimeType,
+        ),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _isProcessing = false;
+        _errorType = _RecordError.recordingStopFailed;
+        _errorDetail = e.toString();
+      });
+    }
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    _controller?.dispose();
+    super.dispose();
+  }
+
+  String _getErrorMessage(BuildContext context) {
+    final l10n = context.l10n;
+    switch (_errorType) {
+      case _RecordError.noCameraFound:
+        return l10n.noCameraFound;
+      case _RecordError.cameraAccessDenied:
+        return l10n.cameraAccessError(_errorDetail ?? '');
+      case _RecordError.recordingStartFailed:
+        return l10n.recordingError(_errorDetail ?? '');
+      case _RecordError.recordingStopFailed:
+        return l10n.recordingError(_errorDetail ?? '');
+      case null:
+        return '';
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    return Scaffold(
+      backgroundColor: Colors.black,
+      appBar: AppBar(
+        backgroundColor: Colors.black,
+        foregroundColor: Colors.white,
+        title: Text(l10n.recordVideo),
+        leading: IconButton(
+          icon: const Icon(Icons.close),
+          onPressed: () => Navigator.of(context).pop(),
+        ),
+        actions: [
+          if (_errorType == null &&
+              _cameras.length >= 2 &&
+              !_isRecording &&
+              !_isProcessing)
+            IconButton(
+              icon: _isSwitching
+                  ? const SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(
+                        color: Colors.white,
+                        strokeWidth: 2,
+                      ),
+                    )
+                  : const Icon(Icons.cameraswitch_rounded),
+              tooltip: l10n.switchCamera,
+              onPressed: _isSwitching ? null : _switchCamera,
+            ),
+        ],
+      ),
+      body: _errorType != null
+          ? _buildError(context)
+          : FutureBuilder<void>(
+              future: _initFuture,
+              builder: (context, snapshot) {
+                final controller = _controller;
+                if (controller == null || !controller.value.isInitialized) {
+                  return const Center(
+                    child: CircularProgressIndicator(color: Colors.white),
+                  );
+                }
+                return _buildCamera(context, controller);
+              },
+            ),
+    );
+  }
+
+  Widget _buildError(BuildContext context) {
+    final l10n = context.l10n;
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(Icons.videocam_off_rounded,
+                color: Colors.white70, size: 56),
+            const SizedBox(height: 16),
+            Text(
+              _getErrorMessage(context),
+              textAlign: TextAlign.center,
+              style: const TextStyle(color: Colors.white70, fontSize: 14),
+            ),
+            const SizedBox(height: 24),
+            FilledButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: Text(l10n.cancel),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCamera(BuildContext context, CameraController controller) {
+    final l10n = context.l10n;
+    return Stack(
+      children: [
+        // Camera preview centered.
+        Center(
+          child: AspectRatio(
+            aspectRatio: controller.value.aspectRatio,
+            child: CameraPreview(controller),
+          ),
+        ),
+
+        // Recording timer badge.
+        if (_isRecording)
+          Positioned(
+            top: 16,
+            left: 0,
+            right: 0,
+            child: Center(
+              child: Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                decoration: BoxDecoration(
+                  color: Colors.black.withValues(alpha: 0.6),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      width: 10,
+                      height: 10,
+                      decoration: const BoxDecoration(
+                        color: Color(0xFFDF7B5E),
+                        shape: BoxShape.circle,
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      _formatTime(_seconds),
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+
+        // Bottom controls.
+        Positioned(
+          left: 0,
+          right: 0,
+          bottom: 40,
+          child: Center(
+            child: _isProcessing
+                ? const CircularProgressIndicator(color: Colors.white)
+                : GestureDetector(
+                    onTap: _isRecording ? _stopRecording : _startRecording,
+                    child: Container(
+                      width: 76,
+                      height: 76,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        border: Border.all(color: Colors.white, width: 4),
+                      ),
+                      child: Center(
+                        child: AnimatedContainer(
+                          duration: const Duration(milliseconds: 200),
+                          width: _isRecording ? 30 : 60,
+                          height: _isRecording ? 30 : 60,
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFDF7B5E),
+                            borderRadius: BorderRadius.circular(
+                                _isRecording ? 8 : 40),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+          ),
+        ),
+
+        // Hint text.
+        if (!_isRecording && !_isProcessing)
+          Positioned(
+            left: 0,
+            right: 0,
+            bottom: 130,
+            child: Center(
+              child: Text(
+                l10n.tapToRecord,
+                style: const TextStyle(color: Colors.white70, fontSize: 14),
+              ),
+            ),
+          ),
+      ],
+    );
+  }
+
+  String _formatTime(int seconds) {
+    final m = (seconds ~/ 60).toString().padLeft(2, '0');
+    final s = (seconds % 60).toString().padLeft(2, '0');
+    return '$m:$s';
+  }
+}

@@ -17,18 +17,51 @@ class AnalysisRepository {
   /// Sends a video key for analysis and returns the domain result.
   ///
   /// Calls `POST /analyze` with [videoKey] and optional [sessionId].
+  /// Uses AWS Bedrock for visual analysis.
   /// Throws [HttpClientException] on HTTP errors (non-2xx status or network failure).
   Future<AnalysisResult> analyze(
     String videoKey, {
     String? sessionId,
+    Map<String, dynamic>? profileContext,
+    String? language,
+  }) async {
+    return _analyzeWithEndpoint('/analyze', videoKey,
+        sessionId: sessionId, profileContext: profileContext, language: language);
+  }
+
+  /// Sends a video key for analysis using Google Gemini (native multimodal).
+  ///
+  /// Calls `POST /analyze-gemini` with [videoKey] and optional [sessionId].
+  /// Gemini provides native video+audio analysis without frame extraction.
+  /// Includes cry classification with category, label, confidence, and recommendation.
+  /// Throws [HttpClientException] on HTTP errors (non-2xx status or network failure).
+  Future<AnalysisResult> analyzeWithGemini(
+    String videoKey, {
+    String? sessionId,
+    Map<String, dynamic>? profileContext,
+    String? language,
+  }) async {
+    return _analyzeWithEndpoint('/analyze-gemini', videoKey,
+        sessionId: sessionId, profileContext: profileContext, language: language);
+  }
+
+  /// Internal method that handles the actual API call.
+  Future<AnalysisResult> _analyzeWithEndpoint(
+    String endpoint,
+    String videoKey, {
+    String? sessionId,
+    Map<String, dynamic>? profileContext,
+    String? language,
   }) async {
     final requestDto = AnalyzeRequestDto(
       videoKey: videoKey,
       sessionId: sessionId,
+      profileContext: profileContext,
+      language: language,
     );
 
     final response = await _httpClient.post(
-      '/analyze',
+      endpoint,
       body: requestDto.toJson(),
     );
 

@@ -10,7 +10,8 @@ class ApiConfig {
   ApiConfig._();
 
   /// The default fallback used when `--dart-define=API_BASE_URL` is not provided.
-  static const String _defaultBaseUrl = 'http://localhost:8000';
+  /// Production: https://hhcfovkc7h.execute-api.us-east-1.amazonaws.com
+  static const String _defaultBaseUrl = 'https://hhcfovkc7h.execute-api.us-east-1.amazonaws.com';
 
   /// The backend API base URL, read from compile-time define.
   ///
@@ -18,4 +19,12 @@ class ApiConfig {
   static String get baseUrl =>
       const String.fromEnvironment('API_BASE_URL',
           defaultValue: _defaultBaseUrl);
+
+  /// Whether federated social login (Google / Apple / Facebook) is live.
+  ///
+  /// Google is configured (Cognito Hosted UI domain `babyhealth-auth` +
+  /// federated Google Identity Provider). Apple/Facebook are not set up yet,
+  /// so their buttons still show the "coming soon" notice at the screen level.
+  static const bool socialLoginEnabled =
+      bool.fromEnvironment('SOCIAL_LOGIN_ENABLED', defaultValue: true);
 }

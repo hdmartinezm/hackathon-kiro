@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 
+import '../models/captured_media.dart';
 import '../repositories/capture_repository.dart';
 import 'states/home_state.dart';
 
@@ -60,6 +61,15 @@ class HomeViewModel extends ChangeNotifier {
       );
       notifyListeners();
     }
+  }
+
+  /// Sets media captured externally (e.g. from the web recording screen).
+  ///
+  /// Transitions [HomeState.captureStatus] to `'captured'` with the given
+  /// [media], triggering navigation to the analysis flow.
+  void setCapturedMedia(CapturedMedia media) {
+    _state = _state.copyWith(captureStatus: 'captured', media: media);
+    notifyListeners();
   }
 
   /// Resets the capture state to its initial values.

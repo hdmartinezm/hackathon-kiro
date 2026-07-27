@@ -31,12 +31,25 @@ dependencies:
   flutter:
     sdk: flutter
 
+  # Localization (i18n) support
+  flutter_localizations:
+    sdk: flutter
+
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.8
 
   # State management and dependency injection
   provider: ^6.1.2
+
+  # Persist user preferences (theme + language) across sessions
+  shared_preferences: ^2.3.2
+
+  # Brand typography (Inter body + Space Grotesk accent) to match landing
+  google_fonts: ^6.2.1
+
+  # Lightweight entrance animations
+  flutter_animate: ^4.5.0
 
   # HTTP client for REST API calls
   http: ^1.2.2
@@ -45,13 +58,23 @@ dependencies:
   file_picker: ^8.1.6
 
   # Date and duration formatting
-  intl: ^0.19.0
+  intl: ^0.20.2
 
   # Image picker for selecting images from gallery (Android + Web)
   image_picker: ^1.1.2
 
   # Camera access for video recording with audio (Android + Web)
   camera: ^0.12.0+1
+
+  # AWS Amplify authentication with Cognito
+  amplify_flutter: ^2.0.0
+  amplify_auth_cognito: ^2.0.0
+
+  # URL launcher for opening WhatsApp and external links
+  url_launcher: ^6.2.5
+
+  # PDF generation for analysis reports
+  pdf: ^3.10.8
 
 dependency_overrides:
   # Pin flutter_plugin_android_lifecycle to a version compatible with compileSdk 34
@@ -67,6 +90,10 @@ dev_dependencies:
   # package. See that file for information about deactivating specific lint
   # rules and activating additional ones.
   flutter_lints: ^6.0.0
+
+  # Mocking library for testing
+  mockito: ^5.4.4
+  build_runner: ^2.4.13
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec

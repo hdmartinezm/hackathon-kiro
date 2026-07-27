@@ -1,6 +1,8 @@
 import 'package:flutter/foundation.dart';
 
+import '../models/analysis_provider.dart';
 import '../models/captured_media.dart';
+import '../models/profile_data.dart';
 import '../repositories/analysis_repository.dart';
 import '../repositories/upload_repository.dart';
 import 'states/analysis_state.dart';
@@ -31,13 +33,25 @@ class AnalysisViewModel extends ChangeNotifier {
   /// Steps:
   /// 1. Sets status to `'uploading'` and uploads [media] via
   ///    [UploadRepository.uploadMedia].
-  /// 2. Sets status to `'analyzing'` and calls
-  ///    [AnalysisRepository.analyze] with the returned `videoKey`.
+  /// 2. Sets status to `'analyzing'` and calls the appropriate analysis
+  ///    method based on [provider].
   /// 3. On success, sets status to `'completed'` with the [AnalysisResult].
+  ///
+  /// The [provider] parameter determines which backend endpoint to use:
+  /// - [AnalysisProvider.bedrock]: Uses `/analyze` (default)
+  /// - [AnalysisProvider.gemini]: Uses `/analyze-gemini` with native multimodal
+  ///
+  /// The [language] parameter ('es' or 'en') determines the language of the
+  /// analysis response.
   ///
   /// On failure at any step, sets status to `'error'` with a descriptive
   /// [AnalysisState.errorMessage].
-  Future<void> startAnalysis(CapturedMedia media) async {
+  Future<void> startAnalysis(
+    CapturedMedia media, {
+    AnalysisProvider provider = AnalysisProvider.bedrock,
+    ProfileData? profile,
+    String? language,
+  }) async {
     _state = _state.copyWith(status: 'uploading', errorMessage: null);
     notifyListeners();
 
@@ -47,7 +61,20 @@ class AnalysisViewModel extends ChangeNotifier {
       _state = _state.copyWith(status: 'analyzing');
       notifyListeners();
 
-      final result = await _analysisRepository.analyze(videoKey);
+      final profileContext = profile?.toAnalysisContext();
+
+      final result = switch (provider) {
+        AnalysisProvider.bedrock => await _analysisRepository.analyze(
+            videoKey,
+            profileContext: profileContext,
+            language: language,
+          ),
+        AnalysisProvider.gemini => await _analysisRepository.analyzeWithGemini(
+            videoKey,
+            profileContext: profileContext,
+            language: language,
+          ),
+      };
 
       _state = _state.copyWith(status: 'completed', result: result);
       notifyListeners();

@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../core/app_localizations.dart';
+import '../core/app_theme.dart';
 import '../repositories/capture_repository.dart';
+import '../viewmodels/auth_viewmodel.dart';
 import '../viewmodels/home_viewmodel.dart';
 import '../widgets/babyhealth_logo_widget.dart';
 import '../widgets/phone_mockup_widget.dart';
+import '../widgets/settings_controls.dart';
 import 'home_screen.dart';
 
 /// Web landing screen with full informational sections and a phone mockup.
@@ -19,25 +23,108 @@ import 'home_screen.dart';
 /// - "Seguridad y Disclaimer" card
 /// - CTA subscription band
 /// - Footer
-class WebLandingScreen extends StatelessWidget {
+class WebLandingScreen extends StatefulWidget {
   const WebLandingScreen({super.key});
+
+  @override
+  State<WebLandingScreen> createState() => _WebLandingScreenState();
+}
+
+class _WebLandingScreenState extends State<WebLandingScreen> {
+  // GlobalKeys for scroll targets
+  final _comoFuncionaKey = GlobalKey();
+  final _caracteristicasKey = GlobalKey();
+  final _arquitecturaKey = GlobalKey();
+  final _seguridadKey = GlobalKey();
+
+  @override
+  void initState() {
+    super.initState();
+    // Fallback for the federated (Google/Facebook) OAuth callback: if we land
+    // here with a `?code=` param, Amplify is completing the sign-in. Poll the
+    // auth state briefly and jump to /home once the session is ready.
+    if (Uri.base.queryParameters.containsKey('code')) {
+      WidgetsBinding.instance.addPostFrameCallback((_) => _completeOAuthLogin());
+    }
+  }
+
+  Future<void> _completeOAuthLogin() async {
+    final authViewModel = context.read<AuthViewModel>();
+    for (var attempt = 0; attempt < 10; attempt++) {
+      await authViewModel.checkAuthStatus();
+      if (!mounted) return;
+      if (authViewModel.state == AuthState.authenticated) {
+        Navigator.of(context).pushNamedAndRemoveUntil('/home', (r) => false);
+        return;
+      }
+      await Future.delayed(const Duration(milliseconds: 500));
+    }
+  }
+
+  void _scrollToSection(GlobalKey key) {
+    final context = key.currentContext;
+    if (context != null) {
+      Scrollable.ensureVisible(
+        context,
+        duration: const Duration(milliseconds: 500),
+        curve: Curves.easeInOut,
+      );
+    }
+  }
+
+  void _navigateToAuth({bool signup = false}) {
+    Navigator.of(context).pushNamed(
+      '/auth',
+      arguments: signup ? 'signup' : null,
+    );
+  }
+
+  /// "Ver demostración": if the user already has an active session, go straight
+  /// to /home; otherwise send them through the auth flow. Once authenticated,
+  /// the auth screen redirects back to /home so no re-login is needed.
+  Future<void> _navigateToDemo() async {
+    final authViewModel = context.read<AuthViewModel>();
+    await authViewModel.checkAuthStatus();
+    if (!mounted) return;
+
+    if (authViewModel.state == AuthState.authenticated) {
+      Navigator.of(context).pushNamed('/home');
+    } else {
+      _navigateToAuth();
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFFAF7F4),
+      backgroundColor: context.bg,
       body: SingleChildScrollView(
         child: Column(
           children: [
-            _NavBar(),
-            _HeroSection(),
+            _NavBar(
+              onComoFunciona: () => _scrollToSection(_comoFuncionaKey),
+              onCaracteristicas: () => _scrollToSection(_caracteristicasKey),
+              onArquitectura: () => _scrollToSection(_arquitecturaKey),
+              onSeguridad: () => _scrollToSection(_seguridadKey),
+              onSolicitarAcceso: () => _navigateToAuth(),
+            ),
+            _HeroSection(
+              onSolicitarAcceso: () => _navigateToAuth(),
+              onVerComoFunciona: _navigateToDemo,
+            ),
             _DesafioSection(),
-            _ComoFuncionaSection(),
-            _CaracteristicasSection(),
-            _ArquitecturaSection(),
-            _SeguridadSection(),
-            _CtaBandSection(),
-            _FooterSection(),
+            _ComoFuncionaSection(key: _comoFuncionaKey),
+            _CaracteristicasSection(key: _caracteristicasKey),
+            _ArquitecturaSection(key: _arquitecturaKey),
+            _SeguridadSection(key: _seguridadKey),
+            _CtaBandSection(onCrearCuenta: () => _navigateToAuth(signup: true)),
+            const _NextStepsSection(),
+            _FooterSection(
+              onComoFunciona: () => _scrollToSection(_comoFuncionaKey),
+              onCaracteristicas: () => _scrollToSection(_caracteristicasKey),
+              onArquitectura: () => _scrollToSection(_arquitecturaKey),
+              onSeguridad: () => _scrollToSection(_seguridadKey),
+            ),
           ],
         ),
       ),
@@ -50,14 +137,28 @@ class WebLandingScreen extends StatelessWidget {
 // ---------------------------------------------------------------------------
 
 class _NavBar extends StatelessWidget {
+  final VoidCallback onComoFunciona;
+  final VoidCallback onCaracteristicas;
+  final VoidCallback onArquitectura;
+  final VoidCallback onSeguridad;
+  final VoidCallback onSolicitarAcceso;
+
+  const _NavBar({
+    required this.onComoFunciona,
+    required this.onCaracteristicas,
+    required this.onArquitectura,
+    required this.onSeguridad,
+    required this.onSolicitarAcceso,
+  });
+
   @override
   Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
       decoration: BoxDecoration(
-        color: const Color(0xFFFAF7F4),
+        color: context.bg,
         border: Border(
-          bottom: BorderSide(color: const Color(0xFFE5E0DA), width: 1),
+          bottom: BorderSide(color: context.border, width: 1),
         ),
       ),
       child: Center(
@@ -90,75 +191,232 @@ class _NavBar extends StatelessWidget {
           style: TextStyle(
             fontSize: 20,
             fontWeight: FontWeight.bold,
-            color: const Color(0xFF2B2826),
+            color: context.textColor,
           ),
         ),
         const Spacer(),
-        _navLink('Cómo funciona'),
+        _navLink(context.l10n.navHowItWorks, onComoFunciona),
         const SizedBox(width: 24),
-        _navLink('Características'),
+        _navLink(context.l10n.navFeatures, onCaracteristicas),
         const SizedBox(width: 24),
-        _navLink('Arquitectura'),
+        _navLink(context.l10n.navArchitecture, onArquitectura),
         const SizedBox(width: 24),
-        _navLink('Seguridad'),
-        const SizedBox(width: 32),
+        _navLink(context.l10n.navSecurity, onSeguridad),
+        const SizedBox(width: 24),
         _ctaButton(context),
+        const SizedBox(width: 16),
+        const SettingsControls(),
       ],
     );
   }
 
   Widget _buildMobileNav(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isVeryNarrow = screenWidth < 360;
+
     return Row(
       children: [
         const BabyHealthLogoWidget(size: 32),
-        const SizedBox(width: 8),
-        Text(
-          'BabyHealth',
-          style: TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.bold,
-            color: const Color(0xFF2B2826),
+        if (!isVeryNarrow) ...[
+          const SizedBox(width: 8),
+          Flexible(
+            child: Text(
+              'BabyHealth',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: context.textColor,
+              ),
+              overflow: TextOverflow.ellipsis,
+            ),
           ),
-        ),
+        ],
         const Spacer(),
-        _ctaButton(context),
+        _ctaButtonCompact(context),
+        const SizedBox(width: 4),
+        const SettingsControls(compact: true),
       ],
     );
   }
 
-  Widget _navLink(String label) {
-    return GestureDetector(
-      onTap: () => _scrollToSection(label),
-      child: Text(
-        label,
-        style: TextStyle(
-          fontSize: 14,
-          fontWeight: FontWeight.w500,
-          color: const Color(0xFF2B2826).withValues(alpha: 0.7),
-        ),
-      ),
+  Widget _ctaButtonCompact(BuildContext context) {
+    return _AnimatedCtaButtonCompact(
+      label: context.l10n.navRequestAccess,
+      onPressed: onSolicitarAcceso,
     );
+  }
+
+  Widget _navLink(String label, VoidCallback onTap) {
+    return _HoverableNavLink(label: label, onTap: onTap);
   }
 
   Widget _ctaButton(BuildContext context) {
-    return FilledButton(
-      onPressed: () => _scrollToSection('cta'),
-      style: FilledButton.styleFrom(
-        backgroundColor: const Color(0xFF389BB0),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(8),
+    return _AnimatedCtaButton(
+      label: context.l10n.navRequestAccess,
+      onPressed: onSolicitarAcceso,
+    );
+  }
+}
+
+// Compact CTA button for mobile navigation
+class _AnimatedCtaButtonCompact extends StatefulWidget {
+  final String label;
+  final VoidCallback onPressed;
+
+  const _AnimatedCtaButtonCompact({
+    required this.label,
+    required this.onPressed,
+  });
+
+  @override
+  State<_AnimatedCtaButtonCompact> createState() =>
+      _AnimatedCtaButtonCompactState();
+}
+
+class _AnimatedCtaButtonCompactState extends State<_AnimatedCtaButtonCompact> {
+  bool _isHovered = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return MouseRegion(
+      cursor: SystemMouseCursors.click,
+      onEnter: (_) => setState(() => _isHovered = true),
+      onExit: (_) => setState(() => _isHovered = false),
+      child: GestureDetector(
+        onTap: widget.onPressed,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: _isHovered
+                  ? [const Color(0xFF2B7A7A), const Color(0xFF4B9B9B)]
+                  : [const Color(0xFF4B9B9B), const Color(0xFF4B9B9B)],
+            ),
+            borderRadius: BorderRadius.circular(8),
+            boxShadow: [
+              BoxShadow(
+                color:
+                    const Color(0xFF4B9B9B).withValues(alpha: _isHovered ? 0.4 : 0.2),
+                blurRadius: _isHovered ? 12 : 6,
+                offset: Offset(0, _isHovered ? 4 : 2),
+              ),
+            ],
+          ),
+          child: Text(
+            widget.label,
+            style: const TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+              color: Colors.white,
+            ),
+          ),
         ),
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-      ),
-      child: const Text(
-        'Solicitar acceso',
-        style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
       ),
     );
   }
+}
 
-  void _scrollToSection(String label) {
-    // Visual placeholder — sections are visible on scroll.
+// Hoverable nav link with animation
+class _HoverableNavLink extends StatefulWidget {
+  final String label;
+  final VoidCallback onTap;
+
+  const _HoverableNavLink({required this.label, required this.onTap});
+
+  @override
+  State<_HoverableNavLink> createState() => _HoverableNavLinkState();
+}
+
+class _HoverableNavLinkState extends State<_HoverableNavLink> {
+  bool _isHovered = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: widget.onTap,
+      child: MouseRegion(
+        cursor: SystemMouseCursors.click,
+        onEnter: (_) => setState(() => _isHovered = true),
+        onExit: (_) => setState(() => _isHovered = false),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          decoration: BoxDecoration(
+            color: _isHovered ? const Color(0xFF4B9B9B).withValues(alpha: 0.1) : Colors.transparent,
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Text(
+            widget.label,
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
+              color: _isHovered ? const Color(0xFF4B9B9B) : context.textColor.withValues(alpha: 0.7),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// Animated CTA button with hover effect
+class _AnimatedCtaButton extends StatefulWidget {
+  final String label;
+  final VoidCallback onPressed;
+  final bool isPrimary;
+
+  const _AnimatedCtaButton({
+    required this.label,
+    required this.onPressed,
+    this.isPrimary = true,
+  });
+
+  @override
+  State<_AnimatedCtaButton> createState() => _AnimatedCtaButtonState();
+}
+
+class _AnimatedCtaButtonState extends State<_AnimatedCtaButton> {
+  bool _isHovered = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return MouseRegion(
+      cursor: SystemMouseCursors.click,
+      onEnter: (_) => setState(() => _isHovered = true),
+      onExit: (_) => setState(() => _isHovered = false),
+      child: GestureDetector(
+        onTap: widget.onPressed,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: _isHovered
+                  ? [const Color(0xFF2B7A7A), const Color(0xFF4B9B9B)]
+                  : [const Color(0xFF4B9B9B), const Color(0xFF4B9B9B)],
+            ),
+            borderRadius: BorderRadius.circular(10),
+            boxShadow: [
+              BoxShadow(
+                color: const Color(0xFF4B9B9B).withValues(alpha: _isHovered ? 0.4 : 0.2),
+                blurRadius: _isHovered ? 16 : 8,
+                offset: Offset(0, _isHovered ? 6 : 3),
+              ),
+            ],
+          ),
+          transform: _isHovered ? (Matrix4.identity()..translate(0.0, -2.0)) : Matrix4.identity(),
+          child: Text(
+            widget.label,
+            style: const TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
+              color: Colors.white,
+            ),
+          ),
+        ),
+      ),
+    );
   }
 }
 
@@ -167,17 +425,25 @@ class _NavBar extends StatelessWidget {
 // ---------------------------------------------------------------------------
 
 class _HeroSection extends StatelessWidget {
+  final VoidCallback onSolicitarAcceso;
+  final VoidCallback onVerComoFunciona;
+
+  const _HeroSection({
+    required this.onSolicitarAcceso,
+    required this.onVerComoFunciona,
+  });
+
   @override
   Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
-      decoration: const BoxDecoration(
+      decoration: BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [
-            Color(0xFFFAF7F4),
-            Color(0xFFD6F2F7),
+            context.bg,
+            context.tealContainer,
           ],
         ),
       ),
@@ -240,15 +506,15 @@ class _HeroSection extends StatelessWidget {
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
           decoration: BoxDecoration(
-            color: const Color(0xFFD6F2F7),
+            color: context.tealContainer,
             borderRadius: BorderRadius.circular(20),
           ),
-          child: const Text(
-            'INNOVACIÓN EN SALUD NEONATAL',
-            style: TextStyle(
+          child: Text(
+            context.l10n.heroChip,
+            style: AppTheme.accentText(
               fontSize: 12,
               fontWeight: FontWeight.w700,
-              color: Color(0xFF389BB0),
+              color: const Color(0xFF4B9B9B),
               letterSpacing: 1.2,
             ),
           ),
@@ -256,72 +522,51 @@ class _HeroSection extends StatelessWidget {
         const SizedBox(height: 20),
         // Title line 1
         Text(
-          'Tu bebé te habla.',
+          context.l10n.heroTitleLine1,
           style: TextStyle(
+            fontFamily: AppTheme.serifFamily,
             fontSize: isLarge ? 40 : 28,
             fontWeight: FontWeight.bold,
-            color: const Color(0xFF2B2826),
+            color: context.textColor,
             height: 1.2,
           ),
         ),
         // Title line 2
         Text(
-          'Nosotros te ayudamos a entenderlo.',
+          context.l10n.heroTitleLine2,
           style: TextStyle(
+            fontFamily: AppTheme.serifFamily,
             fontSize: isLarge ? 40 : 28,
             fontWeight: FontWeight.bold,
-            color: const Color(0xFF389BB0),
+            color: const Color(0xFF4B9B9B),
             height: 1.2,
           ),
         ),
         const SizedBox(height: 16),
         // Subtitle
         Text(
-          'BabyHealth analiza imagen y audio de tu bebé con inteligencia '
-          'artificial para darte orientación temprana sobre su salud. '
-          'Un asistente informativo para padres primerizos, impulsado por AWS.',
+          context.l10n.heroSubtitle,
           style: TextStyle(
             fontSize: 16,
-            color: const Color(0xFF2B2826).withValues(alpha: 0.7),
+            color: context.textColor.withValues(alpha: 0.7),
             height: 1.5,
           ),
         ),
         const SizedBox(height: 24),
-        // Double buttons
+        // Double buttons with better styling
         Wrap(
-          spacing: 12,
+          spacing: 16,
           runSpacing: 12,
           children: [
-            FilledButton(
-              onPressed: () {},
-              style: FilledButton.styleFrom(
-                backgroundColor: const Color(0xFF389BB0),
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 28, vertical: 16),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                textStyle: const TextStyle(
-                    fontSize: 16, fontWeight: FontWeight.w600),
-              ),
-              child: const Text('Solicitar acceso →'),
+            _HeroPrimaryButton(
+              label: context.l10n.heroStart,
+              icon: Icons.arrow_forward_rounded,
+              onPressed: onSolicitarAcceso,
             ),
-            OutlinedButton(
-              onPressed: () {},
-              style: OutlinedButton.styleFrom(
-                foregroundColor: const Color(0xFF2B2826),
-                side: BorderSide(
-                  color: const Color(0xFF2B2826).withValues(alpha: 0.3),
-                ),
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 28, vertical: 16),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                textStyle: const TextStyle(
-                    fontSize: 16, fontWeight: FontWeight.w600),
-              ),
-              child: const Text('Ver cómo funciona'),
+            _HeroSecondaryButton(
+              label: context.l10n.heroDemo,
+              icon: Icons.play_circle_outline_rounded,
+              onPressed: onVerComoFunciona,
             ),
           ],
         ),
@@ -331,30 +576,36 @@ class _HeroSection extends StatelessWidget {
           spacing: 8,
           runSpacing: 8,
           children: [
-            _badge('★ AWS Bedrock'),
-            _badge('🕒 Análisis en segundos'),
-            _badge('+ Multimodal'),
+            _badge(context, context.l10n.badgeModels),
+            _badge(context, context.l10n.badgeFast),
+            _badge(context, context.l10n.badgeMultimodal),
           ],
         ),
       ],
     );
   }
 
-  Widget _badge(String label) {
+  Widget _badge(BuildContext context, String label) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        border:
-            Border.all(color: const Color(0xFF389BB0).withValues(alpha: 0.3)),
+        color: context.surface,
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: const Color(0xFF4B9B9B).withValues(alpha: 0.2)),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFF4B9B9B).withValues(alpha: 0.08),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
       child: Text(
         label,
-        style: TextStyle(
+        style: const TextStyle(
           fontSize: 12,
           fontWeight: FontWeight.w600,
-          color: const Color(0xFF389BB0),
+          color: Color(0xFF4B9B9B),
         ),
       ),
     );
@@ -388,7 +639,7 @@ class _DesafioSection extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
-      color: Colors.white,
+      color: context.surface,
       child: Center(
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 1200),
@@ -446,52 +697,50 @@ class _DesafioSection extends StatelessWidget {
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
           decoration: BoxDecoration(
-            color: const Color(0xFFD6F2F7),
+            color: context.tealContainer,
             borderRadius: BorderRadius.circular(20),
           ),
-          child: const Text(
-            'EL DESAFÍO',
-            style: TextStyle(
+          child: Text(
+            context.l10n.challengeChip,
+            style: AppTheme.accentText(
               fontSize: 12,
               fontWeight: FontWeight.w700,
-              color: Color(0xFF389BB0),
+              color: const Color(0xFF4B9B9B),
               letterSpacing: 1.2,
             ),
           ),
         ),
         const SizedBox(height: 16),
-        const Text(
-          'La incertidumbre de los primeros meses',
+        Text(
+          context.l10n.challengeTitle,
           style: TextStyle(
+            fontFamily: AppTheme.serifFamily,
             fontSize: 32,
             fontWeight: FontWeight.bold,
-            color: Color(0xFF2B2826),
+            color: context.textColor,
             height: 1.2,
           ),
         ),
         const SizedBox(height: 16),
         Text(
-          'Cada llanto de un bebé tiene un significado. Los padres primerizos '
-          'enfrentan noches de incertidumbre preguntándose si todo está bien. '
-          'BabyHealth usa inteligencia artificial para ayudarte a interpretar '
-          'las señales de tu bebé.',
+          context.l10n.challengeDescription,
           style: TextStyle(
             fontSize: 16,
-            color: const Color(0xFF2B2826).withValues(alpha: 0.7),
+            color: context.textColor.withValues(alpha: 0.7),
             height: 1.6,
           ),
         ),
         const SizedBox(height: 24),
-        _checkItem('El 70% de las consultas nocturnas son por causas no urgentes'),
+        _checkItem(context, context.l10n.statNonUrgent),
         const SizedBox(height: 12),
-        _checkItem('La ictericia neonatal afecta al 60% de los recién nacidos'),
+        _checkItem(context, context.l10n.jaundiceStats),
         const SizedBox(height: 12),
-        _checkItem('La ansiedad parental es la principal causa de visitas a urgencias'),
+        _checkItem(context, context.l10n.statAnxiety),
       ],
     );
   }
 
-  Widget _checkItem(String text) {
+  Widget _checkItem(BuildContext context, String text) {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -500,7 +749,7 @@ class _DesafioSection extends StatelessWidget {
           width: 20,
           height: 20,
           decoration: BoxDecoration(
-            color: const Color(0xFF389BB0),
+            color: const Color(0xFF4B9B9B),
             borderRadius: BorderRadius.circular(10),
           ),
           child: const Icon(Icons.check, size: 14, color: Colors.white),
@@ -511,7 +760,7 @@ class _DesafioSection extends StatelessWidget {
             text,
             style: TextStyle(
               fontSize: 14,
-              color: const Color(0xFF2B2826).withValues(alpha: 0.8),
+              color: context.textColor.withValues(alpha: 0.8),
               height: 1.4,
             ),
           ),
@@ -543,7 +792,7 @@ class _DesafioSection extends StatelessWidget {
                   color: Colors.white.withValues(alpha: 0.6), size: 18),
               const SizedBox(width: 8),
               Text(
-                'Son las 2:37 AM',
+                context.l10n.itsTime,
                 style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w600,
@@ -554,7 +803,7 @@ class _DesafioSection extends StatelessWidget {
           ),
           const SizedBox(height: 20),
           Text(
-            '"¿Por qué llora así? ¿Es normal este color?"',
+            context.l10n.parentQuestion,
             style: TextStyle(
               fontSize: 20,
               fontStyle: FontStyle.italic,
@@ -565,7 +814,7 @@ class _DesafioSection extends StatelessWidget {
           ),
           const SizedBox(height: 16),
           Text(
-            '— Preguntas que todo padre se hace',
+            context.l10n.challengeQuoteAuthor,
             style: TextStyle(
               fontSize: 13,
               color: Colors.white.withValues(alpha: 0.5),
@@ -582,11 +831,13 @@ class _DesafioSection extends StatelessWidget {
 // ---------------------------------------------------------------------------
 
 class _ComoFuncionaSection extends StatelessWidget {
+  const _ComoFuncionaSection({super.key});
+
   @override
   Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
-      color: const Color(0xFFFAF7F4),
+      color: context.bg,
       child: Center(
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 1200),
@@ -603,15 +854,15 @@ class _ComoFuncionaSection extends StatelessWidget {
                   padding:
                       const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                   decoration: BoxDecoration(
-                    color: const Color(0xFFD6F2F7),
+                    color: context.tealContainer,
                     borderRadius: BorderRadius.circular(20),
                   ),
-                  child: const Text(
-                    'CÓMO FUNCIONA',
-                    style: TextStyle(
+                  child: Text(
+                    context.l10n.chipHowItWorks,
+                    style: AppTheme.accentText(
                       fontSize: 12,
                       fontWeight: FontWeight.w700,
-                      color: Color(0xFF389BB0),
+                      color: const Color(0xFF4B9B9B),
                       letterSpacing: 1.2,
                     ),
                   ),
@@ -620,48 +871,25 @@ class _ComoFuncionaSection extends StatelessWidget {
                 // Title with highlighted "tres pasos"
                 RichText(
                   textAlign: TextAlign.center,
-                  text: const TextSpan(
+                  text: TextSpan(
                     style: TextStyle(
+                      fontFamily: AppTheme.serifFamily,
                       fontSize: 32,
                       fontWeight: FontWeight.bold,
-                      color: Color(0xFF2B2826),
+                      color: context.textColor,
                       height: 1.2,
                     ),
                     children: [
-                      TextSpan(text: 'De la duda a la orientación en '),
+                      TextSpan(text: context.l10n.howItWorksTitlePrefix),
                       TextSpan(
-                        text: 'tres pasos',
-                        style: TextStyle(color: Color(0xFFE87055)),
+                        text: context.l10n.howItWorksTitleHighlight,
+                        style: const TextStyle(color: Color(0xFFDF7B5E)),
                       ),
                     ],
                   ),
                 ),
                 const SizedBox(height: 48),
-                Wrap(
-                  spacing: 32,
-                  runSpacing: 32,
-                  alignment: WrapAlignment.center,
-                  children: [
-                    _stepCard(
-                      number: '01',
-                      title: 'Captura',
-                      description: 'Foto + 3 segundos de audio / video corto '
-                          'de tu bebé.',
-                    ),
-                    _stepCard(
-                      number: '02',
-                      title: 'Analiza en AWS',
-                      description: 'Claude 3.5 Sonnet Vision en Amazon Bedrock '
-                          'procesa el contenido.',
-                    ),
-                    _stepCard(
-                      number: '03',
-                      title: 'Recibe orientación',
-                      description: 'Resultados inmediatos con semáforo '
-                          'y recomendaciones.',
-                    ),
-                  ],
-                ),
+                _buildSteps(context, constraints),
               ],
             ),
           );
@@ -673,58 +901,191 @@ class _ComoFuncionaSection extends StatelessWidget {
     );
   }
 
-  Widget _stepCard({
-    required String number,
-    required String title,
-    required String description,
-  }) {
-    return Container(
-      width: 250,
-      padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFE5E0DA)),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.04),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
+  Widget _buildSteps(BuildContext context, BoxConstraints constraints) {
+    final steps = <({String number, String title, String description, IconData icon})>[
+      (
+        number: '01',
+        title: context.l10n.step1Title,
+        description: context.l10n.step1Desc,
+        icon: Icons.videocam_rounded,
       ),
-      child: Column(
-        children: [
-          // Large number
-          Text(
-            number,
-            style: const TextStyle(
-              fontSize: 40,
-              fontWeight: FontWeight.w800,
-              color: Color(0xFF389BB0),
-              height: 1.0,
+      (
+        number: '02',
+        title: context.l10n.step2Title,
+        description: context.l10n.step2Desc,
+        icon: Icons.psychology_rounded,
+      ),
+      (
+        number: '03',
+        title: context.l10n.step3Title,
+        description: context.l10n.step3Desc,
+        icon: Icons.check_circle_rounded,
+      ),
+    ];
+
+    // Single centered row when there's room; otherwise stack vertically.
+    final isWide = constraints.maxWidth >= 720;
+
+    if (isWide) {
+      final children = <Widget>[];
+      for (var i = 0; i < steps.length; i++) {
+        children.add(
+          Expanded(
+            child: _StepCard(
+              number: steps[i].number,
+              title: steps[i].title,
+              description: steps[i].description,
+              icon: steps[i].icon,
             ),
           ),
-          const SizedBox(height: 12),
-          Text(
-            title,
-            style: const TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: Color(0xFF2B2826),
-            ),
+        );
+        if (i != steps.length - 1) children.add(const SizedBox(width: 24));
+      }
+      return Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: children,
+      );
+    }
+
+    // Narrow: vertical stack of full-width cards.
+    final children = <Widget>[];
+    for (var i = 0; i < steps.length; i++) {
+      children.add(
+        _StepCard(
+          number: steps[i].number,
+          title: steps[i].title,
+          description: steps[i].description,
+          icon: steps[i].icon,
+          width: 320,
+        ),
+      );
+      if (i != steps.length - 1) children.add(const SizedBox(height: 24));
+    }
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: children,
+    );
+  }
+}
+
+class _StepCard extends StatefulWidget {
+  final String number;
+  final String title;
+  final String description;
+  final IconData icon;
+
+  /// Fixed card width. When null, the card fills the space given by its parent
+  /// (used inside an [Expanded] in the single-row layout).
+  final double? width;
+
+  const _StepCard({
+    required this.number,
+    required this.title,
+    required this.description,
+    required this.icon,
+    this.width,
+  });
+
+  @override
+  State<_StepCard> createState() => _StepCardState();
+}
+
+class _StepCardState extends State<_StepCard> {
+  bool _isHovered = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return MouseRegion(
+      onEnter: (_) => setState(() => _isHovered = true),
+      onExit: (_) => setState(() => _isHovered = false),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 250),
+        curve: Curves.easeOutCubic,
+        width: widget.width,
+        height: 320,
+        padding: const EdgeInsets.all(28),
+        decoration: BoxDecoration(
+          color: context.surface,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: _isHovered ? const Color(0xFF4B9B9B).withValues(alpha: 0.3) : context.border,
           ),
-          const SizedBox(height: 8),
-          Text(
-            description,
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              fontSize: 14,
-              color: const Color(0xFF2B2826).withValues(alpha: 0.6),
-              height: 1.5,
+          boxShadow: [
+            BoxShadow(
+              color: _isHovered
+                  ? const Color(0xFF4B9B9B).withValues(alpha: 0.15)
+                  : Colors.black.withValues(alpha: 0.04),
+              blurRadius: _isHovered ? 20 : 8,
+              offset: Offset(0, _isHovered ? 8 : 2),
             ),
-          ),
-        ],
+          ],
+        ),
+        transform: _isHovered
+            ? (Matrix4.identity()..translate(0.0, -4.0))
+            : Matrix4.identity(),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            // Icon container
+            AnimatedContainer(
+              duration: const Duration(milliseconds: 250),
+              width: 64,
+              height: 64,
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: _isHovered
+                      ? [const Color(0xFF4B9B9B), const Color(0xFF73D2D2)]
+                      : [context.tealContainer, context.tealContainer],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: Icon(
+                widget.icon,
+                color: _isHovered ? Colors.white : const Color(0xFF4B9B9B),
+                size: 28,
+              ),
+            ),
+            const SizedBox(height: 16),
+            // Number badge
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+              decoration: BoxDecoration(
+                color: const Color(0xFF4B9B9B).withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Text(
+                'Paso ${widget.number}',
+                style: AppTheme.accentText(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w700,
+                  color: const Color(0xFF4B9B9B),
+                ),
+              ),
+            ),
+            const SizedBox(height: 12),
+            Text(
+              widget.title,
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: context.textColor,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              widget.description,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 14,
+                color: context.textColor.withValues(alpha: 0.6),
+                height: 1.5,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -735,11 +1096,13 @@ class _ComoFuncionaSection extends StatelessWidget {
 // ---------------------------------------------------------------------------
 
 class _CaracteristicasSection extends StatelessWidget {
+  const _CaracteristicasSection({super.key});
+
   @override
   Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
-      color: Colors.white,
+      color: context.surface,
       child: Center(
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 1200),
@@ -757,75 +1120,50 @@ class _CaracteristicasSection extends StatelessWidget {
                   padding:
                       const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                   decoration: BoxDecoration(
-                    color: const Color(0xFFD6F2F7),
+                    color: context.tealContainer,
                     borderRadius: BorderRadius.circular(20),
                   ),
-                  child: const Text(
-                    'CARACTERÍSTICAS',
-                    style: TextStyle(
+                  child: Text(
+                    context.l10n.chipFeatures,
+                    style: AppTheme.accentText(
                       fontSize: 12,
                       fontWeight: FontWeight.w700,
-                      color: Color(0xFF389BB0),
+                      color: const Color(0xFF4B9B9B),
                       letterSpacing: 1.2,
                     ),
                   ),
                 ),
                 const SizedBox(height: 16),
-                const Text(
-                  'Tecnología al servicio de la tranquilidad',
+                Text(
+                  context.l10n.featuresTitle,
                   style: TextStyle(
+                    fontFamily: AppTheme.serifFamily,
                     fontSize: 32,
                     fontWeight: FontWeight.bold,
-                    color: Color(0xFF2B2826),
+                    color: context.textColor,
                   ),
                 ),
                 const SizedBox(height: 40),
-                GridView.count(
-                  crossAxisCount: isWide ? 3 : 1,
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  mainAxisSpacing: 16,
-                  crossAxisSpacing: 16,
-                  childAspectRatio: isWide ? 1.1 : 3.5,
-                  children: [
-                    _featureCard(
-                      label: 'VISIÓN POR IA',
-                      title: 'Análisis visual',
-                      description:
-                          'Detección de ictericia y evaluación del estado general del bebé.',
-                    ),
-                    _featureCard(
-                      label: 'AUDIO IA',
-                      title: 'Análisis de llanto',
-                      description:
-                          'Clasificación de patrones de llanto con inteligencia artificial.',
-                      badge: 'PRÓXIMAMENTE',
-                    ),
-                    _featureCard(
-                      label: 'AWS NATIVE',
-                      title: 'Infraestructura cloud',
-                      description:
-                          'Serverless con S3 Pre-signed URLs y Lambda.',
-                    ),
-                    _featureCard(
-                      label: 'PRIVACIDAD',
-                      title: 'Tus datos seguros',
-                      description:
-                          'Sin almacenamiento permanente de imágenes ni videos.',
-                    ),
-                    _featureCard(
-                      label: 'EDGE ML',
-                      title: 'Procesamiento local',
-                      description: 'Detección on-device para respuestas rápidas.',
-                    ),
-                    _featureCard(
-                      label: 'UX CUIDADO',
-                      title: 'Diseño para padres',
-                      description:
-                          'Interfaz optimizada para padres exhaustos.',
-                    ),
-                  ],
-                ),
+                // Use GridView for desktop, Column for mobile (flexible height)
+                if (isWide)
+                  GridView.count(
+                    crossAxisCount: 3,
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    mainAxisSpacing: 16,
+                    crossAxisSpacing: 16,
+                    childAspectRatio: 1.1,
+                    children: _buildFeatureCards(context),
+                  )
+                else
+                  Column(
+                    children: _buildFeatureCards(context)
+                        .map((card) => Padding(
+                              padding: const EdgeInsets.only(bottom: 16),
+                              child: card,
+                            ))
+                        .toList(),
+                  ),
               ],
             ),
           );
@@ -837,7 +1175,56 @@ class _CaracteristicasSection extends StatelessWidget {
     );
   }
 
-  Widget _featureCard({
+  List<Widget> _buildFeatureCards(BuildContext context) {
+    return [
+      _featureCard(
+        context,
+        icon: Icons.visibility_outlined,
+        label: context.l10n.featVisionLabel,
+        title: context.l10n.featVisionTitle,
+        description: context.l10n.featVisionDesc,
+      ),
+      _featureCard(
+        context,
+        icon: Icons.graphic_eq,
+        label: context.l10n.featAudioLabel,
+        title: context.l10n.featAudioTitle,
+        description: context.l10n.featAudioDesc,
+      ),
+      _featureCard(
+        context,
+        icon: Icons.cloud_outlined,
+        label: context.l10n.featAwsLabel,
+        title: context.l10n.featAwsTitle,
+        description: context.l10n.featAwsDesc,
+      ),
+      _featureCard(
+        context,
+        icon: Icons.lock_outline,
+        label: context.l10n.featPrivacyLabel,
+        title: context.l10n.featPrivacyTitle,
+        description: context.l10n.featPrivacyDesc,
+      ),
+      _featureCard(
+        context,
+        icon: Icons.memory,
+        label: context.l10n.featEdgeLabel,
+        title: context.l10n.featEdgeTitle,
+        description: context.l10n.featEdgeDesc,
+      ),
+      _featureCard(
+        context,
+        icon: Icons.favorite_outline,
+        label: context.l10n.featUxLabel,
+        title: context.l10n.featUxTitle,
+        description: context.l10n.featUxDesc,
+      ),
+    ];
+  }
+
+  Widget _featureCard(
+    BuildContext context, {
+    required IconData icon,
     required String label,
     required String title,
     required String description,
@@ -846,24 +1233,36 @@ class _CaracteristicasSection extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: const Color(0xFFFAF7F4),
+        color: context.bg,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFE5E0DA)),
+        border: Border.all(color: context.border),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
         children: [
           Row(
             children: [
-              // Uppercase label
-              Text(
-                label,
-                style: const TextStyle(
-                  fontSize: 11,
-                  fontWeight: FontWeight.w700,
-                  color: Color(0xFF389BB0),
-                  letterSpacing: 1.0,
+              // Icon in colored circle
+              Container(
+                width: 44,
+                height: 44,
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    colors: [Color(0xFF4B9B9B), Color(0xFF73D2D2)],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  borderRadius: BorderRadius.circular(12),
+                  boxShadow: [
+                    BoxShadow(
+                      color: const Color(0xFF4B9B9B).withValues(alpha: 0.25),
+                      blurRadius: 8,
+                      offset: const Offset(0, 3),
+                    ),
+                  ],
                 ),
+                child: Icon(icon, color: Colors.white, size: 22),
               ),
               const Spacer(),
               if (badge != null)
@@ -871,12 +1270,12 @@ class _CaracteristicasSection extends StatelessWidget {
                   padding:
                       const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                   decoration: BoxDecoration(
-                    color: const Color(0xFFE87055),
+                    color: const Color(0xFFDF7B5E),
                     borderRadius: BorderRadius.circular(10),
                   ),
                   child: Text(
                     badge,
-                    style: const TextStyle(
+                    style: AppTheme.accentText(
                       fontSize: 9,
                       fontWeight: FontWeight.w700,
                       color: Colors.white,
@@ -886,13 +1285,24 @@ class _CaracteristicasSection extends StatelessWidget {
                 ),
             ],
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 14),
+          // Uppercase label
+          Text(
+            label,
+            style: AppTheme.accentText(
+              fontSize: 11,
+              fontWeight: FontWeight.w700,
+              color: const Color(0xFF4B9B9B),
+              letterSpacing: 1.0,
+            ),
+          ),
+          const SizedBox(height: 6),
           Text(
             title,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.bold,
-              color: Color(0xFF2B2826),
+              color: context.textColor,
             ),
           ),
           const SizedBox(height: 6),
@@ -900,7 +1310,7 @@ class _CaracteristicasSection extends StatelessWidget {
             description,
             style: TextStyle(
               fontSize: 13,
-              color: const Color(0xFF2B2826).withValues(alpha: 0.6),
+              color: context.textColor.withValues(alpha: 0.6),
               height: 1.4,
             ),
           ),
@@ -915,11 +1325,13 @@ class _CaracteristicasSection extends StatelessWidget {
 // ---------------------------------------------------------------------------
 
 class _ArquitecturaSection extends StatelessWidget {
+  const _ArquitecturaSection({super.key});
+
   @override
   Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
-      color: const Color(0xFFFAF7F4),
+      color: context.bg,
       child: Center(
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 1200),
@@ -936,32 +1348,33 @@ class _ArquitecturaSection extends StatelessWidget {
                   padding:
                       const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                   decoration: BoxDecoration(
-                    color: const Color(0xFFD6F2F7),
+                    color: context.tealContainer,
                     borderRadius: BorderRadius.circular(20),
                   ),
-                  child: const Text(
-                    'ARQUITECTURA',
-                    style: TextStyle(
+                  child: Text(
+                    context.l10n.chipArchitecture,
+                    style: AppTheme.accentText(
                       fontSize: 12,
                       fontWeight: FontWeight.w700,
-                      color: Color(0xFF389BB0),
+                      color: const Color(0xFF4B9B9B),
                       letterSpacing: 1.2,
                     ),
                   ),
                 ),
                 const SizedBox(height: 16),
-                const Text(
-                  'Infraestructura serverless en AWS',
+                Text(
+                  context.l10n.architectureTitle,
                   style: TextStyle(
+                    fontFamily: AppTheme.serifFamily,
                     fontSize: 32,
                     fontWeight: FontWeight.bold,
-                    color: Color(0xFF2B2826),
+                    color: context.textColor,
                   ),
                 ),
                 const SizedBox(height: 40),
                 _architectureFlow(),
                 const SizedBox(height: 32),
-                _infrastructurePills(),
+                _infrastructurePills(context),
               ],
             ),
           );
@@ -974,61 +1387,104 @@ class _ArquitecturaSection extends StatelessWidget {
   }
 
   Widget _architectureFlow() {
-    final nodes = [
-      _ArchNode(
-        label: 'Flutter App',
-        sublabel: 'App nativa',
-        icon: Icons.phone_android_rounded,
+    const items = <({String label, String sublabel, IconData icon})>[
+      (
+        label: 'Flutter Web',
+        sublabel: 'CloudFront + S3',
+        icon: Icons.public_rounded,
       ),
-      _ArchNode(
+      (
+        label: 'Amplify Auth',
+        sublabel: 'Cognito User Pool',
+        icon: Icons.verified_user_rounded,
+      ),
+      (
         label: 'API Gateway',
-        sublabel: 'Endpoint HTTPS',
+        sublabel: 'HTTP API',
         icon: Icons.api_rounded,
       ),
-      _ArchNode(
+      (
         label: 'AWS Lambda',
-        sublabel: 'FastAPI + mangum',
+        sublabel: 'FastAPI + Mangum',
         icon: Icons.code_rounded,
       ),
-      _ArchNode(
+      (
         label: 'Amazon S3',
-        sublabel: 'Media storage',
+        sublabel: 'Videos (pre-signed)',
         icon: Icons.storage_rounded,
       ),
-      _ArchNode(
-        label: 'Bedrock',
-        sublabel: 'Claude 3.5 Vision',
+      (
+        label: 'IA Multimodal',
+        sublabel: 'Bedrock + Gemini',
         icon: Icons.psychology_rounded,
       ),
-      _ArchNode(
+      (
         label: 'DynamoDB',
         sublabel: 'Resultados',
         icon: Icons.table_chart_rounded,
       ),
     ];
 
-    return Wrap(
-      alignment: WrapAlignment.center,
-      crossAxisAlignment: WrapCrossAlignment.center,
-      spacing: 4,
-      runSpacing: 12,
-      children: nodes.expand((node) {
-        final isLast = nodes.indexOf(node) == nodes.length - 1;
-        return [
-          node,
-          if (!isLast) const _ArchArrow(),
-        ];
-      }).toList(),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        // Single centered row when there's room for all 7 nodes; otherwise a
+        // vertical stack with downward arrows (mobile/tablet friendly).
+        final isWide = constraints.maxWidth >= 900;
+
+        if (isWide) {
+          final children = <Widget>[];
+          for (var i = 0; i < items.length; i++) {
+            // Expanded → every node gets exactly the same width.
+            children.add(
+              Expanded(
+                child: _ArchNode(
+                  label: items[i].label,
+                  sublabel: items[i].sublabel,
+                  icon: items[i].icon,
+                ),
+              ),
+            );
+            if (i != items.length - 1) children.add(const _ArchArrow());
+          }
+          return Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: children,
+          );
+        }
+
+        // Narrow: vertical flow with equally sized nodes.
+        final children = <Widget>[];
+        for (var i = 0; i < items.length; i++) {
+          children.add(
+            _ArchNode(
+              label: items[i].label,
+              sublabel: items[i].sublabel,
+              icon: items[i].icon,
+              width: 240,
+            ),
+          );
+          if (i != items.length - 1) {
+            children.add(const _ArchArrow(vertical: true));
+          }
+        }
+        return Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: children,
+        );
+      },
     );
   }
 
-  Widget _infrastructurePills() {
+  Widget _infrastructurePills(BuildContext context) {
     final pills = [
       '☁️ Full serverless',
+      '🌐 CloudFront CDN',
       '⚡ Lambda + API Gateway',
-      '🧠 Bedrock Vision',
-      '📦 CDK mínimo',
-      '🔒 API Key + rate limiting',
+      '🧠 Bedrock + Gemini',
+      '🔒 Amplify + Cognito',
+      '📦 Infra como código (CDK)',
       '📊 CloudWatch logs',
     ];
 
@@ -1040,17 +1496,17 @@ class _ArquitecturaSection extends StatelessWidget {
         return Container(
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: context.surface,
             borderRadius: BorderRadius.circular(20),
             border:
-                Border.all(color: const Color(0xFF389BB0).withValues(alpha: 0.2)),
+                Border.all(color: const Color(0xFF4B9B9B).withValues(alpha: 0.2)),
           ),
           child: Text(
             pill,
             style: const TextStyle(
               fontSize: 12,
               fontWeight: FontWeight.w500,
-              color: Color(0xFF389BB0),
+              color: Color(0xFF4B9B9B),
             ),
           ),
         );
@@ -1064,51 +1520,79 @@ class _ArchNode extends StatelessWidget {
   final String sublabel;
   final IconData icon;
 
+  /// Fixed node width. When null, the node fills the space given by its parent
+  /// (used inside a [Flexible] in the wide, single-row layout).
+  final double? width;
+
   const _ArchNode({
     required this.label,
     required this.sublabel,
     required this.icon,
+    this.width,
   });
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: 130,
-      padding: const EdgeInsets.all(14),
+      width: width,
+      height: 132,
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 14),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: const Color(0xFFE5E0DA)),
+        color: context.surface,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: context.border),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.04),
-            blurRadius: 6,
-            offset: const Offset(0, 2),
+            color: Colors.black.withValues(alpha: 0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 3),
           ),
         ],
       ),
       child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(icon, color: const Color(0xFF389BB0), size: 24),
-          const SizedBox(height: 6),
+          // Icon in a soft circular badge for a consistent, polished look.
+          Container(
+            width: 42,
+            height: 42,
+            decoration: BoxDecoration(
+              color: context.tealContainer,
+              shape: BoxShape.circle,
+            ),
+            alignment: Alignment.center,
+            child: Icon(
+              icon,
+              color: const Color(0xFF4B9B9B),
+              size: 22,
+            ),
+          ),
+          const SizedBox(height: 8),
           Text(
             label,
             textAlign: TextAlign.center,
-            style: const TextStyle(
-              fontSize: 11,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(
+              fontSize: 11.5,
               fontWeight: FontWeight.w700,
-              color: Color(0xFF2B2826),
-              height: 1.2,
+              color: context.textColor,
+              height: 1.15,
             ),
           ),
-          const SizedBox(height: 2),
-          Text(
-            sublabel,
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              fontSize: 9,
-              color: const Color(0xFF2B2826).withValues(alpha: 0.5),
-              height: 1.2,
+          const SizedBox(height: 3),
+          SizedBox(
+            height: 24,
+            child: Text(
+              sublabel,
+              textAlign: TextAlign.center,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                fontSize: 9,
+                color: context.textColor.withValues(alpha: 0.55),
+                height: 1.2,
+              ),
             ),
           ),
         ],
@@ -1118,15 +1602,21 @@ class _ArchNode extends StatelessWidget {
 }
 
 class _ArchArrow extends StatelessWidget {
-  const _ArchArrow();
+  final bool vertical;
+
+  const _ArchArrow({this.vertical = false});
 
   @override
   Widget build(BuildContext context) {
-    return const Padding(
-      padding: EdgeInsets.symmetric(horizontal: 2),
+    return Padding(
+      padding: vertical
+          ? const EdgeInsets.symmetric(vertical: 6)
+          : const EdgeInsets.symmetric(horizontal: 4),
       child: Icon(
-        Icons.arrow_forward_rounded,
-        color: Color(0xFF389BB0),
+        vertical
+            ? Icons.arrow_downward_rounded
+            : Icons.arrow_forward_rounded,
+        color: const Color(0xFF4B9B9B),
         size: 20,
       ),
     );
@@ -1138,11 +1628,13 @@ class _ArchArrow extends StatelessWidget {
 // ---------------------------------------------------------------------------
 
 class _SeguridadSection extends StatelessWidget {
+  const _SeguridadSection({super.key});
+
   @override
   Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
-      color: Colors.white,
+      color: context.surface,
       child: Center(
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 1200),
@@ -1155,10 +1647,10 @@ class _SeguridadSection extends StatelessWidget {
             child: Container(
               padding: const EdgeInsets.all(32),
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: context.surface,
                 borderRadius: BorderRadius.circular(20),
                 border:
-                    Border.all(color: const Color(0xFFE5E0DA)),
+                    Border.all(color: context.border),
                 boxShadow: [
                   BoxShadow(
                     color: Colors.black.withValues(alpha: 0.04),
@@ -1174,42 +1666,42 @@ class _SeguridadSection extends StatelessWidget {
                     width: 64,
                     height: 64,
                     decoration: BoxDecoration(
-                      color: const Color(0xFFD6F2F7),
+                      color: context.tealContainer,
                       borderRadius: BorderRadius.circular(16),
                     ),
                     child: const Icon(
                       Icons.shield_rounded,
                       size: 32,
-                      color: Color(0xFF389BB0),
+                      color: Color(0xFF4B9B9B),
                     ),
                   ),
                   const SizedBox(height: 20),
-                  const Text(
-                    'Seguridad y Privacidad',
+                  Text(
+                    context.l10n.securityAndPrivacy,
                     style: TextStyle(
+                      fontFamily: AppTheme.serifFamily,
                       fontSize: 22,
                       fontWeight: FontWeight.bold,
-                      color: Color(0xFF2B2826),
+                      color: context.textColor,
                     ),
                   ),
                   const SizedBox(height: 16),
                   _securityPoint(
+                    context,
                     Icons.lock_outline,
-                    'Privacidad total: No almacenamos permanentemente '
-                        'imágenes ni videos de tu bebé.',
+                    context.l10n.privacyPoint,
                   ),
                   const SizedBox(height: 12),
                   _securityPoint(
+                    context,
                     Icons.lock_rounded,
-                    'Transmisión cifrada: Todos los datos se transmiten '
-                        'de forma segura mediante HTTPS y pre-signed URLs.',
+                    context.l10n.encryptionPoint,
                   ),
                   const SizedBox(height: 12),
                   _securityPoint(
+                    context,
                     Icons.info_outline,
-                    'Descargo médico: Esta aplicación no reemplaza la '
-                        'evaluación de un profesional de la salud. '
-                        'Consulte a su pediatra ante cualquier preocupación.',
+                    context.l10n.disclaimerPoint,
                   ),
                 ],
               ),
@@ -1223,18 +1715,18 @@ class _SeguridadSection extends StatelessWidget {
     );
   }
 
-  Widget _securityPoint(IconData icon, String text) {
+  Widget _securityPoint(BuildContext context, IconData icon, String text) {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Icon(icon, size: 20, color: const Color(0xFF389BB0)),
+        Icon(icon, size: 20, color: const Color(0xFF4B9B9B)),
         const SizedBox(width: 12),
         Expanded(
           child: Text(
             text,
             style: TextStyle(
               fontSize: 14,
-              color: const Color(0xFF2B2826).withValues(alpha: 0.7),
+              color: context.textColor.withValues(alpha: 0.7),
               height: 1.5,
             ),
           ),
@@ -1245,160 +1737,337 @@ class _SeguridadSection extends StatelessWidget {
 }
 
 // ---------------------------------------------------------------------------
-// CTA Subscription Band (NUEVA SECCIÓN)
+// CTA Subscription Band
 // ---------------------------------------------------------------------------
 
-class _CtaBandSection extends StatefulWidget {
-  @override
-  State<_CtaBandSection> createState() => _CtaBandSectionState();
-}
+class _CtaBandSection extends StatelessWidget {
+  final VoidCallback onCrearCuenta;
 
-class _CtaBandSectionState extends State<_CtaBandSection> {
-  final _emailController = TextEditingController();
-  bool _submitted = false;
-
-  @override
-  void dispose() {
-    _emailController.dispose();
-    super.dispose();
-  }
-
-  void _handleSubmit() {
-    if (_emailController.text.trim().isEmpty) return;
-    setState(() => _submitted = true);
-  }
+  const _CtaBandSection({required this.onCrearCuenta});
 
   @override
   Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
-      color: const Color(0xFFFAF7F4),
+      color: context.bg,
+      child: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 1200),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 64),
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 600),
+              child: Container(
+                padding: const EdgeInsets.all(36),
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    colors: [Color(0xFF4B9B9B), Color(0xFF2B7A7A)],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  borderRadius: BorderRadius.circular(24),
+                  boxShadow: [
+                    BoxShadow(
+                      color: const Color(0xFF4B9B9B).withValues(alpha: 0.3),
+                      blurRadius: 24,
+                      offset: const Offset(0, 8),
+                    ),
+                  ],
+                ),
+                child: Column(
+                  children: [
+                    Text(
+                      context.l10n.readyToTry,
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(
+                        fontFamily: AppTheme.serifFamily,
+                        fontSize: 26,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    Text(
+                      context.l10n.ctaSubtitle,
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: Colors.white.withValues(alpha: 0.85),
+                        height: 1.5,
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+                    _CtaWhiteButton(
+                      label: context.l10n.createFreeAccount,
+                      onPressed: onCrearCuenta,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Próximos Pasos Section
+// ---------------------------------------------------------------------------
+
+class _NextStepsSection extends StatelessWidget {
+  const _NextStepsSection();
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    final steps = <({String number, String title, String desc, IconData icon})>[
+      (
+        number: '01',
+        title: l10n.nextStep1Title,
+        desc: l10n.nextStep1Desc,
+        icon: Icons.verified_user_rounded,
+      ),
+      (
+        number: '02',
+        title: l10n.nextStep2Title,
+        desc: l10n.nextStep2Desc,
+        icon: Icons.tune_rounded,
+      ),
+      (
+        number: '03',
+        title: l10n.nextStep3Title,
+        desc: l10n.nextStep3Desc,
+        icon: Icons.insights_rounded,
+      ),
+      (
+        number: '04',
+        title: l10n.nextStep4Title,
+        desc: l10n.nextStep4Desc,
+        icon: Icons.summarize_rounded,
+      ),
+    ];
+
+    return Container(
+      width: double.infinity,
+      color: context.bg,
       child: Center(
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 1200),
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 64),
             child: LayoutBuilder(
-        builder: (context, constraints) {
-          return ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 600),
-            child: Container(
-              padding: const EdgeInsets.all(36),
-              decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  colors: [Color(0xFF389BB0), Color(0xFF2D7E91)],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
-                borderRadius: BorderRadius.circular(24),
-                boxShadow: [
-                  BoxShadow(
-                    color: const Color(0xFF389BB0).withValues(alpha: 0.3),
-                    blurRadius: 24,
-                    offset: const Offset(0, 8),
+              builder: (context, constraints) {
+                final isWide = constraints.maxWidth >= 768;
+                return ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 1000),
+                  child: Column(
+                    children: [
+                      // Chip
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 12, vertical: 6),
+                        decoration: BoxDecoration(
+                          color: context.tealContainer,
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: Text(
+                          l10n.nextStepsChip,
+                          style: AppTheme.accentText(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w700,
+                            color: const Color(0xFF4B9B9B),
+                            letterSpacing: 1.2,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      Text(
+                        l10n.nextStepsTitle,
+                        textAlign: TextAlign.center,
+                        style: AppTheme.serif(
+                          fontSize: 32,
+                          fontWeight: FontWeight.bold,
+                          color: context.textColor,
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      Text(
+                        l10n.nextStepsIntro,
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontSize: 16,
+                          color: context.textColor.withValues(alpha: 0.7),
+                          height: 1.5,
+                        ),
+                      ),
+                      const SizedBox(height: 40),
+                      if (isWide)
+                        // Two columns of self-sizing cards.
+                        Column(
+                          children: [
+                            for (var i = 0; i < steps.length; i += 2)
+                              Padding(
+                                padding: EdgeInsets.only(
+                                    bottom:
+                                        i + 2 < steps.length ? 16 : 0),
+                                child: IntrinsicHeight(
+                                  child: Row(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.stretch,
+                                    children: [
+                                      Expanded(
+                                        child: _stepCard(
+                                            context,
+                                            steps[i].number,
+                                            steps[i].title,
+                                            steps[i].desc,
+                                            steps[i].icon),
+                                      ),
+                                      const SizedBox(width: 16),
+                                      Expanded(
+                                        child: i + 1 < steps.length
+                                            ? _stepCard(
+                                                context,
+                                                steps[i + 1].number,
+                                                steps[i + 1].title,
+                                                steps[i + 1].desc,
+                                                steps[i + 1].icon)
+                                            : const SizedBox(),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                          ],
+                        )
+                      else
+                        Column(
+                          children: [
+                            for (var i = 0; i < steps.length; i++)
+                              Padding(
+                                padding: EdgeInsets.only(
+                                    bottom:
+                                        i < steps.length - 1 ? 16 : 0),
+                                child: _stepCard(context, steps[i].number,
+                                    steps[i].title, steps[i].desc,
+                                    steps[i].icon),
+                              ),
+                          ],
+                        ),
+                      const SizedBox(height: 32),
+                      // Extra exploration note
+                      Container(
+                        padding: const EdgeInsets.all(20),
+                        decoration: BoxDecoration(
+                          color: context.tealContainer.withValues(alpha: 0.5),
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(
+                            color: const Color(0xFF4B9B9B).withValues(alpha: 0.2),
+                          ),
+                        ),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Icon(Icons.explore_rounded,
+                                color: Color(0xFF4B9B9B), size: 22),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Text(
+                                l10n.nextStepsExtra,
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  color:
+                                      context.textColor.withValues(alpha: 0.75),
+                                  height: 1.5,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
                   ),
-                ],
-              ),
-              child: Column(
-                children: [
-                  const Text(
-                    '¿Listo para probar BabyHealth?',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontSize: 26,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  Text(
-                    'Estamos preparando el acceso anticipado para el '
-                    'hackathon AWS (20-27 julio 2026)...',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: Colors.white.withValues(alpha: 0.85),
-                      height: 1.5,
-                    ),
-                  ),
-                  const SizedBox(height: 24),
-                  if (_submitted)
-                    _buildConfirmation()
-                  else
-                    _buildEmailForm(),
-                ],
-              ),
+                );
+              },
             ),
-          );
-        },
-      ),
           ),
         ),
       ),
     );
   }
 
-  Widget _buildEmailForm() {
-    return Row(
-      children: [
-        Expanded(
-          child: TextField(
-            controller: _emailController,
-            decoration: InputDecoration(
-              hintText: 'tu@correo.com',
-              hintStyle: TextStyle(
-                color: Colors.white.withValues(alpha: 0.5),
-              ),
-              filled: true,
-              fillColor: Colors.white.withValues(alpha: 0.15),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: BorderSide.none,
-              ),
-              contentPadding:
-                  const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-            ),
-            style: const TextStyle(color: Colors.white),
-            keyboardType: TextInputType.emailAddress,
-          ),
-        ),
-        const SizedBox(width: 12),
-        FilledButton(
-          onPressed: _handleSubmit,
-          style: FilledButton.styleFrom(
-            backgroundColor: Colors.white,
-            foregroundColor: const Color(0xFF389BB0),
-            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
-            ),
-            textStyle:
-                const TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
-          ),
-          child: const Text('Notificarme →'),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildConfirmation() {
+  Widget _stepCard(
+    BuildContext context,
+    String number,
+    String title,
+    String desc,
+    IconData icon,
+  ) {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.15),
-        borderRadius: BorderRadius.circular(12),
+        color: context.surface,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: context.border),
       ),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Icon(Icons.check_circle, color: Colors.white, size: 24),
-          const SizedBox(width: 12),
-          Text(
-            '¡Gracias! Te avisaremos cuando esté disponible.',
-            style: TextStyle(
-              fontSize: 15,
-              color: Colors.white.withValues(alpha: 0.95),
-              fontWeight: FontWeight.w500,
+          // Icon in gradient badge
+          Container(
+            width: 44,
+            height: 44,
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                colors: [Color(0xFF4B9B9B), Color(0xFF73D2D2)],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Icon(icon, color: Colors.white, size: 22),
+          ),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Text(
+                      number,
+                      style: AppTheme.accentText(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w700,
+                        color: const Color(0xFFDF7B5E),
+                        letterSpacing: 1.0,
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        title,
+                        style: AppTheme.serif(
+                          fontSize: 17,
+                          fontWeight: FontWeight.bold,
+                          color: context.textColor,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  desc,
+                  style: TextStyle(
+                    fontSize: 13,
+                    color: context.textColor.withValues(alpha: 0.65),
+                    height: 1.45,
+                  ),
+                ),
+              ],
             ),
           ),
         ],
@@ -1412,11 +2081,23 @@ class _CtaBandSectionState extends State<_CtaBandSection> {
 // ---------------------------------------------------------------------------
 
 class _FooterSection extends StatelessWidget {
+  final VoidCallback onComoFunciona;
+  final VoidCallback onCaracteristicas;
+  final VoidCallback onArquitectura;
+  final VoidCallback onSeguridad;
+
+  const _FooterSection({
+    required this.onComoFunciona,
+    required this.onCaracteristicas,
+    required this.onArquitectura,
+    required this.onSeguridad,
+  });
+
   @override
   Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
-      color: const Color(0xFF2B2826),
+      color: const Color(0xFF2A2A28),
       child: Column(
         children: [
           // Main footer content
@@ -1456,9 +2137,7 @@ class _FooterSection extends StatelessWidget {
                   child: Column(
                     children: [
                       Text(
-                        'Esta aplicación no reemplaza la evaluación de un '
-                        'profesional de la salud. Consulte a su pediatra ante '
-                        'cualquier preocupación sobre la salud de su bebé.',
+                        context.l10n.footerDisclaimer,
                         textAlign: TextAlign.center,
                         style: TextStyle(
                           fontSize: 12,
@@ -1468,7 +2147,7 @@ class _FooterSection extends StatelessWidget {
                       ),
                       const SizedBox(height: 8),
                       Text(
-                        '© 2026 BabyHealth. Todos los derechos reservados.',
+                        context.l10n.footerRights,
                         style: TextStyle(
                           fontSize: 12,
                           color: Colors.white.withValues(alpha: 0.4),
@@ -1510,7 +2189,7 @@ class _FooterSection extends StatelessWidget {
               ),
               const SizedBox(height: 12),
               Text(
-                'Asistente de cuidado neonatal con IA multimodal.',
+                context.l10n.footerTagline,
                 style: TextStyle(
                   fontSize: 13,
                   color: Colors.white.withValues(alpha: 0.5),
@@ -1526,7 +2205,7 @@ class _FooterSection extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'Producto',
+                context.l10n.footerProduct,
                 style: TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w600,
@@ -1534,13 +2213,13 @@ class _FooterSection extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 12),
-              _footerLink('Cómo funciona'),
+              _footerLink(context.l10n.navHowItWorks, onComoFunciona),
               const SizedBox(height: 8),
-              _footerLink('Características'),
+              _footerLink(context.l10n.navFeatures, onCaracteristicas),
               const SizedBox(height: 8),
-              _footerLink('Arquitectura'),
+              _footerLink(context.l10n.navArchitecture, onArquitectura),
               const SizedBox(height: 8),
-              _footerLink('Seguridad'),
+              _footerLink(context.l10n.navSecurity, onSeguridad),
             ],
           ),
         ),
@@ -1550,7 +2229,7 @@ class _FooterSection extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'Hackathon',
+                context.l10n.footerHackathon,
                 style: TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w600,
@@ -1558,11 +2237,11 @@ class _FooterSection extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 12),
-              _footerLink('AWS Bedrock'),
+              _footerLink('AWS Bedrock', () {}),
               const SizedBox(height: 8),
-              _footerLink('AWS Lambda'),
+              _footerLink('AWS Lambda', () {}),
               const SizedBox(height: 8),
-              _footerLink('Flutter'),
+              _footerLink('Flutter', () {}),
             ],
           ),
         ),
@@ -1591,7 +2270,7 @@ class _FooterSection extends StatelessWidget {
         ),
         const SizedBox(height: 12),
         Text(
-          'Asistente de cuidado neonatal con IA multimodal.',
+          context.l10n.footerTagline,
           textAlign: TextAlign.center,
           style: TextStyle(
             fontSize: 13,
@@ -1606,10 +2285,10 @@ class _FooterSection extends StatelessWidget {
           runSpacing: 8,
           alignment: WrapAlignment.center,
           children: [
-            _footerLink('Cómo funciona'),
-            _footerLink('Características'),
-            _footerLink('Arquitectura'),
-            _footerLink('Seguridad'),
+            _footerLink(context.l10n.navHowItWorks, onComoFunciona),
+            _footerLink(context.l10n.navFeatures, onCaracteristicas),
+            _footerLink(context.l10n.navArchitecture, onArquitectura),
+            _footerLink(context.l10n.navSecurity, onSeguridad),
           ],
         ),
         const SizedBox(height: 16),
@@ -1618,23 +2297,253 @@ class _FooterSection extends StatelessWidget {
           runSpacing: 8,
           alignment: WrapAlignment.center,
           children: [
-            _footerLink('AWS Bedrock'),
-            _footerLink('AWS Lambda'),
-            _footerLink('Flutter'),
+            _footerLink('AWS Bedrock', () {}),
+            _footerLink('AWS Lambda', () {}),
+            _footerLink('Flutter', () {}),
           ],
         ),
       ],
     );
   }
 
-  Widget _footerLink(String label) {
+  Widget _footerLink(String label, VoidCallback onTap) {
     return GestureDetector(
-      onTap: () {},
-      child: Text(
-        label,
-        style: TextStyle(
-          fontSize: 13,
-          color: Colors.white.withValues(alpha: 0.5),
+      onTap: onTap,
+      child: MouseRegion(
+        cursor: SystemMouseCursors.click,
+        child: Text(
+          label,
+          style: TextStyle(
+            fontSize: 13,
+            color: Colors.white.withValues(alpha: 0.5),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Hero Section Buttons
+// ---------------------------------------------------------------------------
+
+class _HeroPrimaryButton extends StatefulWidget {
+  final String label;
+  final IconData icon;
+  final VoidCallback onPressed;
+
+  const _HeroPrimaryButton({
+    required this.label,
+    required this.icon,
+    required this.onPressed,
+  });
+
+  @override
+  State<_HeroPrimaryButton> createState() => _HeroPrimaryButtonState();
+}
+
+class _HeroPrimaryButtonState extends State<_HeroPrimaryButton> {
+  bool _isHovered = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return MouseRegion(
+      cursor: SystemMouseCursors.click,
+      onEnter: (_) => setState(() => _isHovered = true),
+      onExit: (_) => setState(() => _isHovered = false),
+      child: GestureDetector(
+        onTap: widget.onPressed,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 250),
+          curve: Curves.easeOutCubic,
+          padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 18),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: _isHovered
+                  ? [const Color(0xFF2B7A7A), const Color(0xFF4B9B9B)]
+                  : [const Color(0xFF4B9B9B), const Color(0xFF73D2D2)],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+            borderRadius: BorderRadius.circular(14),
+            boxShadow: [
+              BoxShadow(
+                color: const Color(0xFF4B9B9B).withValues(alpha: _isHovered ? 0.5 : 0.3),
+                blurRadius: _isHovered ? 24 : 12,
+                offset: Offset(0, _isHovered ? 8 : 4),
+              ),
+            ],
+          ),
+          transform: _isHovered
+              ? (Matrix4.identity()..translate(0.0, -3.0))
+              : Matrix4.identity(),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                widget.label,
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.white,
+                  letterSpacing: 0.3,
+                ),
+              ),
+              const SizedBox(width: 10),
+              AnimatedContainer(
+                duration: const Duration(milliseconds: 250),
+                transform: _isHovered
+                    ? (Matrix4.identity()..translate(4.0, 0.0))
+                    : Matrix4.identity(),
+                child: Icon(
+                  widget.icon,
+                  color: Colors.white,
+                  size: 20,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _HeroSecondaryButton extends StatefulWidget {
+  final String label;
+  final IconData icon;
+  final VoidCallback onPressed;
+
+  const _HeroSecondaryButton({
+    required this.label,
+    required this.icon,
+    required this.onPressed,
+  });
+
+  @override
+  State<_HeroSecondaryButton> createState() => _HeroSecondaryButtonState();
+}
+
+class _HeroSecondaryButtonState extends State<_HeroSecondaryButton> {
+  bool _isHovered = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return MouseRegion(
+      cursor: SystemMouseCursors.click,
+      onEnter: (_) => setState(() => _isHovered = true),
+      onExit: (_) => setState(() => _isHovered = false),
+      child: GestureDetector(
+        onTap: widget.onPressed,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 250),
+          curve: Curves.easeOutCubic,
+          padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 16),
+          decoration: BoxDecoration(
+            color: _isHovered ? context.textColor.withValues(alpha: 0.08) : Colors.transparent,
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(
+              color: _isHovered
+                  ? context.textColor.withValues(alpha: 0.5)
+                  : context.textColor.withValues(alpha: 0.25),
+              width: 1.5,
+            ),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                widget.icon,
+                color: context.textColor.withValues(alpha: 0.8),
+                size: 20,
+              ),
+              const SizedBox(width: 10),
+              Text(
+                widget.label,
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                  color: context.textColor.withValues(alpha: 0.85),
+                  letterSpacing: 0.3,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// CTA White button for colored backgrounds
+class _CtaWhiteButton extends StatefulWidget {
+  final String label;
+  final VoidCallback onPressed;
+
+  const _CtaWhiteButton({
+    required this.label,
+    required this.onPressed,
+  });
+
+  @override
+  State<_CtaWhiteButton> createState() => _CtaWhiteButtonState();
+}
+
+class _CtaWhiteButtonState extends State<_CtaWhiteButton> {
+  bool _isHovered = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return MouseRegion(
+      cursor: SystemMouseCursors.click,
+      onEnter: (_) => setState(() => _isHovered = true),
+      onExit: (_) => setState(() => _isHovered = false),
+      child: GestureDetector(
+        onTap: widget.onPressed,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 250),
+          curve: Curves.easeOutCubic,
+          padding: const EdgeInsets.symmetric(horizontal: 36, vertical: 18),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(14),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: _isHovered ? 0.2 : 0.1),
+                blurRadius: _isHovered ? 20 : 10,
+                offset: Offset(0, _isHovered ? 8 : 4),
+              ),
+            ],
+          ),
+          transform: _isHovered
+              ? (Matrix4.identity()..translate(0.0, -3.0))
+              : Matrix4.identity(),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                widget.label,
+                style: AppTheme.accentText(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w700,
+                  color: const Color(0xFF4B9B9B),
+                  letterSpacing: 0.3,
+                ),
+              ),
+              const SizedBox(width: 10),
+              AnimatedContainer(
+                duration: const Duration(milliseconds: 250),
+                transform: _isHovered
+                    ? (Matrix4.identity()..translate(4.0, 0.0))
+                    : Matrix4.identity(),
+                child: const Icon(
+                  Icons.arrow_forward_rounded,
+                  color: Color(0xFF4B9B9B),
+                  size: 20,
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

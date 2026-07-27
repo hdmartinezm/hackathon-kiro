@@ -1,8 +1,16 @@
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:provider/provider.dart';
 
+import '../core/app_localizations.dart';
+import '../core/app_theme.dart';
+import '../models/captured_media.dart';
+import '../viewmodels/auth_viewmodel.dart';
 import '../viewmodels/home_viewmodel.dart';
 import '../widgets/disclaimer_widget.dart';
+import '../widgets/settings_controls.dart';
+import 'web_record_screen.dart';
 
 /// Home screen that displays the medical disclaimer and capture options.
 ///
@@ -18,11 +26,11 @@ class HomeScreen extends StatelessWidget {
     final viewModel = context.watch<HomeViewModel>();
     final state = viewModel.state;
 
-    // Navigate to AnalysisScreen when capture is complete.
+    // Navigate to ModelSelectorScreen when capture is complete.
     if (state.captureStatus == 'captured' && state.media != null) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         Navigator.of(context).pushNamed(
-          '/analysis',
+          '/model-selector',
           arguments: state.media!,
         );
       });
@@ -30,7 +38,111 @@ class HomeScreen extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('BabyHealth'),
+        titleSpacing: 0,
+        title: MouseRegion(
+          cursor: SystemMouseCursors.click,
+          child: GestureDetector(
+            onTap: () => Navigator.of(context)
+                .pushNamedAndRemoveUntil('/web-landing', (route) => false),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(Icons.home_rounded,
+                    size: 20, color: Color(0xFF4B9B9B)),
+                const SizedBox(width: 6),
+                Flexible(
+                  child: Text(
+                    'BabyHealth',
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+        actions: [
+          // Use LayoutBuilder to adapt actions based on available width
+          LayoutBuilder(
+            builder: (context, constraints) {
+              final screenWidth = MediaQuery.of(context).size.width;
+              // On narrow screens (< 400px), use a compact popup menu
+              if (screenWidth < 400) {
+                return Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const SettingsControls(),
+                    PopupMenuButton<String>(
+                      icon: const Icon(Icons.more_vert_rounded),
+                      tooltip: 'Menu',
+                      onSelected: (value) async {
+                        switch (value) {
+                          case 'profile':
+                            Navigator.of(context).pushNamed('/profile');
+                            break;
+                          case 'logout':
+                            final authViewModel = context.read<AuthViewModel>();
+                            await authViewModel.logout();
+                            if (context.mounted) {
+                              Navigator.of(context)
+                                  .pushReplacementNamed('/web-landing');
+                            }
+                            break;
+                        }
+                      },
+                      itemBuilder: (context) => [
+                        PopupMenuItem(
+                          value: 'profile',
+                          child: Row(
+                            children: [
+                              const Icon(Icons.person_rounded, size: 20),
+                              const SizedBox(width: 12),
+                              Text(context.l10n.profile),
+                            ],
+                          ),
+                        ),
+                        PopupMenuItem(
+                          value: 'logout',
+                          child: Row(
+                            children: [
+                              const Icon(Icons.logout_rounded, size: 20),
+                              const SizedBox(width: 12),
+                              Text(context.l10n.logout),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                );
+              }
+              // Normal layout for wider screens
+              return Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  IconButton(
+                    icon: const Icon(Icons.person_rounded),
+                    tooltip: context.l10n.profile,
+                    onPressed: () =>
+                        Navigator.of(context).pushNamed('/profile'),
+                  ),
+                  const SettingsControls(),
+                  IconButton(
+                    icon: const Icon(Icons.logout_rounded),
+                    tooltip: context.l10n.logout,
+                    onPressed: () async {
+                      final authViewModel = context.read<AuthViewModel>();
+                      await authViewModel.logout();
+                      if (context.mounted) {
+                        Navigator.of(context)
+                            .pushReplacementNamed('/web-landing');
+                      }
+                    },
+                  ),
+                ],
+              );
+            },
+          ),
+        ],
       ),
       body: SafeArea(
         child: SingleChildScrollView(
@@ -53,22 +165,22 @@ class HomeScreen extends StatelessWidget {
                         loadingBuilder: (context, child, loadingProgress) {
                           if (loadingProgress == null) return child;
                           return Container(
-                            color: const Color(0xFFD6F2F7),
+                            color: const Color(0xFFC8E8E8),
                             child: const Center(
                               child: CircularProgressIndicator(
-                                color: Color(0xFF389BB0),
+                                color: Color(0xFF4B9B9B),
                               ),
                             ),
                           );
                         },
                         errorBuilder: (context, error, stackTrace) {
                           return Container(
-                            color: const Color(0xFFD6F2F7),
+                            color: const Color(0xFFC8E8E8),
                             child: const Center(
                               child: Icon(
                                 Icons.face_rounded,
                                 size: 48,
-                                color: Color(0xFF389BB0),
+                                color: Color(0xFF4B9B9B),
                               ),
                             ),
                           );
@@ -93,11 +205,12 @@ class HomeScreen extends StatelessWidget {
                         right: 16,
                         bottom: 16,
                         child: Text(
-                          '¿Cómo está tu bebé hoy?',
+                          context.l10n.homeGreeting,
                           style: Theme.of(context)
                               .textTheme
                               .titleLarge
                               ?.copyWith(
+                                fontFamily: AppTheme.serifFamily,
                                 color: Colors.white,
                                 fontWeight: FontWeight.bold,
                                 shadows: [
@@ -131,21 +244,24 @@ class HomeScreen extends StatelessWidget {
               // Title
               Center(
                 child: Text(
-                  'Analizar bebé',
+                  context.l10n.homeAnalyzeTitle,
                   style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                        fontFamily: AppTheme.serifFamily,
                         fontWeight: FontWeight.bold,
-                        color: const Color(0xFF2B2826),
+                        color: Theme.of(context).colorScheme.onSurface,
                       ),
                 ),
               ),
               const SizedBox(height: 8),
               Center(
                 child: Text(
-                  'Grabe o seleccione un video corto de su bebé para '
-                  'obtener una orientación preliminar sobre su estado de salud.',
+                  context.l10n.homeAnalyzeSubtitle,
                   textAlign: TextAlign.center,
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: const Color(0xFF2B2826).withValues(alpha: 0.6),
+                        color: Theme.of(context)
+                            .colorScheme
+                            .onSurface
+                            .withValues(alpha: 0.6),
                         height: 1.4,
                       ),
                 ),
@@ -155,9 +271,11 @@ class HomeScreen extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(24),
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: Theme.of(context).colorScheme.surface,
                   borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: const Color(0xFFE5E0DA)),
+                  border: Border.all(
+                    color: Theme.of(context).colorScheme.outline,
+                  ),
                   boxShadow: [
                     BoxShadow(
                       color: Colors.black.withValues(alpha: 0.04),
@@ -201,15 +319,15 @@ class HomeScreen extends StatelessWidget {
                       ),
                     // Loading indicator
                     if (state.captureStatus == 'recording')
-                      const Padding(
-                        padding: EdgeInsets.only(bottom: 16),
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 16),
                         child: Column(
                           children: [
-                            CircularProgressIndicator(),
-                            SizedBox(height: 8),
+                            const CircularProgressIndicator(),
+                            const SizedBox(height: 8),
                             Text(
-                              'Grabando video...',
-                              style: TextStyle(color: Colors.grey),
+                              context.l10n.recording,
+                              style: const TextStyle(color: Colors.grey),
                             ),
                           ],
                         ),
@@ -221,15 +339,15 @@ class HomeScreen extends StatelessWidget {
                       child: FilledButton.icon(
                         onPressed: state.captureStatus == 'idle' ||
                                 state.captureStatus == 'error'
-                            ? () => viewModel.recordVideo()
+                            ? () => _handleRecord(context, viewModel)
                             : null,
                         icon: const Icon(Icons.videocam_rounded),
-                        label: const Text(
-                          'Grabar Video',
-                          style: TextStyle(fontSize: 16),
+                        label: Text(
+                          context.l10n.recordVideo,
+                          style: const TextStyle(fontSize: 16),
                         ),
                         style: FilledButton.styleFrom(
-                          backgroundColor: const Color(0xFF389BB0),
+                          backgroundColor: const Color(0xFF4B9B9B),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12),
                           ),
@@ -246,12 +364,12 @@ class HomeScreen extends StatelessWidget {
                             ? () => viewModel.pickVideo()
                             : null,
                         icon: const Icon(Icons.folder_open_rounded),
-                        label: const Text(
-                          'Seleccionar Video',
-                          style: TextStyle(fontSize: 16),
+                        label: Text(
+                          context.l10n.selectVideo,
+                          style: const TextStyle(fontSize: 16),
                         ),
                         style: FilledButton.styleFrom(
-                          backgroundColor: const Color(0xFFE87055),
+                          backgroundColor: const Color(0xFFDF7B5E),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12),
                           ),
@@ -266,9 +384,9 @@ class HomeScreen extends StatelessWidget {
                         child: TextButton.icon(
                           onPressed: () => viewModel.resetCapture(),
                           icon: const Icon(Icons.refresh_rounded),
-                          label: const Text(
-                            'Reiniciar',
-                            style: TextStyle(fontSize: 16),
+                          label: Text(
+                            context.l10n.reset,
+                            style: const TextStyle(fontSize: 16),
                           ),
                         ),
                       ),
@@ -277,17 +395,38 @@ class HomeScreen extends StatelessWidget {
                 ),
               ),
             ],
-          ),
+          ).animate().fadeIn(duration: 400.ms).slideY(begin: 0.08, end: 0),
         ),
       ),
     );
+  }
+
+  /// Handles the "Grabar Video" action.
+  ///
+  /// On web, opens the in-browser [WebRecordScreen] (camera + MediaRecorder)
+  /// and stores the resulting media. On native platforms, delegates to the
+  /// existing `image_picker` camera flow via the view model.
+  Future<void> _handleRecord(
+    BuildContext context,
+    HomeViewModel viewModel,
+  ) async {
+    if (kIsWeb) {
+      final media = await Navigator.of(context).push<CapturedMedia>(
+        MaterialPageRoute(builder: (_) => const WebRecordScreen()),
+      );
+      if (media != null) {
+        viewModel.setCapturedMedia(media);
+      }
+    } else {
+      viewModel.recordVideo();
+    }
   }
 
   Widget _buildPreviewPlaceholder(BuildContext context, String fileName) {
     return Container(
       height: 180,
       decoration: BoxDecoration(
-        color: const Color(0xFFD6F2F7),
+        color: const Color(0xFFC8E8E8),
         borderRadius: BorderRadius.circular(12),
       ),
       child: Center(
@@ -295,12 +434,12 @@ class HomeScreen extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(Icons.video_file_rounded,
-                size: 48, color: const Color(0xFF389BB0)),
+                size: 48, color: const Color(0xFF4B9B9B)),
             const SizedBox(height: 8),
             Text(
-              'Video listo',
-              style: TextStyle(
-                color: const Color(0xFF389BB0),
+              context.l10n.videoReady,
+              style: const TextStyle(
+                color: Color(0xFF4B9B9B),
                 fontWeight: FontWeight.bold,
               ),
             ),
@@ -308,7 +447,7 @@ class HomeScreen extends StatelessWidget {
             Text(
               fileName,
               style: const TextStyle(
-                  color: Color(0xFF2B2826), fontSize: 12),
+                  color: Color(0xFF2A2A28), fontSize: 12),
               textAlign: TextAlign.center,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
