@@ -17,7 +17,7 @@
 
 | Rol | Nombre | GitHub | Email |
 |-----|--------|--------|-------|
-| Coordinador + Backend | Hector | hdmartinezm | |
+| Coordinador + Backend | Hector | hdmartinezm | hector.martinez.telecom@gmail.com |
 | Diseño + Frontend | Alvaro | ajha63 | hernandez.alvaro@gmail.com |
 | Fullstack | William | izquierdowaws | izquierdowo@gmail.com |
 | Frontend | Francisco | FranciscoJTHG | franthielengaravito@gmail.com |
