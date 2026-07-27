@@ -725,7 +725,7 @@ aws cloudfront create-invalidation --distribution-id $DIST_ID --paths "/*"
 
 ## 📄 License
 
-Developed during **Hackathon Kiro 2025**
+Developed during **Hackathon Kiro 2026**
 
 ---
 
