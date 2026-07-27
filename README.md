@@ -339,14 +339,12 @@ aws cloudfront create-invalidation --distribution-id $DIST_ID --paths "/*"
 
 ## 👥 Equipo
 
-<table>
-<tr>
-<td align="center">
-<b>Héctor Martínez</b><br>
-<sub>Backend & Infraestructura AWS</sub>
-</td>
-</tr>
-</table>
+| Rol | Nombre | GitHub | Contacto |
+|-----|--------|--------|----------|
+| **Coordinador + Backend** | Héctor Martínez | [@hdmartinezm](https://github.com/hdmartinezm) | hector.martinez.telecom@gmail.com |
+| **Diseño + Frontend** | Álvaro Hernández | [@ajha63](https://github.com/ajha63) | hernandez.alvaro@gmail.com |
+| **Fullstack** | William Izquierdo | [@izquierdowaws](https://github.com/izquierdowaws) | izquierdowo@gmail.com |
+| **Frontend + Móvil** | Francisco Thielen | [@FranciscoJTHG](https://github.com/FranciscoJTHG) | franthielengaravito@gmail.com |
 
 ---
 
@@ -716,14 +714,12 @@ aws cloudfront create-invalidation --distribution-id $DIST_ID --paths "/*"
 
 ## 👥 Team
 
-<table>
-<tr>
-<td align="center">
-<b>Héctor Martínez</b><br>
-<sub>Backend & AWS Infrastructure</sub>
-</td>
-</tr>
-</table>
+| Role | Name | GitHub | Contact |
+|------|------|--------|---------|
+| **Coordinator + Backend** | Héctor Martínez | [@hdmartinezm](https://github.com/hdmartinezm) | hector.martinez.telecom@gmail.com |
+| **Design + Frontend** | Álvaro Hernández | [@ajha63](https://github.com/ajha63) | hernandez.alvaro@gmail.com |
+| **Fullstack** | William Izquierdo | [@izquierdowaws](https://github.com/izquierdowaws) | izquierdowo@gmail.com |
+| **Frontend + Mobile** | Francisco Thielen | [@FranciscoJTHG](https://github.com/FranciscoJTHG) | franthielengaravito@gmail.com |
 
 ---
 
