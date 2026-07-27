@@ -13,11 +13,13 @@
 
 **Analiza videos de tu bebé con IA y recibe orientación instantánea sobre su estado de salud**
 
-[Probar Demo](https://babyhealth.hmartinez.info) · [Ver Video](#demo) · [Documentación](#arquitectura)
+[Probar Demo](https://babyhealth.hmartinez.info) · [English Version](#-babyhealth-1)
 
 </div>
 
 ---
+
+# 🇪🇸 Versión en Español
 
 ## 🎯 El Problema
 
@@ -348,12 +350,6 @@ aws cloudfront create-invalidation --distribution-id $DIST_ID --paths "/*"
 
 ---
 
-## 📄 Licencia
-
-Desarrollado durante el **Hackathon Kiro 2025**
-
----
-
 <div align="center">
 
 ### ⚠️ Aviso Importante
@@ -361,12 +357,395 @@ Desarrollado durante el **Hackathon Kiro 2025**
 **BabyHealth es una herramienta de ORIENTACIÓN, no de diagnóstico médico.**
 Siempre consulte con su pediatra para decisiones sobre la salud de su bebé.
 
+</div>
+
+---
+
+<br><br>
+
+<div align="center">
+
+# ═══════════════════════════════════════════════════════════
+
+# 🇺🇸 ENGLISH VERSION
+
+# ═══════════════════════════════════════════════════════════
+
+</div>
+
+<br><br>
+
+---
+
+<div align="center">
+
+# 👶 BabyHealth
+
+### Smart guidance for first-time parents
+
+[![Live Demo](https://img.shields.io/badge/Demo-Live-brightgreen?style=for-the-badge&logo=vercel)](https://babyhealth.hmartinez.info)
+[![Flutter](https://img.shields.io/badge/Flutter-02569B?style=for-the-badge&logo=flutter&logoColor=white)](https://flutter.dev)
+[![AWS](https://img.shields.io/badge/AWS-232F3E?style=for-the-badge&logo=amazon-aws&logoColor=white)](https://aws.amazon.com)
+[![Claude AI](https://img.shields.io/badge/Claude_AI-Bedrock-orange?style=for-the-badge&logo=anthropic)](https://aws.amazon.com/bedrock/)
+
+<img src="docs/screenshots/pic03.png" alt="BabyHealth Hero" width="400"/>
+
+**Analyze videos of your baby with AI and receive instant guidance on their health status**
+
+[Try Demo](https://babyhealth.hmartinez.info) · [Versión en Español](#-babyhealth)
+
+</div>
+
+---
+
+## 🎯 The Problem
+
+**First-time parents** face constant uncertainty about their babies' health:
+
+- 😰 **Nighttime anxiety**: Is my baby breathing well? Why are they crying like this?
+- 🏥 **Unnecessary ER visits**: 60% of pediatric emergency consultations are not urgent
+- 🌍 **Limited access**: Families in rural areas without quick access to pediatricians
+- 🗣️ **Language barrier**: Parents who don't speak the local language in healthcare services
+
+## 💡 Our Solution
+
+**BabyHealth** uses **multimodal Artificial Intelligence** to analyze baby videos and provide immediate guidance, working as a **smart first filter** that helps parents decide when it's really necessary to seek medical attention.
+
+### How does it work?
+
+```
+📱 Record a video    →    🤖 AI analyzes    →    🚦 Clear result       →    📋 Personalized
+   of your baby            the content          (Green/Yellow/Red)         recommendations
+```
+
+---
+
+## ✨ Key Features
+
+<table>
+<tr>
+<td width="50%">
+
+### 🎥 AI Video Analysis
+- Capture video directly from the app
+- Smart extraction of key frames
+- Multimodal analysis with **Claude (Bedrock)** or **Gemini**
+- Detection of baby's visual patterns
+
+</td>
+<td width="50%">
+
+### 🚦 Traffic Light System
+- **🟢 Green (Normal)**: Your baby seems fine
+- **🟡 Yellow (Attention)**: Monitor and consult if it persists
+- **🔴 Red (Urgent)**: Seek medical attention soon
+
+</td>
+</tr>
+<tr>
+<td width="50%">
+
+### 👤 Personalized Profile
+- Baby data (name, date of birth)
+- Parents' information
+- Primary pediatrician data
+- Context for more accurate analysis
+
+</td>
+<td width="50%">
+
+### 🌐 Full Accessibility
+- **Bilingual**: Complete Spanish and English
+- **Responsive**: Mobile, tablet, and desktop
+- **Adaptive theme**: Light and dark mode
+- **PWA Ready**: Installable as native app
+
+</td>
+</tr>
+</table>
+
+---
+
+## 🖥️ Screenshots
+
+<div align="center">
+
+| Landing Page | AI Selector | Analysis in Progress |
+|:---:|:---:|:---:|
+| Welcome page with quick access | Choose between Bedrock or Gemini | Video processing |
+
+| Analysis Result | Baby Profile | Settings |
+|:---:|:---:|:---:|
+| Visual traffic light system | Context customization | Language and theme |
+
+</div>
+
+> 📸 *Access the [live demo](https://babyhealth.hmartinez.info) to see the application in action*
+
+---
+
+## 🏗️ System Architecture
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                           CLIENT (Flutter Web)                               │
+│  ┌─────────────┐ ┌─────────────┐ ┌─────────────┐ ┌─────────────────────────┐│
+│  │   Landing   │ │    Home     │ │   Profile   │ │    Analysis Screen     ││
+│  │    Page     │ │   Screen    │ │   Screen    │ │  (Capture + Results)   ││
+│  └─────────────┘ └─────────────┘ └─────────────┘ └─────────────────────────┘│
+│                              │                                               │
+│  ┌───────────────────────────┴───────────────────────────────────────────┐  │
+│  │  AWS Amplify + Cognito (Google/Facebook OAuth)                        │  │
+│  └───────────────────────────────────────────────────────────────────────┘  │
+└─────────────────────────────────────┬───────────────────────────────────────┘
+                                      │ HTTPS
+                                      ▼
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                        AWS CLOUDFRONT CDN                                    │
+│                     babyhealth.hmartinez.info                                │
+└─────────────────────────────────────┬───────────────────────────────────────┘
+                                      │
+                    ┌─────────────────┴─────────────────┐
+                    ▼                                   ▼
+┌───────────────────────────────┐     ┌───────────────────────────────────────┐
+│         S3 BUCKET             │     │           API GATEWAY                 │
+│     (Static Frontend)         │     │    /analyze  /upload-url  /health     │
+└───────────────────────────────┘     └───────────────────┬───────────────────┘
+                                                          │
+                                                          ▼
+                                      ┌───────────────────────────────────────┐
+                                      │           AWS LAMBDA                  │
+                                      │      Python 3.11 + FastAPI            │
+                                      │         (Mangum Adapter)              │
+                                      └───────────────────┬───────────────────┘
+                                                          │
+                    ┌─────────────────┬─────────────────┬─┴─────────────────┐
+                    ▼                 ▼                 ▼                   ▼
+          ┌─────────────────┐ ┌─────────────────┐ ┌───────────┐ ┌─────────────────┐
+          │  AWS BEDROCK    │ │  GOOGLE GEMINI  │ │    S3     │ │    DYNAMODB     │
+          │ Claude Sonnet 4 │ │   (Fallback)    │ │  (Videos) │ │   (Results)     │
+          │   Multimodal    │ │   Multimodal    │ │  TTL: 24h │ │                 │
+          └─────────────────┘ └─────────────────┘ └───────────┘ └─────────────────┘
+```
+
+---
+
+## 🛠️ Tech Stack
+
+### Frontend
+| Technology | Use |
+|------------|-----|
+| **Flutter 3.x** | Cross-platform framework (Web, iOS, Android) |
+| **Provider** | Reactive state management |
+| **AWS Amplify** | Authentication SDK and AWS services |
+| **SharedPreferences** | Local settings persistence |
+
+### Backend
+| Technology | Use |
+|------------|-----|
+| **Python 3.11** | Server runtime |
+| **FastAPI** | High-performance web framework |
+| **Mangum** | AWS Lambda adapter |
+| **Pydantic** | Data validation and schemas |
+
+### Artificial Intelligence
+| Provider | Model | Capability |
+|----------|-------|------------|
+| **AWS Bedrock** | Claude Sonnet 4 | Multimodal analysis (images + text) |
+| **Google** | Gemini 2.5 Flash | Native video analysis (alternative) |
+
+### AWS Infrastructure
+| Service | Function |
+|---------|----------|
+| **CloudFront** | Global CDN with SSL |
+| **S3** | Static hosting + video storage |
+| **API Gateway** | REST API with throttling and authorization |
+| **Lambda** | Serverless compute |
+| **Cognito** | OAuth authentication (Google/Facebook) |
+| **DynamoDB** | Results database |
+| **Secrets Manager** | Secure API keys management |
+| **CDK (TypeScript)** | Infrastructure as code |
+
+---
+
+## 🚀 User Flow
+
+```mermaid
+graph LR
+    A[👤 User] --> B[Landing Page]
+    B --> C{Authenticated?}
+    C -->|No| D[Login Google/Facebook]
+    C -->|Yes| E[Home Screen]
+    D --> E
+    E --> F[Configure Profile]
+    E --> G[Start Analysis]
+    G --> H[Select AI]
+    H --> I[Record Video]
+    I --> J[Upload to S3]
+    J --> K[Process with AI]
+    K --> L[View Results]
+    L --> M{🚦 Status}
+    M -->|🟢| N[All good]
+    M -->|🟡| O[Monitor]
+    M -->|🔴| P[Seek attention]
+```
+
+---
+
+## 📁 Project Structure
+
+```
+hackathon-Kiro/
+├── 📱 frontend/                  # Flutter Web App
+│   ├── lib/
+│   │   ├── core/                # Configuration, themes, i18n
+│   │   ├── models/              # Data models
+│   │   ├── repositories/        # Data access layer
+│   │   ├── services/            # Auth, Profile, API
+│   │   ├── viewmodels/          # MVVM ViewModels
+│   │   ├── views/               # UI screens
+│   │   └── widgets/             # Reusable components
+│   └── test/                    # Unit tests
+│
+├── ⚙️ backend/                   # Python FastAPI
+│   ├── app/
+│   │   ├── main.py              # Entry point + Mangum
+│   │   ├── config.py            # Centralized configuration
+│   │   ├── routers/             # REST endpoints
+│   │   │   ├── analyze.py       # POST /analyze (Bedrock)
+│   │   │   ├── analyze_gemini.py# POST /analyze-gemini
+│   │   │   └── upload.py        # S3 presigned URLs
+│   │   └── services/            # Business logic
+│   │       ├── bedrock_service.py
+│   │       ├── gemini_service.py
+│   │       └── s3_service.py
+│   └── lambda_package/          # Deployable package
+│
+├── 🏗️ infra/                     # AWS CDK (TypeScript)
+│   ├── lib/
+│   │   └── infra-stack.ts       # Main stack
+│   └── layers/                  # Lambda Layers
+│
+└── 📚 docs/                      # Documentation
+    ├── screenshots/             # Screenshots
+    └── superpowers/             # Design specs
+```
+
+---
+
+## 🏃‍♂️ Quick Start
+
+### Prerequisites
+- Flutter SDK 3.x
+- Python 3.11+
+- AWS CLI configured
+- Node.js 18+ (for CDK)
+
+### Frontend (Local Development)
+
+```bash
+cd frontend
+flutter pub get
+flutter run -d chrome
+```
+
+### Backend (Local Development)
+
+```bash
+cd backend
+python -m venv .venv
+source .venv/bin/activate  # Windows: .venv\Scripts\activate
+pip install -r requirements.txt
+uvicorn app.main:app --reload --port 8000
+```
+
+### Full Deployment
+
+```bash
+# 1. AWS Infrastructure
+cd infra
+npm install
+cdk deploy --all
+
+# 2. Backend Lambda
+cd ../backend
+./deploy.sh  # or: aws lambda update-function-code ...
+
+# 3. Frontend
+cd ../frontend
+flutter build web --release
+aws s3 sync build/web/ s3://$BUCKET_NAME/ --delete
+aws cloudfront create-invalidation --distribution-id $DIST_ID --paths "/*"
+```
+
+---
+
+## 🔒 Security and Privacy
+
+| Aspect | Implementation |
+|--------|----------------|
+| **Authentication** | OAuth 2.0 via AWS Cognito (Google/Facebook) |
+| **Transport** | Mandatory HTTPS (CloudFront SSL) |
+| **Videos** | Temporary storage with 24-hour TTL |
+| **API Keys** | AWS Secrets Manager (never in code) |
+| **CORS** | Restrictive per-domain configuration |
+
+---
+
+## 🌟 Innovation and Differentiators
+
+1. **Real Multimodal**: Complete video analysis, not just static images
+2. **Multi-AI**: Flexibility between Bedrock and Gemini based on availability/preference
+3. **Pure Serverless**: Infinite scalability, pay-per-use
+4. **Complete IaC**: Reproducible infrastructure with AWS CDK
+5. **Parent-Centered UX**: Intuitive traffic light system, no medical jargon
+6. **Native Bilingual**: Not a translation, designed from the start
+
+---
+
+## 🗺️ Future Roadmap
+
+- [ ] **Cry analysis**: Classification of cry types (hunger, pain, sleep)
+- [ ] **Analysis history**: Baby tracking over time
+- [ ] **Smart alerts**: Pattern-based notifications
+- [ ] **Pediatrician integration**: Share reports directly
+- [ ] **Native iOS/Android app**: Flutter already supports it, just package
+- [ ] **Offline support**: Basic analysis without connection
+
+---
+
+## 👥 Team
+
+<table>
+<tr>
+<td align="center">
+<b>Héctor Martínez</b><br>
+<sub>Backend & AWS Infrastructure</sub>
+</td>
+</tr>
+</table>
+
+---
+
+## 📄 License
+
+Developed during **Hackathon Kiro 2025**
+
+---
+
+<div align="center">
+
+### ⚠️ Important Notice
+
+**BabyHealth is a GUIDANCE tool, not a medical diagnosis.**
+Always consult with your pediatrician for decisions about your baby's health.
+
 ---
 
 <img src="docs/screenshots/pic01.png" alt="Baby" width="200"/>
 
-**Con amor, para los padres del mundo** 💙
+**With love, for parents around the world** 💙
 
-[⬆ Volver arriba](#-babyhealth)
+[⬆ Back to top](#-babyhealth)
 
 </div>
