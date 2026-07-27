@@ -16,7 +16,7 @@ class Settings(BaseSettings):
 
     # AWS Resources
     S3_BUCKET: str = "babyhealth-images"
-    BEDROCK_MODEL_ID: str = "us.anthropic.claude-sonnet-4-5-20250929-v1:0"
+    BEDROCK_MODEL_ID: str = "anthropic.claude-sonnet-4-20250514-v1:0"
     DYNAMODB_TABLE: str = "babyhealth-results"
     AWS_REGION: str = "us-east-1"
 
