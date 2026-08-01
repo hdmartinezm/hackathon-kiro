@@ -1,0 +1,17 @@
+{
+  "mcpServers": {
+    "hyperframes": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "mcp-remote",
+        "https://mcp.heygen.com/mcp/hyperframes"
+      ],
+      "env": {
+        "HYPERFRAMES_OUTPUT_DIR": "./assets/hyperframes"
+      },
+      "disabled": false,
+      "autoApprove": []
+    }
+  }
+}

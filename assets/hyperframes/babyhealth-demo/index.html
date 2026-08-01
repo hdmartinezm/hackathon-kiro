@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1920, height=1080">
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html, body { margin: 0; width: 1920px; height: 1080px; overflow: hidden; background: #0f172a; }
+body { font-family: "Inter", sans-serif; }
+code, pre, .mono { font-family: "JetBrains Mono", monospace; }
+.scene { position: absolute; width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 80px; }
+.bg-dark { background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); }
+.bg-blue { background: linear-gradient(135deg, #0f172a 0%, #1e40af 100%); }
+.bg-teal { background: linear-gradient(135deg, #0f172a 0%, #134e4a 100%); }
+.bg-purple { background: linear-gradient(135deg, #1e1b4b 0%, #312e81 100%); }
+.bg-warm { background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); }
+.bg-green { background: linear-gradient(135deg, #0f172a 0%, #064e3b 100%); }
+.bg-gradient { background: linear-gradient(135deg, #0f172a 0%, #1e3a5f 50%, #0f172a 100%); }
+.title-hero { font-size: 140px; font-weight: 800; background: linear-gradient(90deg, #60a5fa, #a78bfa, #f472b6); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; letter-spacing: -3px; }
+.subtitle-hero { font-size: 44px; color: #94a3b8; margin-top: 24px; font-weight: 300; }
+.section-num { font-size: 20px; color: #60a5fa; text-transform: uppercase; letter-spacing: 4px; margin-bottom: 16px; font-weight: 600; }
+.section-title { font-size: 72px; font-weight: 700; color: #f1f5f9; text-align: center; margin-bottom: 32px; line-height: 1.1; }
+.section-title-sm { font-size: 56px; font-weight: 700; color: #f1f5f9; text-align: center; margin-bottom: 24px; }
+.section-text { font-size: 36px; color: #cbd5e1; text-align: center; line-height: 1.6; max-width: 1400px; }
+.section-text-sm { font-size: 30px; color: #94a3b8; text-align: center; line-height: 1.5; max-width: 1200px; }
+.highlight { color: #60a5fa; font-weight: 600; }
+.highlight-green { color: #34d399; font-weight: 600; }
+.highlight-purple { color: #a78bfa; font-weight: 600; }
+.highlight-pink { color: #f472b6; font-weight: 600; }
+.card { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 24px; padding: 40px; }
+.card-glow { box-shadow: 0 0 40px rgba(96,165,250,0.1); }
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 32px; width: 100%; max-width: 1600px; }
+.grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 32px; width: 100%; max-width: 1700px; }
+.flex-row { display: flex; gap: 32px; align-items: center; justify-content: center; flex-wrap: wrap; }
+.badge { background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); border-radius: 14px; padding: 18px 32px; font-size: 26px; color: #e2e8f0; font-weight: 500; }
+.badge-blue { border-color: rgba(96,165,250,0.3); background: rgba(96,165,250,0.08); }
+.badge-green { border-color: rgba(52,211,153,0.3); background: rgba(52,211,153,0.08); }
+.badge-purple { border-color: rgba(167,139,250,0.3); background: rgba(167,139,250,0.08); }
+.icon-lg { font-size: 56px; margin-bottom: 16px; }
+.card-title { font-size: 30px; font-weight: 600; color: #f1f5f9; margin-bottom: 10px; }
+.card-desc { font-size: 24px; color: #94a3b8; line-height: 1.4; }
+.traffic-row { display: flex; gap: 40px; margin-top: 24px; }
+.light { display: flex; align-items: center; gap: 14px; font-size: 30px; color: #e2e8f0; }
+.dot { width: 36px; height: 36px; border-radius: 50%; }
+.dot-g { background: #22c55e; box-shadow: 0 0 24px #22c55e80; }
+.dot-y { background: #eab308; box-shadow: 0 0 24px #eab30880; }
+.dot-r { background: #ef4444; box-shadow: 0 0 24px #ef444480; }
+.code-block { background: #1e293b; border: 1px solid #334155; border-radius: 16px; padding: 32px 40px; font-size: 22px; color: #e2e8f0; line-height: 1.7; text-align: left; max-width: 1400px; white-space: pre; }
+.arrow-flow { display: flex; align-items: center; gap: 24px; margin-top: 32px; }
+.flow-step { display: flex; flex-direction: column; align-items: center; gap: 12px; }
+.flow-icon { font-size: 52px; }
+.flow-label { font-size: 24px; color: #e2e8f0; text-align: center; max-width: 200px; }
+.flow-arrow { font-size: 40px; color: #60a5fa; }
+.stat-row { display: flex; gap: 60px; margin-top: 40px; }
+.stat { text-align: center; }
+.stat-value { font-size: 64px; font-weight: 800; color: #60a5fa; }
+.stat-label { font-size: 22px; color: #94a3b8; margin-top: 8px; }
+.disclaimer { font-size: 24px; color: #64748b; text-align: center; max-width: 1200px; font-style: italic; margin-top: 40px; }
+.url-box { font-size: 52px; font-weight: 700; color: #60a5fa; margin-top: 32px; padding: 24px 64px; border: 2px solid #60a5fa; border-radius: 18px; }
+.team-card { display: flex; align-items: center; gap: 20px; padding: 24px 32px; }
+.team-name { font-size: 28px; font-weight: 600; color: #f1f5f9; }
+.team-role { font-size: 22px; color: #94a3b8; }
+.divider { width: 120px; height: 3px; background: linear-gradient(90deg, #60a5fa, #a78bfa); border-radius: 2px; margin: 20px 0; }
+</style>
+</head>
+<body>
+<div data-hf-id="hf-full" id="root" data-composition-id="main" data-start="0" data-duration="270" data-width="1920" data-height="1080">
+
+<!-- S1: OPENING TITLE (0-10s) -->
+<div id="s1" class="clip scene bg-gradient" data-start="0" data-duration="10" data-track-index="1">
+  <div id="s1-title" class="title-hero">BabyHealth</div>
+  <div id="s1-sub" class="subtitle-hero">Orientación de Salud Infantil con Inteligencia Artificial</div>
+  <div id="s1-divider" class="divider" style="margin-top:32px"></div>
+  <div id="s1-tagline" style="font-size:28px;color:#64748b;margin-top:16px">Hackathon Kiro 2026 · Equipo BabyHealth</div>
+</div>
+
+<!-- S2: PROBLEM STATEMENT (10-30s) -->
+<div id="s2" class="clip scene bg-warm" data-start="10" data-duration="20" data-track-index="1">
+  <div id="s2-num" class="section-num">El Problema</div>
+  <div id="s2-title" class="section-title">Los padres primerizos necesitan orientación</div>
+  <div id="s2-text" class="section-text">Cada año nacen <span class="highlight">140 millones de bebés</span> en el mundo.<br>Los padres primerizos enfrentan incertidumbre constante sobre la salud de su hijo.</div>
+  <div id="s2-stats" class="stat-row">
+    <div class="stat"><div class="stat-value">68%</div><div class="stat-label">Padres buscan info médica online</div></div>
+    <div class="stat"><div class="stat-value">3.2x</div><div class="stat-label">Más visitas a urgencias innecesarias</div></div>
+    <div class="stat"><div class="stat-value">24/7</div><div class="stat-label">Las preocupaciones no tienen horario</div></div>
+  </div>
+</div>
+
+<!-- S3: SOLUTION OVERVIEW (30-50s) -->
+<div id="s3" class="clip scene bg-blue" data-start="30" data-duration="20" data-track-index="1">
+  <div id="s3-num" class="section-num">La Solución</div>
+  <div id="s3-title" class="section-title">IA multimodal al servicio de la familia</div>
+  <div id="s3-flow" class="arrow-flow">
+    <div class="flow-step"><div class="flow-icon">📹</div><div class="flow-label">Graba un video de 5 segundos</div></div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step"><div class="flow-icon">☁️</div><div class="flow-label">Upload seguro a AWS</div></div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step"><div class="flow-icon">🤖</div><div class="flow-label">Análisis con IA multimodal</div></div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step"><div class="flow-icon">🚦</div><div class="flow-label">Resultado tipo semáforo</div></div>
+  </div>
+  <div id="s3-text" class="section-text-sm" style="margin-top:40px">Análisis visual + clasificación de llanto en una sola captura.<br>Resultados en menos de 5 segundos.</div>
+</div>
+
+<!-- S4: FEATURE - VISUAL ANALYSIS (50-75s) -->
+<div id="s4" class="clip scene bg-teal" data-start="50" data-duration="25" data-track-index="1">
+  <div id="s4-num" class="section-num">Característica 1</div>
+  <div id="s4-title" class="section-title">Análisis Visual con IA</div>
+  <div id="s4-grid" class="grid-2">
+    <div class="card card-glow">
+      <div class="icon-lg">👁️</div>
+      <div class="card-title">Coloración de Piel</div>
+      <div class="card-desc">Detección de tonos amarillentos (posible ictericia), palidez o enrojecimiento anormal</div>
+    </div>
+    <div class="card card-glow">
+      <div class="icon-lg">😊</div>
+      <div class="card-title">Expresión Facial</div>
+      <div class="card-desc">Signos de malestar, dolor, tranquilidad o llanto evaluados por Claude Sonnet</div>
+    </div>
+    <div class="card card-glow">
+      <div class="icon-lg">🧒</div>
+      <div class="card-title">Postura y Movimiento</div>
+      <div class="card-desc">Evaluación del tono muscular, posición y movimientos involuntarios</div>
+    </div>
+    <div class="card card-glow">
+      <div class="icon-lg">📊</div>
+      <div class="card-title">Confianza del Análisis</div>
+      <div class="card-desc">Cada resultado incluye un índice de confianza (0-100%) para transparencia total</div>
+    </div>
+  </div>
+</div>
+
+<!-- S5: FEATURE - CRY CLASSIFICATION (75-100s) -->
+<div id="s5" class="clip scene bg-purple" data-start="75" data-duration="25" data-track-index="1">
+  <div id="s5-num" class="section-num">Característica 2</div>
+  <div id="s5-title" class="section-title">Clasificación de Llanto</div>
+  <div id="s5-text" class="section-text" style="margin-bottom:32px">El audio del video se analiza para identificar el tipo de llanto</div>
+  <div id="s5-grid" class="grid-3">
+    <div class="card"><div class="icon-lg">🍼</div><div class="card-title">Hambre</div><div class="card-desc">Llanto rítmico, creciente</div></div>
+    <div class="card"><div class="icon-lg">😣</div><div class="card-title">Dolor</div><div class="card-desc">Agudo, súbito, intenso</div></div>
+    <div class="card"><div class="icon-lg">😴</div><div class="card-title">Sueño</div><div class="card-desc">Irregular, pausas, suave</div></div>
+    <div class="card"><div class="icon-lg">💨</div><div class="card-title">Gases</div><div class="card-desc">Intenso con encogimiento</div></div>
+    <div class="card"><div class="icon-lg">👕</div><div class="card-title">Incomodidad</div><div class="card-desc">Moderado, constante</div></div>
+    <div class="card"><div class="icon-lg">😱</div><div class="card-title">Miedo</div><div class="card-desc">Súbito, con sobresaltos</div></div>
+  </div>
+</div>
+
+<!-- S6: TRAFFIC LIGHT SYSTEM (100-120s) -->
+<div id="s6" class="clip scene bg-dark" data-start="100" data-duration="20" data-track-index="1">
+  <div id="s6-num" class="section-num">Característica 3</div>
+  <div id="s6-title" class="section-title">Sistema Semáforo</div>
+  <div id="s6-text" class="section-text">Resultados claros y universales que cualquier padre puede interpretar</div>
+  <div id="s6-lights" class="traffic-row" style="margin-top:48px">
+    <div class="card" style="text-align:center;padding:48px 64px">
+      <div class="dot dot-g" style="width:80px;height:80px;margin:0 auto 20px"></div>
+      <div class="card-title" style="color:#22c55e;font-size:36px">Normal</div>
+      <div class="card-desc">Todo bien. Seguir con los cuidados habituales.</div>
+    </div>
+    <div class="card" style="text-align:center;padding:48px 64px">
+      <div class="dot dot-y" style="width:80px;height:80px;margin:0 auto 20px"></div>
+      <div class="card-title" style="color:#eab308;font-size:36px">Atención</div>
+      <div class="card-desc">Monitorear. Consultar si persiste.</div>
+    </div>
+    <div class="card" style="text-align:center;padding:48px 64px">
+      <div class="dot dot-r" style="width:80px;height:80px;margin:0 auto 20px"></div>
+      <div class="card-title" style="color:#ef4444;font-size:36px">Urgente</div>
+      <div class="card-desc">Contactar al pediatra de inmediato.</div>
+    </div>
+  </div>
+</div>
+
+<!-- S7: DUAL AI MODELS (120-150s) -->
+<div id="s7" class="clip scene bg-blue" data-start="120" data-duration="30" data-track-index="1">
+  <div id="s7-num" class="section-num">Tecnología</div>
+  <div id="s7-title" class="section-title">Doble Motor de IA</div>
+  <div id="s7-grid" class="grid-2" style="max-width:1500px">
+    <div class="card card-glow" style="border-color:rgba(96,165,250,0.3)">
+      <div style="font-size:36px;font-weight:700;color:#60a5fa;margin-bottom:16px">AWS Bedrock</div>
+      <div style="font-size:28px;color:#f1f5f9;margin-bottom:12px">Claude Sonnet 4.5</div>
+      <div class="card-desc">• Extrae frame del video (ffmpeg)<br>• Genera espectrograma de audio<br>• Análisis visual + clasificación de llanto<br>• Converse API, Temperature 0.1</div>
+    </div>
+    <div class="card card-glow" style="border-color:rgba(167,139,250,0.3)">
+      <div style="font-size:36px;font-weight:700;color:#a78bfa;margin-bottom:16px">Google Gemini</div>
+      <div style="font-size:28px;color:#f1f5f9;margin-bottom:12px">2.5 Flash</div>
+      <div class="card-desc">• Video completo (sin preprocesamiento)<br>• Análisis multimodal nativo<br>• Visual + audio en una sola llamada<br>• Inline data o Files API (&gt;20MB)</div>
+    </div>
+  </div>
+  <div id="s7-footer" class="section-text-sm" style="margin-top:40px">El usuario elige el modelo antes de cada análisis. Redundancia y comparación de resultados.</div>
+</div>
+
+<!-- S8: ARCHITECTURE (150-185s) -->
+<div id="s8" class="clip scene bg-dark" data-start="150" data-duration="35" data-track-index="1">
+  <div id="s8-num" class="section-num">Arquitectura</div>
+  <div id="s8-title" class="section-title-sm">Serverless en AWS</div>
+  <div id="s8-code" class="code-block mono">Flutter Web (Dart 3.12)
+    │ HTTPS
+    ▼
+CloudFront CDN → S3 (Frontend)
+    │
+    ▼
+API Gateway (JWT Auth via Cognito)
+    │
+    ▼
+AWS Lambda (FastAPI + Mangum, Python 3.11)
+    │
+    ├── AWS Bedrock (Claude Sonnet 4.5)
+    ├── Google Gemini (2.5 Flash)
+    ├── S3 (Videos, TTL 24h)
+    └── DynamoDB (Resultados)
+
+Auth: Cognito → Google OAuth · Facebook OAuth · Email</div>
+</div>
+
+<!-- S9: FRONTEND DETAILS (185-210s) -->
+<div id="s9" class="clip scene bg-teal" data-start="185" data-duration="25" data-track-index="1">
+  <div id="s9-num" class="section-num">Frontend</div>
+  <div id="s9-title" class="section-title-sm">Flutter Web · MVVM · Provider</div>
+  <div id="s9-grid" class="grid-3">
+    <div class="card"><div class="icon-lg">🌐</div><div class="card-title">Bilingüe</div><div class="card-desc">Español e Inglés con detección automática del sistema</div></div>
+    <div class="card"><div class="icon-lg">🌙</div><div class="card-title">Dark / Light</div><div class="card-desc">Tema adaptable con persistencia en SharedPreferences</div></div>
+    <div class="card"><div class="icon-lg">📱</div><div class="card-title">Responsive</div><div class="card-desc">Mobile, tablet y desktop con breakpoints adaptativos</div></div>
+    <div class="card"><div class="icon-lg">🔐</div><div class="card-title">Social Login</div><div class="card-desc">Google y Facebook via Cognito Hosted UI + Amplify</div></div>
+    <div class="card"><div class="icon-lg">👶</div><div class="card-title">Perfil del Bebé</div><div class="card-desc">Edad, peso, altura — contexto para análisis personalizado</div></div>
+    <div class="card"><div class="icon-lg">🎬</div><div class="card-title">Captura de Video</div><div class="card-desc">5 segundos de grabación con cámara nativa del dispositivo</div></div>
+  </div>
+</div>
+
+<!-- S10: BACKEND DETAILS (210-235s) -->
+<div id="s10" class="clip scene bg-purple" data-start="210" data-duration="25" data-track-index="1">
+  <div id="s10-num" class="section-num">Backend</div>
+  <div id="s10-title" class="section-title-sm">FastAPI · Lambda · Serverless</div>
+  <div id="s10-grid" class="grid-2" style="max-width:1500px">
+    <div class="card">
+      <div class="card-title" style="color:#60a5fa">API Endpoints</div>
+      <div class="code-block mono" style="font-size:20px;padding:20px;margin-top:12px;background:#0f172a">GET  /health
+GET  /upload-url
+POST /analyze
+POST /analyze-gemini
+POST /analyze-image</div>
+    </div>
+    <div class="card">
+      <div class="card-title" style="color:#a78bfa">Resiliencia</div>
+      <div class="card-desc" style="font-size:22px;line-height:1.8;margin-top:12px">• Retry con backoff exponencial (3 intentos)<br>• Degradación parcial (audio falla → visual OK)<br>• Logging JSON estructurado (CloudWatch)<br>• Validación Pydantic + error handler global<br>• Presigned URLs (upload directo a S3)</div>
+    </div>
+  </div>
+  <div id="s10-badges" class="flex-row" style="margin-top:32px">
+    <div class="badge badge-blue">Python 3.11</div>
+    <div class="badge badge-green">Mangum</div>
+    <div class="badge badge-purple">Pydantic</div>
+    <div class="badge">boto3</div>
+    <div class="badge">ffmpeg</div>
+  </div>
+</div>
+
+<!-- S11: SECURITY & PRIVACY (235-252s) -->
+<div id="s11" class="clip scene bg-green" data-start="235" data-duration="17" data-track-index="1">
+  <div id="s11-num" class="section-num">Seguridad</div>
+  <div id="s11-title" class="section-title-sm">Privacidad desde el Diseño</div>
+  <div id="s11-grid" class="grid-2" style="max-width:1400px">
+    <div class="card"><div class="icon-lg">🗑️</div><div class="card-title">Videos Temporales</div><div class="card-desc">Eliminados automáticamente a las 24 horas (S3 Lifecycle)</div></div>
+    <div class="card"><div class="icon-lg">📱</div><div class="card-title">Perfil Local</div><div class="card-desc">Datos personales solo en el dispositivo (SharedPreferences)</div></div>
+    <div class="card"><div class="icon-lg">🔑</div><div class="card-title">Secrets Manager</div><div class="card-desc">API keys nunca en código fuente — resueltas en runtime</div></div>
+    <div class="card"><div class="icon-lg">🛡️</div><div class="card-title">JWT + CORS</div><div class="card-desc">Cognito Authorizer en API Gateway — HTTPS obligatorio</div></div>
+  </div>
+</div>
+
+<!-- S12: CTA + TEAM + CLOSING (252-270s) -->
+<div id="s12" class="clip scene bg-gradient" data-start="252" data-duration="18" data-track-index="1">
+  <div id="s12-title" class="title-hero" style="font-size:100px">Pruébalo Ahora</div>
+  <div id="s12-url" class="url-box">babyhealth.hmartinez.info</div>
+  <div id="s12-team" class="flex-row" style="margin-top:48px">
+    <div class="badge">Hector · Backend + Infra</div>
+    <div class="badge">Alvaro · Diseño + Frontend</div>
+    <div class="badge">William · Fullstack</div>
+    <div class="badge">Francisco · Frontend Lead</div>
+  </div>
+  <div id="s12-badge" style="font-size:36px;color:#94a3b8;margin-top:36px;font-weight:600">Hackathon Kiro 2026</div>
+  <div id="s12-disc" class="disclaimer">Esta herramienta es solo orientativa. No reemplaza la evaluación médica profesional. Consulte siempre a su pediatra.</div>
+</div>
+
+</div>
+<script>
+window.__timelines = window.__timelines || {};
+const tl = gsap.timeline({ paused: true });
+
+// S1: Opening (0-10s)
+tl.from("#s1-title", { opacity: 0, scale: 0.7, duration: 1.2, ease: "power3.out" }, 0.5);
+tl.from("#s1-sub", { opacity: 0, y: 40, duration: 1, ease: "power2.out" }, 1.5);
+tl.from("#s1-divider", { opacity: 0, scaleX: 0, duration: 0.6, ease: "power2.out" }, 2.3);
+tl.from("#s1-tagline", { opacity: 0, duration: 0.8 }, 3);
+
+// S2: Problem (10-30s)
+tl.from("#s2-num", { opacity: 0, y: -20, duration: 0.5 }, 10.5);
+tl.from("#s2-title", { opacity: 0, y: -30, duration: 0.8, ease: "power2.out" }, 11);
+tl.from("#s2-text", { opacity: 0, y: 30, duration: 0.8 }, 12);
+tl.from("#s2-stats .stat", { opacity: 0, y: 40, duration: 0.7, stagger: 0.4, ease: "power2.out" }, 14);
+
+// S3: Solution (30-50s)
+tl.from("#s3-num", { opacity: 0, y: -20, duration: 0.5 }, 30.5);
+tl.from("#s3-title", { opacity: 0, y: -30, duration: 0.8 }, 31);
+tl.from("#s3-flow .flow-step", { opacity: 0, y: 40, duration: 0.6, stagger: 0.5 }, 32.5);
+tl.from("#s3-flow .flow-arrow", { opacity: 0, x: -15, duration: 0.3, stagger: 0.5 }, 33);
+tl.from("#s3-text", { opacity: 0, y: 20, duration: 0.7 }, 36);
+
+// S4: Visual Analysis (50-75s)
+tl.from("#s4-num", { opacity: 0, y: -20, duration: 0.5 }, 50.5);
+tl.from("#s4-title", { opacity: 0, y: -30, duration: 0.8 }, 51);
+tl.from("#s4-grid .card", { opacity: 0, y: 50, duration: 0.7, stagger: 0.6, ease: "power2.out" }, 52.5);
+
+// S5: Cry Classification (75-100s)
+tl.from("#s5-num", { opacity: 0, y: -20, duration: 0.5 }, 75.5);
+tl.from("#s5-title", { opacity: 0, y: -30, duration: 0.8 }, 76);
+tl.from("#s5-text", { opacity: 0, y: 20, duration: 0.6 }, 77);
+tl.from("#s5-grid .card", { opacity: 0, scale: 0.8, duration: 0.5, stagger: 0.35, ease: "back.out(1.2)" }, 78.5);
+
+// S6: Traffic Light (100-120s)
+tl.from("#s6-num", { opacity: 0, y: -20, duration: 0.5 }, 100.5);
+tl.from("#s6-title", { opacity: 0, y: -30, duration: 0.8 }, 101);
+tl.from("#s6-text", { opacity: 0, y: 20, duration: 0.6 }, 102);
+tl.from("#s6-lights .card", { opacity: 0, y: 60, duration: 0.8, stagger: 0.5, ease: "power2.out" }, 103.5);
+
+// S7: Dual AI (120-150s)
+tl.from("#s7-num", { opacity: 0, y: -20, duration: 0.5 }, 120.5);
+tl.from("#s7-title", { opacity: 0, y: -30, duration: 0.8 }, 121);
+tl.from("#s7-grid .card", { opacity: 0, x: function(i){ return i===0 ? -80 : 80; }, duration: 0.9, stagger: 0.3, ease: "power2.out" }, 122.5);
+tl.from("#s7-footer", { opacity: 0, y: 20, duration: 0.7 }, 125);
+
+// S8: Architecture (150-185s)
+tl.from("#s8-num", { opacity: 0, y: -20, duration: 0.5 }, 150.5);
+tl.from("#s8-title", { opacity: 0, y: -30, duration: 0.8 }, 151);
+tl.from("#s8-code", { opacity: 0, y: 40, duration: 1, ease: "power2.out" }, 152.5);
+
+// S9: Frontend (185-210s)
+tl.from("#s9-num", { opacity: 0, y: -20, duration: 0.5 }, 185.5);
+tl.from("#s9-title", { opacity: 0, y: -30, duration: 0.8 }, 186);
+tl.from("#s9-grid .card", { opacity: 0, y: 40, duration: 0.6, stagger: 0.3, ease: "power2.out" }, 187.5);
+
+// S10: Backend (210-235s)
+tl.from("#s10-num", { opacity: 0, y: -20, duration: 0.5 }, 210.5);
+tl.from("#s10-title", { opacity: 0, y: -30, duration: 0.8 }, 211);
+tl.from("#s10-grid .card", { opacity: 0, y: 50, duration: 0.8, stagger: 0.4, ease: "power2.out" }, 212.5);
+tl.from("#s10-badges .badge", { opacity: 0, y: 20, duration: 0.4, stagger: 0.15 }, 215);
+
+// S11: Security (235-252s)
+tl.from("#s11-num", { opacity: 0, y: -20, duration: 0.5 }, 235.5);
+tl.from("#s11-title", { opacity: 0, y: -30, duration: 0.8 }, 236);
+tl.from("#s11-grid .card", { opacity: 0, scale: 0.85, duration: 0.6, stagger: 0.4, ease: "power2.out" }, 237.5);
+
+// S12: Closing (252-270s)
+tl.from("#s12-title", { opacity: 0, scale: 0.8, duration: 1, ease: "power3.out" }, 253);
+tl.from("#s12-url", { opacity: 0, y: 30, duration: 0.8, ease: "power2.out" }, 254.5);
+tl.from("#s12-team .badge", { opacity: 0, y: 20, duration: 0.5, stagger: 0.2 }, 256);
+tl.from("#s12-badge", { opacity: 0, duration: 0.7 }, 258);
+tl.from("#s12-disc", { opacity: 0, y: 20, duration: 0.7 }, 259.5);
+
+window.__timelines["main"] = tl;
+</script>
+</body>
+</html>
