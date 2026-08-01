@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=1920, height=1080" />
+  <title>BabyHealth — Pitch Técnico</title>
+  <style>
+    @font-face {
+      font-family: 'Inter';
+      src: local('Inter'), local('Inter-Regular');
+      font-weight: 100 900;
+      font-display: swap;
+    }
+    @font-face {
+      font-family: 'Playfair Display';
+      src: local('Playfair Display'), local('PlayfairDisplay-Regular');
+      font-weight: 400 700;
+      font-display: swap;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --teal: #4B9B9B;
+      --teal-light: #C8E8E8;
+      --coral: #DF7B5E;
+      --dark: #1A1A2E;
+      --dark-surface: #252540;
+      --white: #FFFFFF;
+      --text: #F0F0F0;
+      --gray: #A0A0B0;
+    }
+
+    body {
+      width: 1920px;
+      height: 1080px;
+      overflow: hidden;
+      background: var(--dark);
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      color: var(--text);
+    }
+
+    .scene {
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+    }
+
+    /* === SCENE 1: Hook === */
+    #scene-hook {
+      background: linear-gradient(135deg, var(--dark) 0%, #0F0F23 100%);
+      flex-direction: column;
+      gap: 32px;
+    }
+    #scene-hook .hook-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 72px;
+      font-weight: 700;
+      text-align: center;
+      color: var(--white);
+      line-height: 1.2;
+    }
+    #scene-hook .hook-subtitle {
+      font-size: 36px;
+      color: var(--coral);
+      font-weight: 500;
+      text-align: center;
+    }
+    #scene-hook .hook-stat {
+      margin-top: 24px;
+      padding: 20px 40px;
+      background: rgba(75, 155, 155, 0.15);
+      border: 1px solid rgba(75, 155, 155, 0.3);
+      border-radius: 12px;
+      font-size: 28px;
+      color: var(--teal);
+      font-weight: 600;
+    }
+    #scene-hook .hook-logo {
+      position: absolute;
+      bottom: 48px;
+      right: 64px;
+      font-size: 20px;
+      color: var(--gray);
+      opacity: 0.6;
+    }
+
+    /* === SCENE 2: Solución === */
+    #scene-solution {
+      background: linear-gradient(160deg, #0D2626 0%, var(--dark) 100%);
+      flex-direction: column;
+      gap: 48px;
+    }
+    #scene-solution .sol-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 56px;
+      font-weight: 700;
+      color: var(--white);
+      text-align: center;
+    }
+    #scene-solution .sol-title span {
+      color: var(--teal);
+    }
+    #scene-solution .steps {
+      display: flex;
+      gap: 48px;
+      align-items: flex-start;
+    }
+    #scene-solution .step {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 16px;
+      width: 280px;
+    }
+    #scene-solution .step-icon {
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      background: rgba(75, 155, 155, 0.2);
+      border: 2px solid var(--teal);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 36px;
+    }
+    #scene-solution .step-text {
+      font-size: 22px;
+      text-align: center;
+      color: var(--text);
+      font-weight: 500;
+      line-height: 1.4;
+    }
+    #scene-solution .sol-badge {
+      padding: 12px 28px;
+      background: #A8503A;
+      border-radius: 24px;
+      font-size: 20px;
+      font-weight: 600;
+      color: var(--white);
+    }
+
+    /* === SCENE 3: Arquitectura === */
+    #scene-architecture {
+      background: var(--dark);
+      flex-direction: column;
+      gap: 36px;
+      padding: 60px 80px;
+    }
+    #scene-architecture .arch-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 44px;
+      font-weight: 700;
+      color: var(--white);
+      text-align: center;
+    }
+    #scene-architecture .arch-diagram {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 24px;
+      width: 100%;
+    }
+    .arch-row {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+    .arch-box {
+      padding: 16px 28px;
+      border-radius: 10px;
+      font-size: 18px;
+      font-weight: 600;
+      text-align: center;
+      min-width: 160px;
+    }
+    .arch-box.frontend { background: #1E4470; color: var(--white); }
+    .arch-box.infra { background: #8B5700; color: var(--white); }
+    .arch-box.compute { background: #5B3BA8; color: var(--white); }
+    .arch-box.ai { background: #147A3A; color: var(--white); }
+    .arch-box.storage { background: #B91C1C; color: var(--white); }
+    .arch-box.data { background: #1D4ED8; color: var(--white); }
+    .arch-arrow {
+      font-size: 24px;
+      color: var(--gray);
+    }
+    .arch-badges {
+      display: flex;
+      gap: 16px;
+      margin-top: 12px;
+    }
+    .arch-badge {
+      padding: 8px 16px;
+      border-radius: 20px;
+      font-size: 14px;
+      font-weight: 500;
+      background: rgba(75, 155, 155, 0.15);
+      border: 1px solid rgba(75, 155, 155, 0.4);
+      color: #6BC4C4;
+    }
+
+    /* === SCENE 4: Diferenciadores === */
+    #scene-features {
+      background: linear-gradient(135deg, var(--dark) 0%, #1A2040 100%);
+      flex-direction: column;
+      gap: 48px;
+    }
+    #scene-features .feat-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 44px;
+      font-weight: 700;
+      color: var(--white);
+    }
+    #scene-features .feat-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 32px;
+      max-width: 1100px;
+    }
+    #scene-features .feat-card {
+      padding: 32px;
+      background: var(--dark-surface);
+      border-radius: 16px;
+      border: 1px solid rgba(255,255,255,0.08);
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    #scene-features .feat-card-icon {
+      font-size: 36px;
+    }
+    #scene-features .feat-card h3 {
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--white);
+    }
+    #scene-features .feat-card p {
+      font-size: 17px;
+      color: var(--gray);
+      line-height: 1.5;
+    }
+
+    /* === SCENE 5: Cierre === */
+    #scene-closing {
+      background: linear-gradient(135deg, #0F0F23 0%, var(--dark) 50%, #0D2626 100%);
+      flex-direction: column;
+      gap: 28px;
+    }
+    #scene-closing .close-logo {
+      font-family: 'Playfair Display', serif;
+      font-size: 80px;
+      font-weight: 700;
+      color: var(--teal);
+    }
+    #scene-closing .close-url {
+      font-size: 24px;
+      color: var(--gray);
+      font-weight: 500;
+    }
+    #scene-closing .close-tagline {
+      font-size: 28px;
+      color: var(--white);
+      font-weight: 400;
+      font-style: italic;
+      margin-top: 8px;
+    }
+    #scene-closing .close-team {
+      font-size: 20px;
+      color: var(--gray);
+      margin-top: 16px;
+    }
+    #scene-closing .close-badge {
+      padding: 10px 24px;
+      background: rgba(223, 123, 94, 0.2);
+      border: 1px solid #F0906F;
+      border-radius: 24px;
+      font-size: 16px;
+      color: #F0906F;
+      font-weight: 600;
+      margin-top: 8px;
+    }
+  </style>
+</head>
+<body>
+
+<div id="root" data-composition-id="babyhealth-pitch-001" data-duration="90" data-width="1920" data-height="1080" data-start="0">
+
+  <!-- Audio: Música de fondo (direct child of root) -->
+  <audio id="bg-music"
+         src="media/sound/surfacing-shane-mckenna.mp3"
+         data-start="0"
+         data-duration="90"
+         data-volume="0.20"
+         data-fade-in="3"
+         data-fade-out="4">
+  </audio>
+
+  <!-- SCENE 1: Hook / Problema (0s – 15s) -->
+  <div id="scene-hook" class="scene" data-enter="0" data-exit="15">
+    <h1 class="hook-title">Son las 3 AM.<br/>Tu bebé llora.</h1>
+    <p class="hook-subtitle">¿Urgencia... o solo hambre?</p>
+    <div class="hook-stat">📊 60% de visitas a urgencias pediátricas son innecesarias</div>
+    <div class="hook-logo">BabyHealth</div>
+  </div>
+
+  <!-- SCENE 2: Solución (15s – 30s) -->
+  <div id="scene-solution" class="scene" data-enter="15" data-exit="30">
+    <h1 class="sol-title">BabyHealth: <span>IA Multimodal</span> para Padres</h1>
+    <div class="steps">
+      <div class="step">
+        <div class="step-icon">📹</div>
+        <p class="step-text">Graba 10 segundos<br/>de video</p>
+      </div>
+      <div class="step">
+        <div class="step-icon">🧠</div>
+        <p class="step-text">IA analiza<br/>imagen + audio</p>
+      </div>
+      <div class="step">
+        <div class="step-icon">🚦</div>
+        <p class="step-text">Semáforo:<br/>Verde | Amarillo | Rojo</p>
+      </div>
+    </div>
+    <div class="sol-badge">⚡ Respuesta en &lt; 15 segundos</div>
+  </div>
+
+  <!-- SCENE 3: Arquitectura Técnica (30s – 55s) -->
+  <div id="scene-architecture" class="scene" data-enter="30" data-exit="55">
+    <h2 class="arch-title">Arquitectura Serverless</h2>
+    <div class="arch-diagram">
+      <div class="arch-row">
+        <div class="arch-box frontend">Flutter Web</div>
+        <span class="arch-arrow">→</span>
+        <div class="arch-box infra">CloudFront</div>
+        <span class="arch-arrow">→</span>
+        <div class="arch-box infra">API Gateway</div>
+        <span class="arch-arrow">→</span>
+        <div class="arch-box compute">Lambda<br/><small>FastAPI + Mangum</small></div>
+      </div>
+      <div class="arch-row">
+        <div class="arch-box storage">S3 (Video)</div>
+        <span class="arch-arrow">→</span>
+        <div class="arch-box compute">FFmpeg Layer<br/><small>Frame + Spectrogram</small></div>
+        <span class="arch-arrow">→</span>
+        <div class="arch-box ai">Bedrock<br/><small>Claude Sonnet</small></div>
+      </div>
+      <div class="arch-row">
+        <div class="arch-box ai">Visual Analysis</div>
+        <span class="arch-arrow">+</span>
+        <div class="arch-box ai">Cry Classification</div>
+        <span class="arch-arrow">→</span>
+        <div class="arch-box data">DynamoDB</div>
+        <span class="arch-arrow">→</span>
+        <div class="arch-box frontend">Response</div>
+      </div>
+      <div class="arch-badges">
+        <span class="arch-badge">Claude Sonnet via Converse API</span>
+        <span class="arch-badge">Gemini Fallback</span>
+        <span class="arch-badge">Cognito OAuth</span>
+        <span class="arch-badge">CDK IaC</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- SCENE 4: Diferenciadores (55s – 75s) -->
+  <div id="scene-features" class="scene" data-enter="55" data-exit="75">
+    <h2 class="feat-title">Diferenciadores Técnicos</h2>
+    <div class="feat-grid">
+      <div class="feat-card">
+        <span class="feat-card-icon">🔊</span>
+        <h3>Análisis de Llanto</h3>
+        <p>Espectrograma → Claude clasifica: hambre, dolor, sueño, cólico, incomodidad</p>
+      </div>
+      <div class="feat-card">
+        <span class="feat-card-icon">📄</span>
+        <h3>Reporte PDF + WhatsApp</h3>
+        <p>Genera PDF con resultados y lo envía directo al pediatra por WhatsApp</p>
+      </div>
+      <div class="feat-card">
+        <span class="feat-card-icon">🌐</span>
+        <h3>Bilingüe ES/EN</h3>
+        <p>Detección automática de idioma. Prompts y UI adaptados dinámicamente</p>
+      </div>
+      <div class="feat-card">
+        <span class="feat-card-icon">🛡️</span>
+        <h3>Multi-Modelo + Graceful Degradation</h3>
+        <p>Bedrock como primario, Gemini como fallback. Status normalizados. Retry con backoff</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- SCENE 5: Cierre (75s – 90s) -->
+  <div id="scene-closing" class="scene" data-enter="75" data-exit="90">
+    <div class="close-logo">BabyHealth</div>
+    <p class="close-url">babyhealth.hmartinez.info</p>
+    <p class="close-tagline">"Orientación inteligente. Tranquilidad instantánea."</p>
+    <p class="close-team">Hector · Álvaro · William · Francisco</p>
+    <div class="close-badge">Hackathon Kiro 2026</div>
+  </div>
+
+</div>
+
+<script>
+(function() {
+  // HyperFrames Timeline Controller
+  const root = document.getElementById('root');
+  const scenes = root.querySelectorAll('.scene');
+  const duration = parseInt(root.getAttribute('data-duration'));
+
+  const timeline = {
+    duration: duration,
+    seek: function(t) {
+      scenes.forEach(function(scene) {
+        const enter = parseInt(scene.getAttribute('data-enter'));
+        const exit = parseInt(scene.getAttribute('data-exit'));
+        if (t >= enter && t < exit) {
+          scene.style.opacity = '1';
+          scene.style.pointerEvents = 'auto';
+        } else {
+          scene.style.opacity = '0';
+          scene.style.pointerEvents = 'none';
+        }
+      });
+    }
+  };
+
+  // Register timeline for HyperFrames runtime
+  window.__timelines = window.__timelines || {};
+  window.__timelines['babyhealth-pitch-001'] = timeline;
+
+  // Show first scene on load
+  timeline.seek(0);
+})();
+</script>
+
+</body>
+</html>
